@@ -9,7 +9,8 @@
 | 目录 | 用途 |
 |---|---|
 | `index.html` | 静态门户首页,列出所有可用工具 |
-| `tools/` | 各 web 工具,每个一个独立子目录,**点开才加载** |
+| `tools/` | 各 web 工具的**最终静态产物**,每个一个独立子目录,**点开才加载** |
+| `apps/` | 需要构建的 React 工具源码(Vite),`npm run build` → 写入对应 `tools/<name>/` |
 | `packages/core/` | 跨平台共享的纯计算模块(无 DOM、无 React),供 web 与未来小程序复用 |
 | `engines/` | 高性能计算引擎源码(Rust → WASM) |
 | `desktop/` | 桌面端遗留版(tkinter),保留作算法/数据参考 |
@@ -25,14 +26,24 @@
 
 ## 本地运行
 
-`tools/range-zen/` 和 `tools/bounty/` 使用 ES 模块/WASM,不能用 `file://` 直接打开,需要 HTTP 服务器:
-
 ```bash
 python3 -m http.server 8000
 # 访问 http://localhost:8000/
 ```
 
-其余工具(`mtt-staking`、`staking-solver`、`squid-game`)双击 HTML 即可。
+`tools/range-zen/`、`tools/bounty/`、`tools/mtt-staking/` 用了 ES 模块/WASM,**必须**通过 HTTP 服务器访问,不能 `file://` 直接打开。其余工具(`staking-solver`、`squid-game`)双击 HTML 也行,但走 HTTP 是最简单的统一方式。
+
+## 重新构建 React 工具
+
+`apps/<name>/` 目录下:
+
+```bash
+cd apps/mtt-staking
+npm install     # 第一次
+npm run build   # → 输出到 tools/mtt-staking/
+```
+
+构建产物会被提交到仓库,所以静态部署(GitHub Pages / Cloudflare Pages 等)不需要 CI 运行 npm。
 
 ## 设计哲学
 

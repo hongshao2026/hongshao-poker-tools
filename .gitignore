@@ -27,3 +27,6 @@ venv/
 
 # Local-only
 *.local
+
+# Claude Code session data
+.claude/

@@ -16,6 +16,7 @@
     --text-dim: #8a8a99;
     --text-faint: #5a5a68;
     --accent: #d4ff3a;
+    --accent-dim: #8aa820;
     --mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
     --sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
   }
@@ -85,27 +86,40 @@
     border-color: var(--border-bright);
     transform: translateY(-2px);
   }
+  .card-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
   .card-tag {
     display: inline-block;
     font-family: var(--mono);
     font-size: 10px;
-    color: var(--accent);
-    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    padding: 3px 8px;
-    border: 1px solid var(--border-bright);
-    border-radius: 4px;
-    margin-bottom: 14px;
+    padding: 2px 7px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+  }
+  .card-tag.scen {
+    color: var(--accent);
+    border-color: var(--accent-dim, #8aa820);
   }
   .card-title {
     font-size: 20px;
     font-weight: 600;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     letter-spacing: -0.01em;
+  }
+  .card-q {
+    font-size: 13px;
+    color: var(--text);
+    margin-bottom: 10px;
+    padding-left: 10px;
+    border-left: 2px solid var(--accent);
+    line-height: 1.5;
+    font-style: italic;
   }
   .card-desc {
     color: var(--text-dim);
-    font-size: 14px;
+    font-size: 13px;
     line-height: 1.55;
     margin-bottom: 16px;
   }
@@ -160,73 +174,80 @@
   <header>
     <div class="brand">Hongshao Poker Tools</div>
     <h1>红烧扑克工具集</h1>
-    <p class="subtitle">为 MTT / 现金桌玩家设计的一组离线计算工具。所有工具均可在浏览器中直接运行，无需后端。</p>
+    <p class="subtitle">为 MTT / 现金桌玩家设计的离线计算工具。每个工具针对一个具体问题，点开即用。</p>
   </header>
 
   <div class="section-label">Staking · 投资分析</div>
   <div class="grid">
     <a class="card" href="tools/mtt-staking/index.html">
-      <span class="card-tag">React</span>
-      <div class="card-title">MTT Staking Calculator</div>
-      <div class="card-desc">基于 ICM / ChipEV 的 MTT 投资回报计算，支持多场次组合、Make-up、分润比例与可视化。</div>
-      <div class="card-meta">
-        <span>tools/mtt-staking</span>
-        <span class="card-arrow">→</span>
+      <div class="card-tags">
+        <span class="card-tag scen">投资人 / 选手</span>
+        <span class="card-tag">MTT</span>
       </div>
+      <div class="card-title">MTT 投资回报计算器</div>
+      <div class="card-q">"我投了选手 N 场比赛，预期回本和 ROI 多少？Make-up 怎么算？"</div>
+      <div class="card-desc">基于 ICM / ChipEV 的多场次组合分析，分润比例、Make-up、可视化 ROI 分布。</div>
+      <div class="card-meta"><span>tools/mtt-staking</span><span class="card-arrow">→</span></div>
     </a>
     <a class="card" href="tools/staking-solver/index.html">
-      <span class="card-tag">Vanilla</span>
-      <div class="card-title">Staking Solver</div>
-      <div class="card-desc">求解多方投资场景下的最优分配与定价，单文件零依赖。</div>
-      <div class="card-meta">
-        <span>tools/staking-solver</span>
-        <span class="card-arrow">→</span>
+      <div class="card-tags">
+        <span class="card-tag scen">合买 / 定价</span>
+        <span class="card-tag">MTT</span>
       </div>
+      <div class="card-title">Staking Solver</div>
+      <div class="card-q">"几个人合买某场比赛，份额和 markup 怎么定才公平？"</div>
+      <div class="card-desc">多方投资场景的最优分配与定价求解，单文件零依赖。</div>
+      <div class="card-meta"><span>tools/staking-solver</span><span class="card-arrow">→</span></div>
     </a>
   </div>
 
   <div class="section-label">Bounty · 赏金跟注</div>
   <div class="grid">
     <a class="card" href="tools/bounty/index.html">
-      <span class="card-tag">Vanilla</span>
-      <div class="card-title">赏金跟注计算器</div>
-      <div class="card-desc">PKO 与神秘赏金两种赛制下的跟注所需胜率计算，含双向 stack/BB 联动与覆盖判定。</div>
-      <div class="card-meta">
-        <span>tools/bounty</span>
-        <span class="card-arrow">→</span>
+      <div class="card-tags">
+        <span class="card-tag scen">PKO / 神秘赏金</span>
+        <span class="card-tag">桌上决策</span>
       </div>
+      <div class="card-title">赏金跟注计算器</div>
+      <div class="card-q">"对面 all-in 了，含赏金我至少要多少胜率才能跟？"</div>
+      <div class="card-desc">PKO + 神秘赏金两种赛制，双向 stack/BB 联动、覆盖判定、所需胜率即时算。</div>
+      <div class="card-meta"><span>tools/bounty</span><span class="card-arrow">→</span></div>
     </a>
   </div>
 
   <div class="section-label">Equity · 胜率分析</div>
   <div class="grid">
     <a class="card" href="tools/range-zen/index.html">
-      <span class="card-tag">Rust · WASM</span>
-      <div class="card-title">Range Zen — 范围胜率</div>
-      <div class="card-desc">范围对范围胜率计算，Rust 引擎编译为 WASM (92KB)，Web Worker 中运行不卡 UI。需本地 HTTP 服务器。</div>
-      <div class="card-meta">
-        <span>tools/range-zen</span>
-        <span class="card-arrow">→</span>
+      <div class="card-tags">
+        <span class="card-tag scen">范围 vs 范围</span>
+        <span class="card-tag">复盘</span>
       </div>
+      <div class="card-title">Range Zen — 范围胜率</div>
+      <div class="card-q">"我这个范围对手那个范围，胜率多少？任意牌面下命中如何？"</div>
+      <div class="card-desc">Rust 引擎编译为 WASM (92KB)，Web Worker 跑 6M sims/sec，主线程不卡。</div>
+      <div class="card-meta"><span>tools/range-zen</span><span class="card-arrow">→</span></div>
     </a>
   </div>
 
   <div class="section-label">Game Theory · 博弈分析</div>
   <div class="grid">
     <a class="card" href="tools/squid-game/index.html">
-      <span class="card-tag">Vanilla</span>
-      <div class="card-title">鱿鱼博弈计算器</div>
-      <div class="card-desc">8 人桌 11 鱿鱼场景的 EV 计算器，DP 精确求解击中/未击中收益。</div>
-      <div class="card-meta">
-        <span>tools/squid-game</span>
-        <span class="card-arrow">→</span>
+      <div class="card-tags">
+        <span class="card-tag scen">鱿鱼桌</span>
+        <span class="card-tag">桌上决策</span>
       </div>
+      <div class="card-title">鱿鱼博弈计算器</div>
+      <div class="card-q">"桌上还有 N 个鱿鱼，现在打 vs 收手，哪个 EV 高？"</div>
+      <div class="card-desc">8 人桌 11 鱿鱼场景，DP 精确求解击中/未击中收益与差额。</div>
+      <div class="card-meta"><span>tools/squid-game</span><span class="card-arrow">→</span></div>
     </a>
   </div>
 
 
   <footer>
     <a href="https://github.com/hongshao2026/hongshao-poker-tools" target="_blank" rel="noopener">github.com/hongshao2026/hongshao-poker-tools</a>
+    &nbsp;·&nbsp;
+    <span>本地运行: <code style="font-family:var(--mono);color:var(--text-dim);">python3 -m http.server</code></span>
   </footer>
 </div>
 </body>

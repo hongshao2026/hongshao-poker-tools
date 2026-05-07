@@ -144,9 +144,16 @@
             background: #ffebee;
             border-radius: 4px;
         }
+        .portal-back { position: fixed; top: 12px; left: 16px; z-index: 1000;
+            font-family: ui-monospace, Consolas, monospace; font-size: 11px;
+            color: #666; text-decoration: none; letter-spacing: 0.1em;
+            background: rgba(255,255,255,0.92); border: 1px solid #ddd;
+            border-radius: 6px; padding: 6px 10px; transition: color .15s, border-color .15s; }
+        .portal-back:hover { color: #000; border-color: #999; }
     </style>
 </head>
 <body>
+    <a class="portal-back" href="../../index.html">← 工具集</a>
     <div class="container">
         <h1>鱿鱼博弈计算器 (EV & 概率)</h1>
         

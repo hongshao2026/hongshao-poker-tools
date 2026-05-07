@@ -746,9 +746,17 @@
     line-height: 1.6;
   }
   .vnote strong { color: var(--text-dim); font-weight: 500; }
+  .portal-back { position: fixed; top: 12px; left: 16px; z-index: 1000;
+    font-family: var(--mono); font-size: 11px; color: var(--text-dim);
+    text-decoration: none; letter-spacing: 0.1em;
+    background: rgba(10,10,12,0.85); backdrop-filter: blur(8px);
+    border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px;
+    transition: color .15s, border-color .15s; }
+  .portal-back:hover { color: var(--accent); border-color: var(--border-bright); }
 </style>
 </head>
 <body>
+<a class="portal-back" href="../../index.html">← 工具集</a>
 <div class="wrap">
 
   <header>

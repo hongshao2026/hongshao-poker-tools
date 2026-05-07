@@ -11,25 +11,34 @@
 ```
 hongshao-poker-tools/
 ├── index.html              # 静态门户（10KB 量级，永远秒开）
-├── tools/                  # 各工具，独立子目录、独立加载
-│   ├── mtt-staking/        # React + 浏览器 Babel（重，待 Vite 化）
+├── tools/                  # 各工具的最终产物（部署/访问入口）
+│   ├── mtt-staking/        # Vite React → 192KB gzip
 │   ├── staking-solver/     # 原生 HTML/JS（轻）
 │   ├── squid-game/         # 原生 HTML/JS + DP（轻）
 │   ├── bounty/             # 原生 HTML/JS，导入 packages/core/bounty
 │   └── range-zen/          # WASM (Rust 编译) + Web Worker
+├── apps/                   # 需要 npm/Vite 构建的 React 工具源码
+│   └── mtt-staking/        # → 构建到 tools/mtt-staking/
 ├── packages/
 │   └── core/               # 跨平台纯计算模块（无 DOM/React，可被小程序复用）
 │       └── bounty/         # PKO + 神秘赏金计算
 ├── engines/                # 高性能引擎源码
 │   └── range-zen/          # Rust 工作区
-│       ├── crates/
-│       │   ├── range-zen-core/   # 核心库
-│       │   ├── range-zen-api/    # axum HTTP API
-│       │   └── range-zen-wasm/   # wasm-bindgen 包装
-│       └── docs/
+│       └── crates/
+│           ├── range-zen-core/   # 核心库
+│           ├── range-zen-api/    # axum HTTP API
+│           └── range-zen-wasm/   # wasm-bindgen 包装
 ├── desktop/                # 桌面遗留版（参考）
 └── docs/ARCHITECTURE.md    # 本文件
 ```
+
+**`tools/` vs `apps/` vs `engines/` 的责任划分**:
+
+- `tools/<name>/` 永远是**部署即可工作的静态产物**,门户直接链接进去
+- `apps/<name>/` 是 Vite/打包工具的源码,`npm run build` 写到 `tools/<name>/`
+- `engines/<name>/` 是 Rust/重计算的源码,`wasm-pack build` 或 `cargo build` 写到对应 `tools/<name>/pkg/`
+
+这种职责分离让"部署只看 tools/"成为永真规则,新增工具只需要决定它属于"轻"(直接写到 `tools/`)还是"重"(在 `apps/` 或 `engines/` 写源码 + 构建到 `tools/`)。
 
 ---
 
@@ -45,15 +54,15 @@ hongshao-poker-tools/
 - 每个 `tools/<name>/index.html` 是一个独立页面,**点进去才加载**
 - 用户从不为没用的工具付出加载成本
 
-### 当前已有问题与对应方案
+### 当前已解决/待解决
 
-| 问题 | 现状 | 优化路径 |
+| 问题 | 状态 | 现状 |
 |---|---|---|
-| MTT staking 用浏览器 Babel 编译 JSX,首次 ~600ms | 4.5MB 的 babel.min.js + 运行时编译 | 引入 Vite 预编译为静态 JS,体积降到 ~200KB,加载 <100ms |
-| 多个 React 工具会各自打包 React | 重复 ~140KB | 共享 `vendor/` 或用 import map 引用 CDN ESM |
-| 字体走 Google CDN,中国大陆可能慢 | `fonts.googleapis.com` | 后续切换为本地字体或国内 CDN |
+| ~~MTT staking 用浏览器 Babel 编译 JSX,首次 ~600ms~~ | ✅ 已解决 | Vite 构建 → 192KB gzip,加载 <100ms |
+| 多个 React 工具会各自打包 React | 待定 | 当前只有一个 React 工具,暂不优化;以后 3+ 个再共享 vendor |
+| 字体走 Google CDN,中国大陆可能慢 | 待定 | 后续切换为本地字体或国内 CDN |
 
-**当前阶段不动**,等积累 5+ 个 React 工具后再上 Vite。原则:**先有,再快**。
+**原则**:先有,再快。除非具体工具体感差,否则不预优化。
 
 ### 集成判断标准(下次新工具加进来怎么决定)
 
@@ -224,8 +233,8 @@ packages/core/
 3. **(P2,已完成)** Range Zen WASM 化:`wasm-pack` 编译,Web Worker 加载,92KB WASM
 4. **(P3,已完成)** Bounty Calculator web 化:1047 行 tkinter → 单文件 HTML
 5. **(P4,已完成)** `packages/core/bounty` 抽出,服务于未来小程序项目
-6. **(P5)** 把其它工具的纯逻辑也抽到 `packages/core/`(staking-solver、squid-game、mtt-staking)
-7. **(P6)** 引入 Vite 统一构建,替代 mtt-staking 的浏览器端 Babel
+6. **(P6,已完成)** Vite 化 mtt-staking,替代浏览器端 Babel(192KB gzip)
+7. **(P5)** 把其它工具的纯逻辑也抽到 `packages/core/`(staking-solver、squid-game、mtt-staking)
 8. **(P7)** 启动小程序仓库,通过 npm/git submodule 引用 `packages/core`,WASM 改用 `engines/range-zen-api` 后端
 
 每完成一个工具的迁移再决策下一个,不要一口气铺太多并行工作。
