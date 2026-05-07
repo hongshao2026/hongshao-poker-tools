@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Range Zen · 范围胜率计算器</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0c;
+    --bg-elev: #131318;
+    --bg-input: #1a1a21;
+    --border: #2a2a35;
+    --border-bright: #3d3d4d;
+    --text: #e8e8ee;
+    --text-dim: #8a8a99;
+    --text-faint: #5a5a68;
+    --accent: #d4ff3a;
+    --accent-dim: #8aa820;
+    --warn: #ff6b4a;
+    --good: #3affb0;
+    --p1: #d4ff3a;
+    --p2: #4ac8ff;
+    --mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+    --sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 48px 24px 96px; }
+  header { margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+  .back { font-family: var(--mono); font-size: 11px; color: var(--text-dim); text-decoration: none; letter-spacing: 0.1em; }
+  .back:hover { color: var(--accent); }
+  h1 { font-size: 28px; font-weight: 600; margin-top: 12px; letter-spacing: -0.01em; }
+  .sub { color: var(--text-dim); font-size: 13px; margin-top: 6px; }
+  .panel { background: var(--bg-elev); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+  .row { display: grid; grid-template-columns: 100px 1fr; gap: 12px; align-items: center; margin-bottom: 12px; }
+  .row:last-child { margin-bottom: 0; }
+  label { font-family: var(--mono); font-size: 11px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; }
+  input[type="text"], input[type="number"] {
+    background: var(--bg-input); border: 1px solid var(--border); color: var(--text);
+    padding: 10px 12px; border-radius: 6px; font-family: var(--mono); font-size: 13px; width: 100%;
+    transition: border-color .15s;
+  }
+  input:focus { outline: none; border-color: var(--border-bright); }
+  input.p1 { border-left: 3px solid var(--p1); }
+  input.p2 { border-left: 3px solid var(--p2); }
+  .examples { font-family: var(--mono); font-size: 10px; color: var(--text-faint); margin-top: 4px; grid-column: 2; }
+  .ex { color: var(--text-dim); cursor: pointer; }
+  .ex:hover { color: var(--accent); }
+  .actions { display: flex; gap: 12px; align-items: center; }
+  button {
+    background: var(--accent); color: #000; border: none; padding: 10px 20px;
+    font-family: var(--sans); font-size: 13px; font-weight: 600; border-radius: 6px;
+    cursor: pointer; transition: opacity .15s;
+  }
+  button:hover { opacity: 0.85; }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  button.stop { background: var(--warn); color: #fff; }
+  .status { font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+  .status.err { color: var(--warn); }
+  .results { margin-top: 24px; }
+  .result-bar {
+    display: grid; grid-template-columns: 80px 1fr 100px; gap: 12px; align-items: center;
+    margin-bottom: 12px;
+  }
+  .result-name { font-family: var(--mono); font-size: 12px; }
+  .bar-track { height: 28px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; position: relative; }
+  .bar-fill { height: 100%; transition: width .3s ease; }
+  .bar-fill.p1 { background: linear-gradient(90deg, var(--p1) 0%, var(--accent-dim) 100%); }
+  .bar-fill.p2 { background: linear-gradient(90deg, var(--p2) 0%, #2a8aaa 100%); }
+  .bar-pct { position: absolute; top: 50%; left: 12px; transform: translateY(-50%); font-family: var(--mono); font-size: 13px; font-weight: 600; color: #000; }
+  .bar-detail { font-family: var(--mono); font-size: 10px; color: var(--text-dim); text-align: right; }
+  .meta { font-family: var(--mono); font-size: 11px; color: var(--text-faint); margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; }
+  .progress { font-family: var(--mono); font-size: 12px; color: var(--text-dim); }
+  .progress-bar-track { height: 4px; background: var(--bg-input); border-radius: 2px; overflow: hidden; margin-top: 8px; }
+  .progress-bar-fill { height: 100%; background: var(--accent); transition: width .1s; }
+  details { margin-top: 16px; font-family: var(--mono); font-size: 12px; color: var(--text-dim); }
+  summary { cursor: pointer; padding: 8px 0; }
+  summary:hover { color: var(--text); }
+  pre { background: var(--bg-input); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 11px; line-height: 1.6; }
+  .err-box {
+    background: #2a0e0e; border: 1px solid #5a1f1f; color: #ff8888;
+    padding: 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px;
+    margin-top: 12px; display: none; white-space: pre-wrap;
+  }
+  @media (max-width: 600px) {
+    .row { grid-template-columns: 1fr; gap: 4px; }
+    .result-bar { grid-template-columns: 60px 1fr; }
+    .bar-detail { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="back" href="../../index.html">← 工具集</a>
+    <h1>Range Zen <span style="color:var(--text-faint);font-weight:400;font-size:14px;margin-left:8px;">v0.2 · WASM</span></h1>
+    <p class="sub">范围对范围胜率计算 · Rust 引擎编译为 WASM,在 Web Worker 中运行,主线程不卡顿</p>
+  </header>
+
+  <div class="panel">
+    <div class="row">
+      <label>Player 1</label>
+      <input class="p1" id="r1" type="text" value="AA,KK,QQ,AKs" placeholder="AA,KK,AKs">
+    </div>
+    <div class="examples">
+      预设:
+      <span class="ex" data-target="r1" data-value="AA">AA</span> ·
+      <span class="ex" data-target="r1" data-value="QQ+,AKs,AKo">QQ+,AK</span> ·
+      <span class="ex" data-target="r1" data-value="TT+,AQs+,AKo">~5%</span> ·
+      <span class="ex" data-target="r1" data-value="77+,A9s+,KTs+,QTs+,JTs,T9s,98s,ATo+,KJo+,QJo">~15%</span>
+    </div>
+    <div class="row">
+      <label>Player 2</label>
+      <input class="p2" id="r2" type="text" value="QQ,JJ,AKs,AQs" placeholder="QQ-TT,AQo+">
+    </div>
+    <div class="examples">
+      预设:
+      <span class="ex" data-target="r2" data-value="22+">22+</span> ·
+      <span class="ex" data-target="r2" data-value="TT+,AQs+,AKo">~5%</span> ·
+      <span class="ex" data-target="r2" data-value="77+,A9s+,KTs+,QTs+,JTs,T9s,98s,ATo+,KJo+,QJo">~15%</span> ·
+      <span class="ex" data-target="r2" data-value="22+,A2s+,K9s+,Q9s+,J9s+,T8s+,97s+,86s+,75s+,64s+,54s,A8o+,KTo+,QTo+,JTo">~30%</span>
+    </div>
+    <div class="row">
+      <label>Board</label>
+      <input id="board" type="text" placeholder="留空=翻前;例:AhKd2c">
+    </div>
+    <div class="row">
+      <label>Sims</label>
+      <input id="sims" type="number" value="100000" min="1000" max="10000000" step="10000">
+    </div>
+  </div>
+
+  <div class="actions">
+    <button id="run">计算</button>
+    <button id="stop" class="stop" style="display:none;">停止</button>
+    <span class="status" id="status">未加载</span>
+  </div>
+
+  <div class="err-box" id="err"></div>
+
+  <div class="results" id="results" style="display:none;">
+    <div class="panel">
+      <div class="result-bar">
+        <span class="result-name" style="color:var(--p1);">Player 1</span>
+        <div class="bar-track"><div class="bar-fill p1" id="bar1" style="width:0%;"></div><span class="bar-pct" id="pct1">—</span></div>
+        <div class="bar-detail" id="det1">—</div>
+      </div>
+      <div class="result-bar">
+        <span class="result-name" style="color:var(--p2);">Player 2</span>
+        <div class="bar-track"><div class="bar-fill p2" id="bar2" style="width:0%;"></div><span class="bar-pct" id="pct2">—</span></div>
+        <div class="bar-detail" id="det2">—</div>
+      </div>
+      <div class="meta">
+        <span id="meta-samples">—</span>
+        <span id="meta-time">—</span>
+      </div>
+    </div>
+  </div>
+
+  <details>
+    <summary>语法说明</summary>
+    <pre>PokerStove 范围语法:
+  AA          —— 一对 A
+  AKs         —— 同花 AK
+  AKo         —— 不同花 AK
+  AK          —— 所有 AK (同花+不同花)
+  QQ-TT       —— QQ, JJ, TT
+  ATs+        —— ATs, AJs, AQs, AKs
+  AJo+        —— AJo, AQo, AKo
+  77+         —— 77, 88, 99, ..., AA
+  多个范围用逗号分隔: TT+,AQs+,AKo
+
+Board 语法:
+  空字符串    —— 翻前
+  AhKd2c      —— 翻牌
+  AhKd2c5s    —— 转牌
+  AhKd2c5sQs  —— 河牌</pre>
+  </details>
+
+  <details>
+    <summary>本地运行说明</summary>
+    <pre>WASM 不能从 file:// 直接加载,需要本地 HTTP 服务器:
+
+  cd /path/to/hongshao-poker-tools
+  python3 -m http.server 8000
+  # 然后访问 http://localhost:8000/tools/range-zen/
+
+或部署到任何静态托管服务 (Cloudflare Pages, Vercel, Netlify, GitHub Pages)。</pre>
+  </details>
+</div>
+
+<script type="module">
+  const $ = (id) => document.getElementById(id);
+  const elRun = $('run'), elStop = $('stop'), elStatus = $('status'), elErr = $('err');
+  const elResults = $('results'), elBar1 = $('bar1'), elBar2 = $('bar2');
+  const elPct1 = $('pct1'), elPct2 = $('pct2'), elDet1 = $('det1'), elDet2 = $('det2');
+  const elMetaSamples = $('meta-samples'), elMetaTime = $('meta-time');
+
+  document.querySelectorAll('.ex').forEach(el => {
+    el.addEventListener('click', () => {
+      $(el.dataset.target).value = el.dataset.value;
+    });
+  });
+
+  let worker = null;
+  let startTime = 0;
+
+  function showError(msg) {
+    elErr.style.display = 'block';
+    elErr.textContent = msg;
+    elStatus.textContent = 'error';
+    elStatus.className = 'status err';
+  }
+  function clearError() {
+    elErr.style.display = 'none';
+    elStatus.className = 'status';
+  }
+
+  function setRunning(running) {
+    elRun.style.display = running ? 'none' : '';
+    elStop.style.display = running ? '' : 'none';
+  }
+
+  function getWorker() {
+    if (worker) return worker;
+    worker = new Worker('./worker.js', { type: 'module' });
+    worker.onmessage = (e) => {
+      const m = e.data;
+      if (m.type === 'ready') {
+        elStatus.textContent = 'WASM 就绪';
+      } else if (m.type === 'progress') {
+        elStatus.textContent = `计算中 ${(m.done * 100).toFixed(0)}%`;
+      } else if (m.type === 'done') {
+        const elapsed = (performance.now() - startTime) / 1000;
+        renderResult(m.result, elapsed);
+        setRunning(false);
+        elStatus.textContent = '完成';
+      } else if (m.type === 'error') {
+        showError(m.error);
+        setRunning(false);
+      } else if (m.type === 'cancelled') {
+        elStatus.textContent = '已停止';
+        setRunning(false);
+      }
+    };
+    worker.onerror = (e) => {
+      showError('Worker error: ' + (e.message || e.filename + ':' + e.lineno));
+      setRunning(false);
+    };
+    return worker;
+  }
+
+  function renderResult(result, elapsed) {
+    if (!result || !result.players || result.players.length < 2) {
+      showError('结果格式不对');
+      return;
+    }
+    const [p1, p2] = result.players;
+    elResults.style.display = '';
+    elBar1.style.width = (p1.equity * 100) + '%';
+    elBar2.style.width = (p2.equity * 100) + '%';
+    elPct1.textContent = (p1.equity * 100).toFixed(2) + '%';
+    elPct2.textContent = (p2.equity * 100).toFixed(2) + '%';
+    elDet1.textContent = `W ${(p1.win_pct*100).toFixed(1)}% T ${(p1.tie_pct*100).toFixed(1)}%`;
+    elDet2.textContent = `W ${(p2.win_pct*100).toFixed(1)}% T ${(p2.tie_pct*100).toFixed(1)}%`;
+    elMetaSamples.textContent = `${result.total_samples.toLocaleString()} samples`;
+    const sps = elapsed > 0 ? (result.total_samples / elapsed / 1000).toFixed(0) : '?';
+    elMetaTime.textContent = `${elapsed.toFixed(2)}s · ${sps}K sims/s`;
+  }
+
+  elRun.addEventListener('click', () => {
+    clearError();
+    const r1 = $('r1').value.trim();
+    const r2 = $('r2').value.trim();
+    const board = $('board').value.trim();
+    const sims = parseInt($('sims').value, 10);
+    if (!r1 || !r2) { showError('两个范围都必填'); return; }
+    if (!sims || sims < 1000) { showError('Sims 至少 1000'); return; }
+    setRunning(true);
+    elStatus.textContent = '加载中...';
+    startTime = performance.now();
+    getWorker().postMessage({ type: 'run', r1, r2, board, sims });
+  });
+
+  elStop.addEventListener('click', () => {
+    if (worker) {
+      worker.terminate();
+      worker = null;
+    }
+    setRunning(false);
+    elStatus.textContent = '已停止';
+  });
+
+  // Pre-warm: load WASM on page open so first calc is fast.
+  getWorker().postMessage({ type: 'init' });
+</script>
+</body>
+</html>

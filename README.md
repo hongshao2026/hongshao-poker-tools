@@ -10,22 +10,29 @@
 |---|---|
 | `index.html` | 静态门户首页,列出所有可用工具 |
 | `tools/` | 各 web 工具,每个一个独立子目录,**点开才加载** |
+| `packages/core/` | 跨平台共享的纯计算模块(无 DOM、无 React),供 web 与未来小程序复用 |
 | `engines/` | 高性能计算引擎源码(Rust → WASM) |
 | `desktop/` | 桌面端遗留版(tkinter),保留作算法/数据参考 |
 | `docs/` | 设计文档,见 [ARCHITECTURE.md](./docs/ARCHITECTURE.md) |
 
 ## 当前工具
 
-### 可用
-
 - **MTT Staking Calculator** — `tools/mtt-staking/` — 基于 ICM/ChipEV 的多场次投资分析
 - **Staking Solver** — `tools/staking-solver/` — 多方投资场景分配求解
 - **鱿鱼博弈计算器** — `tools/squid-game/` — 8 人桌 11 鱿鱼场景 EV 计算
+- **赏金跟注计算器** — `tools/bounty/` — PKO + 神秘赏金所需胜率
+- **Range Zen** — `tools/range-zen/` — Rust → WASM,范围对范围胜率(需本地 HTTP 服务器)
 
-### 开发中
+## 本地运行
 
-- **Range Zen** — `engines/range-zen/` — Rust 引擎,77M evals/sec,待编译为 WASM
-- **Bounty Calculator** — `desktop/bounty-calculator/` — PKO 赏金 EV,待 web 化
+`tools/range-zen/` 和 `tools/bounty/` 使用 ES 模块/WASM,不能用 `file://` 直接打开,需要 HTTP 服务器:
+
+```bash
+python3 -m http.server 8000
+# 访问 http://localhost:8000/
+```
+
+其余工具(`mtt-staking`、`staking-solver`、`squid-game`)双击 HTML 即可。
 
 ## 设计哲学
 

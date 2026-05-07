@@ -12,16 +12,23 @@
 hongshao-poker-tools/
 ├── index.html              # 静态门户（10KB 量级，永远秒开）
 ├── tools/                  # 各工具，独立子目录、独立加载
-│   ├── mtt-staking/        # React + 浏览器 Babel（重）
+│   ├── mtt-staking/        # React + 浏览器 Babel（重，待 Vite 化）
 │   ├── staking-solver/     # 原生 HTML/JS（轻）
-│   └── squid-game/         # 原生 HTML/JS + DP（轻）
-├── engines/                # 计算引擎源码（不直接服务 UI）
-│   └── range-zen/          # Rust，77M evals/sec，将编译为 WASM
+│   ├── squid-game/         # 原生 HTML/JS + DP（轻）
+│   ├── bounty/             # 原生 HTML/JS，导入 packages/core/bounty
+│   └── range-zen/          # WASM (Rust 编译) + Web Worker
+├── packages/
+│   └── core/               # 跨平台纯计算模块（无 DOM/React，可被小程序复用）
+│       └── bounty/         # PKO + 神秘赏金计算
+├── engines/                # 高性能引擎源码
+│   └── range-zen/          # Rust 工作区
+│       ├── crates/
+│       │   ├── range-zen-core/   # 核心库
+│       │   ├── range-zen-api/    # axum HTTP API
+│       │   └── range-zen-wasm/   # wasm-bindgen 包装
+│       └── docs/
 ├── desktop/                # 桌面遗留版（参考）
-│   ├── bounty-calculator/  # tkinter，待 web 化
-│   └── squid-game/         # tkinter + xlsx
-└── docs/
-    └── ARCHITECTURE.md     # 本文件
+└── docs/ARCHITECTURE.md    # 本文件
 ```
 
 ---
@@ -213,11 +220,12 @@ packages/core/
 按收益/成本排序:
 
 1. **(P0,已完成)** 重组目录,把工具按 `tools/<name>/` 隔离,门户秒开
-2. **(P1)** Squid Game 的 web 版接入:已经做了,文件在位
-3. **(P2)** Range Zen WASM 化:`wasm-pack` + 写 `tools/range-zen/` UI,投入 ~1 天,但解锁了 web 端的强力工具
-4. **(P3)** Bounty Calculator web 化:tkinter 1047 行 → React,投入 ~1-2 天
-5. **(P4)** 抽 `packages/core/` 共享层,服务于未来小程序项目
-6. **(P5)** 引入 Vite 统一构建 React 工具,替代浏览器端 Babel
-7. **(P6)** 启动小程序仓库
+2. **(P1,已完成)** Squid Game 的 web 版接入
+3. **(P2,已完成)** Range Zen WASM 化:`wasm-pack` 编译,Web Worker 加载,92KB WASM
+4. **(P3,已完成)** Bounty Calculator web 化:1047 行 tkinter → 单文件 HTML
+5. **(P4,已完成)** `packages/core/bounty` 抽出,服务于未来小程序项目
+6. **(P5)** 把其它工具的纯逻辑也抽到 `packages/core/`(staking-solver、squid-game、mtt-staking)
+7. **(P6)** 引入 Vite 统一构建,替代 mtt-staking 的浏览器端 Babel
+8. **(P7)** 启动小程序仓库,通过 npm/git submodule 引用 `packages/core`,WASM 改用 `engines/range-zen-api` 后端
 
 每完成一个工具的迁移再决策下一个,不要一口气铺太多并行工作。

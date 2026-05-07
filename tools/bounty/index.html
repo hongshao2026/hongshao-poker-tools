@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>赏金跟注计算器 · Bounty Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0c;
+    --bg-elev: #131318;
+    --bg-input: #1a1a21;
+    --border: #2a2a35;
+    --border-bright: #3d3d4d;
+    --text: #e8e8ee;
+    --text-dim: #8a8a99;
+    --text-faint: #5a5a68;
+    --accent: #d4ff3a;
+    --accent-dim: #8aa820;
+    --warn: #ff6b4a;
+    --good: #3affb0;
+    --orange: #ff9b3d;
+    --mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+    --sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    min-height: 100vh; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 32px 20px 80px; }
+  header { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+  .back { font-family: var(--mono); font-size: 11px; color: var(--text-dim); text-decoration: none; letter-spacing: 0.1em; }
+  .back:hover { color: var(--accent); }
+  h1 { font-size: 24px; font-weight: 600; margin-top: 10px; }
+  .sub { color: var(--text-dim); font-size: 12px; margin-top: 4px; }
+
+  .tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .tab {
+    background: none; border: none; color: var(--text-dim); padding: 10px 20px;
+    font-family: var(--sans); font-size: 14px; font-weight: 500; cursor: pointer;
+    border-bottom: 2px solid transparent; transition: all .15s;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+  .tab-mystery .tab-content.active { grid-template-columns: 1fr 1fr 1fr; }
+
+  .panel { background: var(--bg-elev); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+  .panel-title { font-family: var(--mono); font-size: 10px; color: var(--text-faint); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 12px; }
+
+  .field { display: grid; grid-template-columns: 110px 1fr; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .field-wide { grid-template-columns: 110px 1fr 1fr; }
+  .field-vill { grid-template-columns: 60px 1fr 1fr 1fr; }
+  label { font-size: 12px; color: var(--text-dim); }
+  input[type="text"], input[type="number"] {
+    background: var(--bg-input); border: 1px solid var(--border); color: var(--text);
+    padding: 7px 9px; border-radius: 4px; font-family: var(--mono); font-size: 12px; width: 100%;
+    transition: border-color .15s;
+  }
+  input:focus { outline: none; border-color: var(--border-bright); }
+  input[readonly] { background: #0d0d11; color: var(--text-dim); cursor: default; }
+
+  .btn { background: var(--accent); color: #000; border: none; padding: 10px 16px; font-family: var(--sans); font-size: 13px; font-weight: 600; border-radius: 6px; cursor: pointer; transition: opacity .15s; width: 100%; margin-top: 12px; }
+  .btn:hover { opacity: 0.85; }
+  .btn-orange { background: var(--orange); color: #000; }
+  .btn-blue { background: #4a6fa5; color: #fff; padding: 7px 12px; font-size: 11px; width: auto; margin-top: 8px; }
+  .btn-tiny { background: var(--bg-input); color: var(--text-dim); border: 1px solid var(--border); padding: 4px 8px; font-size: 11px; width: 28px; height: 26px; cursor: pointer; border-radius: 3px; }
+  .btn-tiny:hover { background: var(--border); color: var(--text); }
+
+  .result-row { display: grid; grid-template-columns: 130px 1fr; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+  .result-row:last-child { border-bottom: none; }
+  .result-label { color: var(--text-dim); }
+  .result-value { font-family: var(--mono); color: var(--text); text-align: right; }
+  .result-value.hl { color: var(--accent); font-weight: 600; font-size: 13px; }
+  .result-value.warn { color: var(--warn); }
+
+  .err { background: #2a0e0e; border: 1px solid #5a1f1f; color: #ff8888; padding: 10px; border-radius: 4px; font-family: var(--mono); font-size: 11px; margin-top: 10px; display: none; white-space: pre-wrap; }
+
+  .bounty-table { display: grid; grid-template-columns: 24px 1fr 1fr 28px 28px; gap: 4px; align-items: center; }
+  .bounty-table > * { font-size: 11px; }
+  .bounty-header { color: var(--text-faint); font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.05em; padding-bottom: 4px; border-bottom: 1px solid var(--border); margin-bottom: 4px; }
+  .row-num { color: var(--text-faint); font-family: var(--mono); text-align: center; }
+  .bounty-table input { padding: 4px 6px; font-size: 11px; }
+
+  @media (max-width: 900px) {
+    .tab-content.active { grid-template-columns: 1fr; }
+    .tab-mystery .tab-content.active { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="back" href="../../index.html">← 工具集</a>
+    <h1>赏金跟注计算器 <span style="color:var(--text-faint);font-weight:400;font-size:13px;margin-left:8px;">Bounty Calculator</span></h1>
+    <p class="sub">PKO 与神秘赏金两种赛制的跟注胜率分析,所有计算实时更新。</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="pko">PKO</button>
+    <button class="tab" data-tab="mystery">神秘赏金</button>
+  </div>
+
+  <!-- ============= PKO TAB ============= -->
+  <div class="tab-content active" id="tab-pko">
+    <div>
+      <div class="panel">
+        <div class="panel-title">赛事基础信息</div>
+        <div class="field"><label>比赛总人数</label><input type="text" id="pko-total" placeholder="如 5000"></div>
+        <div class="field"><label>剩余人数</label><input type="text" id="pko-left" placeholder="如 800"></div>
+        <div class="field"><label>起始筹码</label><input type="text" id="pko-stack" placeholder="如 25000"></div>
+        <div class="field"><label>起始赏金 ($)</label><input type="text" id="pko-bounty" placeholder="如 100"></div>
+      </div>
+
+      <div class="panel" style="margin-top:12px;">
+        <div class="panel-title">当前局势</div>
+        <div class="field"><label>前注</label><input type="text" id="pko-ante"></div>
+        <div class="field"><label>大盲</label><input type="text" id="pko-bb"></div>
+        <div class="field"><label>当桌人数</label><input type="text" id="pko-pat" placeholder="含 Hero"></div>
+        <div class="field field-wide"><label>当前总底池</label><input type="text" id="pko-pot" readonly><input type="text" id="pko-pot-bb" readonly placeholder="BB"></div>
+        <div class="field field-wide"><label>Hero 已投入</label><input type="text" id="pko-hi" value="0"><input type="text" id="pko-hi-bb"></div>
+        <div class="field field-wide"><label>Hero 需跟注</label><input type="text" id="pko-call" readonly><input type="text" id="pko-call-bb" readonly></div>
+        <div class="field field-wide"><label>Hero 总筹码</label><input type="text" id="pko-hs"><input type="text" id="pko-hs-bb"></div>
+      </div>
+
+      <div class="panel" style="margin-top:12px;">
+        <div class="panel-title">对手信息(留空=无)</div>
+        <div class="field" style="grid-template-columns: 60px repeat(3, 1fr); margin-bottom: 4px; color:var(--text-faint); font-family:var(--mono); font-size:10px;">
+          <span></span><span>All-in</span><span>BB</span><span>赏金 $</span>
+        </div>
+        <div class="field field-vill"><label>对手1</label><input type="text" class="pko-vs" data-i="0"><input type="text" class="pko-vbb" data-i="0"><input type="text" class="pko-vb" data-i="0"></div>
+        <div class="field field-vill"><label>对手2</label><input type="text" class="pko-vs" data-i="1"><input type="text" class="pko-vbb" data-i="1"><input type="text" class="pko-vb" data-i="1"></div>
+        <div class="field field-vill"><label>对手3</label><input type="text" class="pko-vs" data-i="2"><input type="text" class="pko-vbb" data-i="2"><input type="text" class="pko-vb" data-i="2"></div>
+        <div class="field field-vill"><label>对手4</label><input type="text" class="pko-vs" data-i="3"><input type="text" class="pko-vbb" data-i="3"><input type="text" class="pko-vb" data-i="3"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel">
+        <div class="panel-title">计算结果</div>
+        <button class="btn" id="pko-calc">计算所需胜率</button>
+        <div style="margin-top: 12px;">
+          <div class="result-row"><span class="result-label">剩余玩家比例</span><span class="result-value" id="pko-r-f">—</span></div>
+          <div class="result-row"><span class="result-label">起始赏金价值</span><span class="result-value" id="pko-r-bv">—</span></div>
+          <div class="result-row"><span class="result-label">可争夺总赏金</span><span class="result-value" id="pko-r-tcb">—</span></div>
+          <div class="result-row"><span class="result-label">赏金折合虚拟底池</span><span class="result-value" id="pko-r-bc">—</span></div>
+          <div class="result-row"><span class="result-label">当前总底池</span><span class="result-value" id="pko-r-pot">—</span></div>
+          <div class="result-row"><span class="result-label">Hero 需要跟注</span><span class="result-value" id="pko-r-call">—</span></div>
+          <div class="result-row"><span class="result-label">不含赏金所需胜率</span><span class="result-value" id="pko-r-ne">—</span></div>
+          <div class="result-row"><span class="result-label">含赏金所需胜率</span><span class="result-value hl" id="pko-r-re">—</span></div>
+        </div>
+        <div class="err" id="pko-err"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============= MYSTERY TAB ============= -->
+  <div class="tab-content tab-mystery" id="tab-mystery">
+    <div>
+      <div class="panel">
+        <div class="panel-title">赛事基础信息</div>
+        <div class="field"><label>总人数</label><input type="text" id="mb-total"></div>
+        <div class="field"><label>剩余人数</label><input type="text" id="mb-left" readonly placeholder="自动"></div>
+        <div class="field"><label>起始筹码</label><input type="text" id="mb-stack"></div>
+        <div class="field"><label>常规奖池买入($)</label><input type="text" id="mb-reg"></div>
+        <div class="field"><label>进圈总赏金($)</label><input type="text" id="mb-total-bounty" readonly></div>
+        <div class="field"><label>大盲</label><input type="text" id="mb-bb"></div>
+        <div class="field"><label>当桌人数</label><input type="text" id="mb-pat"></div>
+        <div class="field"><label>前注</label><input type="text" id="mb-ante"></div>
+        <button class="btn btn-blue" id="mb-preset-108">载入 108 神秘 Day2</button>
+      </div>
+
+      <div class="panel" style="margin-top:12px;">
+        <div class="panel-title">当前局势</div>
+        <div class="field field-wide"><label>当前总底池</label><input type="text" id="mb-pot" readonly><input type="text" id="mb-pot-bb" readonly></div>
+        <div class="field field-wide"><label>Hero 已投入</label><input type="text" id="mb-hi" value="0"><input type="text" id="mb-hi-bb" value="0"></div>
+        <div class="field field-wide"><label>Hero 需跟注</label><input type="text" id="mb-call" readonly><input type="text" id="mb-call-bb" readonly></div>
+      </div>
+
+      <div class="panel" style="margin-top:12px;">
+        <div class="panel-title">对手筹码 (最多4人)</div>
+        <div class="field field-wide"><label>对手1</label><input type="text" class="mb-vs" data-i="0"><input type="text" class="mb-vbb" data-i="0"></div>
+        <div class="field field-wide"><label>对手2</label><input type="text" class="mb-vs" data-i="1"><input type="text" class="mb-vbb" data-i="1"></div>
+        <div class="field field-wide"><label>对手3</label><input type="text" class="mb-vs" data-i="2"><input type="text" class="mb-vbb" data-i="2"></div>
+        <div class="field field-wide"><label>对手4</label><input type="text" class="mb-vs" data-i="3"><input type="text" class="mb-vbb" data-i="3"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel">
+        <div class="panel-title">剩余盲盒奖金表 (15 行)</div>
+        <div class="bounty-table" id="mb-bounty-grid">
+          <span class="bounty-header">#</span>
+          <span class="bounty-header">赏金($)</span>
+          <span class="bounty-header">个数</span>
+          <span class="bounty-header"></span>
+          <span class="bounty-header"></span>
+        </div>
+        <div class="field" style="grid-template-columns: 1fr 1fr; margin-top: 12px;">
+          <label>当前剩余赏金 ($)</label><input type="text" id="mb-remaining" readonly>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel">
+        <div class="panel-title">计算结果</div>
+        <button class="btn btn-orange" id="mb-calc">计算所需胜率</button>
+        <div style="margin-top: 12px;">
+          <div class="result-row"><span class="result-label">剩余盲盒总数</span><span class="result-value" id="mb-r-count">—</span></div>
+          <div class="result-row"><span class="result-label">当前平均赏金($)</span><span class="result-value" id="mb-r-avg">—</span></div>
+          <div class="result-row"><span class="result-label">1个盲盒折合</span><span class="result-value" id="mb-r-single">—</span></div>
+          <div class="result-row"><span class="result-label">覆盖对手人数</span><span class="result-value" id="mb-r-cov">—</span></div>
+          <div class="result-row"><span class="result-label">额外死筹</span><span class="result-value" id="mb-r-tbc">—</span></div>
+          <div class="result-row"><span class="result-label">当前总底池</span><span class="result-value" id="mb-r-pot">—</span></div>
+          <div class="result-row"><span class="result-label">Hero 需跟注</span><span class="result-value" id="mb-r-call">—</span></div>
+          <div class="result-row"><span class="result-label">不含赏金所需胜率</span><span class="result-value" id="mb-r-ne">—</span></div>
+          <div class="result-row"><span class="result-label">含神秘赏金所需胜率</span><span class="result-value hl" id="mb-r-re">—</span></div>
+        </div>
+        <div class="err" id="mb-err"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { calcPKO, calcMystery, pkoPot, mysteryPot, heroCallAmount }
+  from '../../packages/core/bounty/index.js';
+
+// =================== 工具函数 ===================
+const $ = (id) => document.getElementById(id);
+const $$ = (sel) => document.querySelectorAll(sel);
+const parseNum = (s) => {
+  if (s === null || s === undefined) return null;
+  const t = String(s).trim();
+  if (!t) return null;
+  const v = Number(t);
+  return Number.isFinite(v) ? v : null;
+};
+const fmt = (v, d = 2) => Number(v).toFixed(d);
+const fmtInt = (v) => Math.round(v).toString();
+
+function showError(box, msgs) {
+  if (!msgs || msgs.length === 0) { box.style.display = 'none'; return; }
+  box.style.display = 'block';
+  box.textContent = msgs.join('\n');
+}
+function hideError(box) { box.style.display = 'none'; }
+
+// =================== Tab 切换 ===================
+$$('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    $$('.tab').forEach(b => b.classList.remove('active'));
+    $$('.tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    $('tab-' + btn.dataset.tab).classList.add('active');
+    document.querySelector('.wrap').classList.toggle('tab-mystery', btn.dataset.tab === 'mystery');
+  });
+});
+
+// =================== 双向 stack <-> BB 同步 ===================
+function bindStackBB(stackEl, bbEl, getBB, onChange) {
+  let lock = false;
+  stackEl.addEventListener('input', () => {
+    if (lock) return;
+    const v = parseNum(stackEl.value);
+    const bb = getBB();
+    lock = true;
+    if (v === null) bbEl.value = '';
+    else if (bb !== null && bb > 0) bbEl.value = fmt(v / bb);
+    lock = false;
+    if (onChange) onChange();
+  });
+  bbEl.addEventListener('input', () => {
+    if (lock) return;
+    const c = parseNum(bbEl.value);
+    const bb = getBB();
+    lock = true;
+    if (c === null) stackEl.value = '';
+    else if (bb !== null && bb > 0) stackEl.value = fmt(c * bb);
+    lock = false;
+    if (onChange) onChange();
+  });
+  return () => {
+    // refresh on bb-change: prefer stack as source of truth
+    if (parseNum(stackEl.value) !== null) stackEl.dispatchEvent(new Event('input'));
+    else if (parseNum(bbEl.value) !== null) bbEl.dispatchEvent(new Event('input'));
+  };
+}
+
+// =================== PKO 业务逻辑 ===================
+function pkoCollectVillainAllins() {
+  const out = [];
+  $$('.pko-vs').forEach(el => { const v = parseNum(el.value); if (v !== null && v >= 0) out.push(v); });
+  return out;
+}
+function pkoCalcPot() {
+  const ante = parseNum($('pko-ante').value);
+  const bb = parseNum($('pko-bb').value);
+  const pat = parseNum($('pko-pat').value);
+  const hi = parseNum($('pko-hi').value) ?? 0;
+  if (ante === null || bb === null || pat === null || ante < 0 || bb <= 0 || pat <= 0 || hi < 0) {
+    $('pko-pot').value = ''; $('pko-pot-bb').value = ''; return;
+  }
+  const pot = pkoPot({ ante, bb, playersAtTable: pat, heroInvested: hi, villainAllins: pkoCollectVillainAllins() });
+  $('pko-pot').value = fmt(pot);
+  $('pko-pot-bb').value = fmt(pot / bb);
+}
+function pkoCalcCall() {
+  const hi = parseNum($('pko-hi').value) ?? 0;
+  const allins = pkoCollectVillainAllins();
+  if (hi < 0 || allins.length === 0) {
+    $('pko-call').value = ''; $('pko-call-bb').value = ''; return;
+  }
+  const bb = parseNum($('pko-bb').value);
+  const call = heroCallAmount(hi, allins);
+  $('pko-call').value = fmt(call);
+  $('pko-call-bb').value = bb && bb > 0 ? fmt(call / bb) : '';
+}
+
+function pkoCompute() {
+  const errs = [];
+  const tot = parseNum($('pko-total').value); if (tot === null || tot <= 0) errs.push('比赛总人数无效');
+  const left = parseNum($('pko-left').value); if (left === null || left <= 0) errs.push('剩余人数无效');
+  if (tot && left && left > tot) errs.push('剩余人数不能大于比赛总人数');
+  const stack = parseNum($('pko-stack').value); if (stack === null || stack <= 0) errs.push('起始筹码无效');
+  const sBounty = parseNum($('pko-bounty').value); if (sBounty === null || sBounty <= 0) errs.push('起始赏金无效');
+  const bb = parseNum($('pko-bb').value); if (bb === null || bb <= 0) errs.push('大盲无效');
+  const pat = parseNum($('pko-pat').value); if (pat === null || pat <= 0) errs.push('当桌人数无效');
+  const ante = parseNum($('pko-ante').value); if (ante === null || ante < 0) errs.push('前注无效');
+  const pot = parseNum($('pko-pot').value); if (pot === null || pot < 0) errs.push('总底池计算失败');
+  const call = parseNum($('pko-call').value); if (call === null || call < 0) errs.push('Hero 需跟注无效');
+  const hs = parseNum($('pko-hs').value); if (hs === null || hs < 0) errs.push('Hero 总筹码无效');
+
+  const villains = [];
+  $$('.pko-vs').forEach((el, i) => {
+    const vsStr = el.value.trim();
+    const vbStr = $$('.pko-vb')[i].value.trim();
+    if (!vsStr && !vbStr) return;
+    const vs = parseNum(vsStr), vb = parseNum(vbStr);
+    if (vs === null || vs < 0) { errs.push(`对手${i+1} All-in 无效`); return; }
+    if (vb === null || vb < 0) { errs.push(`对手${i+1} 赏金无效`); return; }
+    villains.push({ stack: vs, bounty: vb });
+  });
+
+  const errBox = $('pko-err');
+  if (errs.length) { showError(errBox, errs); return; }
+  hideError(errBox);
+
+  let r;
+  try {
+    r = calcPKO({
+      totalEntrants: tot, playersLeft: left,
+      startingStack: stack, startingBounty: sBounty,
+      currentPot: pot, heroCall: call, heroStack: hs, villains,
+    });
+  } catch (e) { showError(errBox, [e.message]); return; }
+
+  $('pko-r-f').textContent = fmt(r.F * 100, 1) + '%';
+  $('pko-r-bv').textContent = `${fmtInt(r.bountyValueAtCurrent)} 筹码`;
+  $('pko-r-tcb').textContent = `$${fmt(r.totalCoveredBounty)} (覆盖 ${r.coveredCount} 人)`;
+  $('pko-r-bc').textContent = `${fmtInt(r.bountyChips)} 筹码 (${fmt(r.bountyChips / bb)} BB)`;
+  $('pko-r-pot').textContent = `${fmt(pot)} (${fmt(pot / bb)} BB)`;
+  $('pko-r-call').textContent = `${fmt(call)} (${fmt(call / bb)} BB)`;
+  $('pko-r-ne').textContent = fmt(r.normalEquity * 100) + '%';
+  $('pko-r-re').textContent = fmt(r.requiredEquity * 100) + '%';
+}
+
+// PKO 绑定
+const pkoGetBB = () => parseNum($('pko-bb').value);
+const pkoRefreshList = [];
+pkoRefreshList.push(bindStackBB($('pko-hi'), $('pko-hi-bb'), pkoGetBB, () => { pkoCalcPot(); pkoCalcCall(); }));
+pkoRefreshList.push(bindStackBB($('pko-hs'), $('pko-hs-bb'), pkoGetBB));
+$$('.pko-vs').forEach((el, i) => {
+  const bbEl = $$('.pko-vbb')[i];
+  pkoRefreshList.push(bindStackBB(el, bbEl, pkoGetBB, () => { pkoCalcPot(); pkoCalcCall(); }));
+});
+['pko-ante', 'pko-bb', 'pko-pat', 'pko-hi'].forEach(id => {
+  $(id).addEventListener('input', () => { pkoCalcPot(); pkoCalcCall(); });
+});
+$('pko-bb').addEventListener('input', () => { pkoRefreshList.forEach(f => f()); });
+$('pko-calc').addEventListener('click', pkoCompute);
+
+// =================== Mystery 业务逻辑 ===================
+const mbBountyRows = [];
+function mbBuildGrid() {
+  const grid = $('mb-bounty-grid');
+  for (let i = 0; i < 15; i++) {
+    const num = document.createElement('span'); num.className = 'row-num'; num.textContent = i + 1;
+    const valEl = document.createElement('input'); valEl.type = 'text'; valEl.dataset.i = i;
+    const cntEl = document.createElement('input'); cntEl.type = 'text'; cntEl.dataset.i = i;
+    const minus = document.createElement('button'); minus.className = 'btn-tiny'; minus.textContent = '−';
+    const plus  = document.createElement('button'); plus.className = 'btn-tiny';  plus.textContent = '+';
+    minus.addEventListener('click', () => { const c = parseNum(cntEl.value) ?? 0; cntEl.value = Math.max(0, Math.floor(c) - 1); mbUpdateTotals(); });
+    plus.addEventListener('click', () => { const c = parseNum(cntEl.value) ?? 0; cntEl.value = Math.floor(c) + 1; mbUpdateTotals(); });
+    valEl.addEventListener('input', mbUpdateTotals);
+    cntEl.addEventListener('input', mbUpdateTotals);
+    grid.appendChild(num); grid.appendChild(valEl); grid.appendChild(cntEl); grid.appendChild(minus); grid.appendChild(plus);
+    mbBountyRows.push({ value: valEl, count: cntEl });
+  }
+}
+
+function mbGetBB() { return parseNum($('mb-bb').value); }
+
+function mbUpdateTotals() {
+  let total = 0, count = 0;
+  mbBountyRows.forEach(r => {
+    const v = parseNum(r.value.value);
+    const c = parseNum(r.count.value);
+    if (v === null || c === null) return;
+    const ci = Math.max(0, Math.floor(c));
+    total += v * ci; count += ci;
+  });
+  const ent = parseNum($('mb-total').value);
+  const reg = parseNum($('mb-reg').value);
+  $('mb-total-bounty').value = (ent !== null && reg !== null && ent >= 0 && reg >= 0) ? fmt(ent * reg / 2) : '';
+  if (count > 0) { $('mb-remaining').value = fmt(total); $('mb-left').value = String(count); }
+  else { $('mb-remaining').value = $('mb-total-bounty').value; }
+}
+
+function mbCollectVillainStacks() {
+  const out = [];
+  $$('.mb-vs').forEach(el => { const v = parseNum(el.value); if (v !== null && v >= 0) out.push(v); });
+  return out;
+}
+function mbUpdatePot() {
+  const pat = parseNum($('mb-pat').value);
+  const ante = parseNum($('mb-ante').value);
+  const bb = mbGetBB();
+  const hi = parseNum($('mb-hi').value) ?? 0;
+  if (pat === null || pat <= 0 || ante === null || ante < 0 || bb === null || hi < 0) {
+    $('mb-pot').value = ''; $('mb-pot-bb').value = ''; return;
+  }
+  const pot = mysteryPot({ playersAtTable: pat, ante, bb, heroInvested: hi, villainStacks: mbCollectVillainStacks() });
+  $('mb-pot').value = fmt(pot);
+  $('mb-pot-bb').value = fmt(pot / bb);
+}
+
+function mbUpdateCall() {
+  const hi = parseNum($('mb-hi').value) ?? 0;
+  const allins = mbCollectVillainStacks();
+  if (hi < 0 || allins.length === 0) { $('mb-call').value = ''; $('mb-call-bb').value = ''; return; }
+  const bb = mbGetBB();
+  const call = heroCallAmount(hi, allins);
+  $('mb-call').value = fmt(call);
+  $('mb-call-bb').value = bb && bb > 0 ? fmt(call / bb) : '';
+}
+
+let mbHIOverride = false;
+function mbPrefillHIFromAnte() {
+  if (mbHIOverride) return;
+  const ante = parseNum($('mb-ante').value);
+  if (ante === null || ante < 0) return;
+  const bb = mbGetBB();
+  $('mb-hi').value = fmt(ante);
+  $('mb-hi-bb').value = bb && bb > 0 ? fmt(ante / bb) : '';
+}
+
+function mbCompute() {
+  const errs = [];
+  const stack = parseNum($('mb-stack').value); if (stack === null || stack <= 0) errs.push('起始筹码无效');
+  const reg = parseNum($('mb-reg').value); if (reg === null || reg <= 0) errs.push('常规奖池买入无效');
+  const pat = parseNum($('mb-pat').value); if (pat === null || pat <= 0) errs.push('当桌人数无效');
+  const ante = parseNum($('mb-ante').value); if (ante === null || ante < 0) errs.push('前注无效');
+  const bb = mbGetBB(); if (bb === null) errs.push('大盲无效');
+  const pot = parseNum($('mb-pot').value); if (pot === null || pot < 0) errs.push('总底池计算失败');
+  const call = parseNum($('mb-call').value); if (call === null || call < 0) errs.push('Hero 需跟注无效');
+  const hi = parseNum($('mb-hi').value) ?? 0; if (hi < 0) errs.push('Hero 已投入不能为负');
+
+  const bountyTable = [];
+  mbBountyRows.forEach((r, i) => {
+    const vStr = r.value.value.trim(), cStr = r.count.value.trim();
+    if (!vStr && !cStr) return;
+    if (!vStr) { errs.push(`奖金表第 ${i+1} 行缺金额`); return; }
+    if (!cStr) { errs.push(`奖金表第 ${i+1} 行缺个数`); return; }
+    const v = parseNum(vStr), c = parseNum(cStr);
+    if (v === null || v < 0) { errs.push(`奖金表第 ${i+1} 行金额无效`); return; }
+    if (c === null || c < 0 || Math.floor(c) !== c) { errs.push(`奖金表第 ${i+1} 行个数必须非负整数`); return; }
+    bountyTable.push({ value: v, count: c });
+  });
+
+  const villainStacks = [];
+  $$('.mb-vs').forEach((el, i) => {
+    const t = el.value.trim(); if (!t) return;
+    const v = parseNum(t);
+    if (v === null || v < 0) { errs.push(`对手 ${i+1} 筹码无效`); return; }
+    villainStacks.push(v);
+  });
+
+  const errBox = $('mb-err');
+  if (errs.length) { showError(errBox, errs); return; }
+  hideError(errBox);
+
+  let r;
+  try {
+    r = calcMystery({
+      startingStack: stack, regBuyin: reg,
+      currentPot: pot, heroInvested: hi, heroCall: call,
+      bountyTable, villainStacks,
+    });
+  } catch (e) { showError(errBox, [e.message]); return; }
+
+  $('mb-r-count').textContent = String(r.totalBountyCount);
+  $('mb-r-avg').textContent = fmt(r.averageBounty);
+  $('mb-r-single').textContent = `${fmtInt(r.singleBountyChips)} 筹码 (${fmt(r.singleBountyChips / bb)} BB)`;
+  $('mb-r-cov').textContent = String(r.coveredCount);
+  $('mb-r-tbc').textContent = `${fmtInt(r.totalBountyChips)} 筹码 (${fmt(r.totalBountyChips / bb)} BB)`;
+  $('mb-r-pot').textContent = `${fmt(pot)} (${fmt(pot / bb)} BB)`;
+  $('mb-r-call').textContent = `${fmt(call)} (${fmt(call / bb)} BB)`;
+  $('mb-r-ne').textContent = fmt(r.normalEquity * 100) + '%';
+  $('mb-r-re').textContent = fmt(r.requiredEquity * 100) + '%';
+}
+
+function mbApply108Day2() {
+  const preset = [
+    [260000, 1], [164204, 1], [100000, 10], [67000, 2], [22000, 6],
+    [8900, 15], [3900, 32], [2500, 60], [1700, 76], [730, 183],
+    [310, 422], [150, 600], [130, 972], [60, 2340],
+  ];
+  $('mb-total').value = '57487';
+  $('mb-reg').value = '100';
+  $('mb-stack').value = '25000';
+  mbBountyRows.forEach((r, i) => {
+    if (i < preset.length) { r.value.value = preset[i][0]; r.count.value = preset[i][1]; }
+    else { r.value.value = ''; r.count.value = ''; }
+  });
+  mbUpdateTotals();
+}
+
+// Mystery 绑定
+mbBuildGrid();
+const mbRefreshList = [];
+mbRefreshList.push(bindStackBB($('mb-hi'), $('mb-hi-bb'), mbGetBB, () => { mbUpdateCall(); mbUpdatePot(); }));
+$$('.mb-vs').forEach((el, i) => {
+  const bbEl = $$('.mb-vbb')[i];
+  mbRefreshList.push(bindStackBB(el, bbEl, mbGetBB, () => { mbUpdateCall(); mbUpdatePot(); }));
+});
+$('mb-bb').addEventListener('input', () => {
+  mbRefreshList.forEach(f => f()); mbUpdateCall(); mbUpdatePot();
+});
+['mb-pat', 'mb-ante', 'mb-hi'].forEach(id => $(id).addEventListener('input', mbUpdatePot));
+$('mb-ante').addEventListener('input', mbPrefillHIFromAnte);
+$('mb-hi').addEventListener('input', () => { mbHIOverride = true; mbUpdateCall(); });
+$('mb-hi-bb').addEventListener('input', () => { mbHIOverride = true; mbUpdateCall(); });
+$$('.mb-vs').forEach(el => el.addEventListener('input', () => { mbUpdateCall(); mbUpdatePot(); }));
+$('mb-total').addEventListener('input', mbUpdateTotals);
+$('mb-reg').addEventListener('input', mbUpdateTotals);
+$('mb-calc').addEventListener('click', mbCompute);
+$('mb-preset-108').addEventListener('click', mbApply108Day2);
+
+mbUpdateTotals();
+</script>
+</body>
+</html>

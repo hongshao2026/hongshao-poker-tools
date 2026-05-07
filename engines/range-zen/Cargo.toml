@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/range-zen-core", ".", "crates/range-zen-api"]
+members = ["crates/range-zen-core", ".", "crates/range-zen-api", "crates/range-zen-wasm"]
 resolver = "3"
 
 [package]
