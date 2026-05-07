@@ -2,7 +2,7 @@
 set -euo pipefail
 
 SRC="MTT_staking_calculator.jsx"
-OUT="MTT_staking_calculator.html"
+OUT="index.html"
 
 cat > "$OUT" <<'HTML_HEAD'
 <!doctype html>

@@ -1,0 +1,2091 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Staking Solver</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0c;
+    --bg-elev: #131318;
+    --bg-input: #1a1a21;
+    --border: #2a2a35;
+    --border-bright: #3d3d4d;
+    --text: #e8e8ee;
+    --text-dim: #8a8a99;
+    --text-faint: #5a5a68;
+    --accent: #d4ff3a;
+    --accent-dim: #8aa820;
+    --warn: #ff6b4a;
+    --good: #3affb0;
+    --solved: #ffd23a;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Space Grotesk', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    padding: 24px 16px;
+    background-image:
+      radial-gradient(circle at 20% 0%, rgba(212,255,58,0.04) 0%, transparent 40%),
+      radial-gradient(circle at 80% 100%, rgba(58,255,176,0.03) 0%, transparent 40%);
+  }
+  .wrap { max-width: 920px; margin: 0 auto; }
+
+  header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding-bottom: 20px; border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+  .title-block h1 {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: -0.5px;
+    color: var(--text);
+  }
+  .title-block h1 span { color: var(--accent); }
+  .title-block p {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-faint);
+    margin-top: 4px;
+    letter-spacing: 0.5px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .field {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .field:focus-within {
+    border-color: var(--accent-dim);
+    background: #16161c;
+  }
+  .field.solved {
+    border-color: var(--solved);
+    background: rgba(255,210,58,0.04);
+  }
+  .field.solved::before {
+    content: '已算出';
+    position: absolute;
+    top: 8px; right: 12px;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--solved);
+    letter-spacing: 0.5px;
+    font-weight: 600;
+  }
+  .field.can-solve {
+    border-color: rgba(255,210,58,0.45);
+    border-style: dashed;
+    background: rgba(255,210,58,0.03);
+  }
+  .field.can-solve::before {
+    content: '待求解';
+    position: absolute;
+    top: 8px; right: 12px;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--solved);
+    letter-spacing: 0.5px;
+    font-weight: 600;
+  }
+  /* Preset markers — overridden by .solved/.can-solve once user interacts */
+  .field.required {
+    border-color: rgba(58,255,176,0.4);
+    background: rgba(58,255,176,0.04);
+  }
+  .field.required::before {
+    content: '已填';
+    position: absolute;
+    top: 8px; right: 12px;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--good);
+    letter-spacing: 0.5px;
+    font-weight: 500;
+  }
+  .field.target {
+    border-color: rgba(255,210,58,0.5);
+    border-style: dashed;
+    background: rgba(255,210,58,0.04);
+  }
+  .field.target::before {
+    content: '待求解';
+    position: absolute;
+    top: 8px; right: 12px;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--solved);
+    letter-spacing: 0.5px;
+    font-weight: 600;
+  }
+  /* solved overrides target/required visually */
+  .field.solved.target,
+  .field.solved.required {
+    border-color: var(--solved);
+    background: rgba(255,210,58,0.04);
+    border-style: solid;
+  }
+  .field.solved.target::before,
+  .field.solved.required::before {
+    content: '已算出';
+    color: var(--solved);
+  }
+  /* Arbitrage state: s*m >= 1, equivalent ROI undefined */
+  .field.arbitrage {
+    border-color: rgba(58,255,176,0.5);
+    background: rgba(58,255,176,0.06);
+    border-style: solid;
+  }
+  .field.arbitrage::before {
+    content: '⚡ 无风险套利';
+    position: absolute;
+    top: 8px; right: 12px;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--good);
+    letter-spacing: 0.5px;
+    font-weight: 600;
+  }
+  .field.arbitrage input::placeholder { color: var(--good); }
+  .field.arbitrage .hint {
+    color: var(--good);
+  }
+  .field.solved::before {
+    content: '已算出';
+  }
+  .field-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .field-label .name {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.3px;
+  }
+  .field-label .sym {
+    display: none;
+  }
+  .input-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+  .input-row .prefix, .input-row .suffix {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-faint);
+  }
+  .field input {
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 18px;
+    font-weight: 500;
+    width: 100%;
+    outline: none;
+    padding: 0;
+  }
+  .field.solved input {
+    color: var(--solved);
+  }
+  .field input::placeholder {
+    color: var(--text-faint);
+    font-weight: 300;
+  }
+  .field .hint {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    margin-top: 4px;
+    min-height: 12px;
+  }
+
+  .field.compound .input-row { display: flex; gap: 8px; }
+  .field.compound .sub { flex: 1; }
+  .field.compound .sub-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text-faint);
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+  }
+
+  .actions {
+    display: flex; gap: 8px; margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .actions button {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 8px 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: all 0.15s;
+  }
+  .actions button:hover {
+    border-color: var(--accent-dim);
+    color: var(--accent);
+  }
+  .actions button.primary {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+  .actions button.primary:hover {
+    background: var(--bg);
+    color: var(--accent);
+  }
+  .solvable-hint {
+    flex: 1;
+    min-width: 200px;
+    padding: 7px 12px;
+    background: var(--bg-elev);
+    border: 1px dashed var(--border);
+    border-radius: 4px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    line-height: 1.4;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+  }
+  .solvable-hint.ready {
+    color: var(--accent);
+    border-color: rgba(212,255,58,0.3);
+    border-style: solid;
+    background: rgba(212,255,58,0.04);
+  }
+  .solvable-hint.warn {
+    color: var(--warn);
+    border-color: rgba(255,107,74,0.3);
+    border-style: solid;
+    background: rgba(255,107,74,0.04);
+  }
+
+  .results {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+  }
+  .results h2 {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    margin-bottom: 14px;
+    font-weight: 500;
+  }
+  .results h2 span { color: var(--accent); }
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .result-item .label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .result-item .value {
+    font-family: var(--mono);
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .result-item .value.good { color: var(--good); }
+  .result-item .value.warn { color: var(--warn); }
+  .result-item .sub {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    margin-top: 2px;
+  }
+
+  .equation {
+    background: #0e0e13;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+  .equation strong { color: var(--accent); font-weight: 500; }
+  .equation .var { color: var(--text); }
+
+  /* Guide / How to use */
+  .guide {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .guide summary {
+    padding: 12px 16px;
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.3px;
+    user-select: none;
+    list-style: none;
+    transition: color 0.15s;
+  }
+  .guide summary::-webkit-details-marker { display: none; }
+  .guide summary:hover { color: var(--accent); }
+  .guide[open] summary { color: var(--accent); border-bottom: 1px solid var(--border); }
+  .guide-icon {
+    display: inline-block;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--bg);
+    text-align: center;
+    line-height: 16px;
+    font-size: 10px;
+    font-weight: 700;
+    margin-right: 8px;
+  }
+  .guide-body {
+    padding: 6px 16px 14px;
+  }
+  .guide-section {
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--border);
+  }
+  .guide-section:last-of-type { border-bottom: none; }
+  .guide-q {
+    font-family: var(--sans);
+    font-size: 12px;
+    color: var(--text);
+    margin-bottom: 3px;
+    font-weight: 500;
+  }
+  .guide-a {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+  .guide-rules {
+    margin-top: 12px;
+    padding: 10px 12px;
+    background: rgba(212,255,58,0.04);
+    border: 1px solid rgba(212,255,58,0.15);
+    border-radius: 4px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+  .guide-rules strong { color: var(--accent); font-weight: 500; }
+  .guide-warn {
+    margin-top: 8px;
+    padding: 10px 12px;
+    background: rgba(255,107,74,0.04);
+    border: 1px solid rgba(255,107,74,0.2);
+    border-radius: 4px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+  .guide-warn strong { color: var(--warn); font-weight: 500; }
+  .guide-warn u { color: var(--text); text-decoration: underline; text-decoration-color: rgba(255,107,74,0.5); }
+
+  /* Flash message after preset load */
+  .flash {
+    background: rgba(212,255,58,0.08);
+    border: 1px solid rgba(212,255,58,0.2);
+    border-radius: 4px;
+    padding: 10px 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    margin-bottom: 16px;
+    line-height: 1.5;
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: opacity 0.3s, max-height 0.3s, padding 0.3s, margin 0.3s;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-bottom: 0;
+  }
+  .flash.show {
+    opacity: 1;
+    max-height: 80px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+  }
+
+  /* Presets */
+  .presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .preset-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: 0.3px;
+    margin-right: 4px;
+  }
+  .presets button {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 5px 10px;
+    font-family: var(--mono);
+    font-size: 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .presets button:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(212,255,58,0.05);
+  }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+    margin-top: 8px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    line-height: 1.7;
+  }
+  footer kbd {
+    display: inline-block;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 6px;
+    font-size: 9px;
+    color: var(--text-dim);
+  }
+
+  .status-pill {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    margin-left: 8px;
+  }
+  .status-pill.under { background: rgba(255,107,74,0.15); color: var(--warn); border: 1px solid rgba(255,107,74,0.3); }
+  .status-pill.over { background: rgba(58,255,176,0.1); color: var(--good); border: 1px solid rgba(58,255,176,0.25); }
+  .status-pill.exact { background: rgba(212,255,58,0.1); color: var(--accent); border: 1px solid rgba(212,255,58,0.25); }
+
+  .hidden { display: none !important; }
+
+  @media (max-width: 640px) {
+    .grid { grid-template-columns: 1fr; }
+    .results-grid { grid-template-columns: 1fr; gap: 12px; }
+    header { flex-direction: column; gap: 12px; }
+    .vlab-controls { grid-template-columns: 1fr 1fr !important; }
+    .vstats-row { font-size: 10px !important; }
+  }
+
+  /* ====== VARIANCE LAB ====== */
+  .vlab {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+  }
+  .vlab-head { margin-bottom: 14px; }
+  .vlab-head h2 {
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--text);
+    letter-spacing: 1.5px;
+    font-weight: 600;
+  }
+  .vlab-head h2 span { color: var(--accent); }
+  .vlab-sub {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    margin-top: 2px;
+    letter-spacing: 0.5px;
+  }
+  .vlab-controls {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .vfield {
+    background: #0e0e13;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px 10px;
+  }
+  .vfield .vlabel {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.3px;
+    margin-bottom: 4px;
+  }
+  .vfield .input-row { gap: 4px; }
+  .vfield input {
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 500;
+    width: 100%;
+    outline: none;
+  }
+  .vfield input::placeholder { color: var(--text-faint); font-weight: 300; }
+  .vfield .prefix, .vfield .suffix {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-faint);
+  }
+  .vfield .vhint {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text-faint);
+    margin-top: 2px;
+  }
+  .vlab-strats {
+    background: #0e0e13;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px 12px;
+    margin-bottom: 14px;
+  }
+  .vstrat-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .vstrat-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .vstrat {
+    flex: 1;
+    min-width: 130px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-input);
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+  }
+  .vstrat .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .vstrat .vlabel-inline {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+  .vstrat input {
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+    width: 50px;
+    text-align: right;
+    outline: none;
+  }
+  .vstrat .pct {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-faint);
+  }
+  .vlab-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .v-select {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 7px 10px;
+    border-radius: 4px;
+    outline: none;
+    cursor: pointer;
+  }
+  .vrun {
+    background: var(--accent);
+    color: var(--bg);
+    border: 1px solid var(--accent);
+    padding: 8px 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+    transition: all 0.15s;
+  }
+  .vrun:hover { background: var(--bg); color: var(--accent); }
+  .vrun:disabled { opacity: 0.5; cursor: not-allowed; }
+  .v-status {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    margin-left: auto;
+  }
+  #v-canvas {
+    width: 100%;
+    height: auto;
+    background: #0a0a0e;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    display: block;
+    margin-bottom: 8px;
+  }
+  .v-legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+  .leg-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .leg-item .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .vstats {
+    background: #0e0e13;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px 10px;
+    margin-bottom: 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+  .vstats-row {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr 1.1fr 1.1fr 0.9fr 1.3fr;
+    gap: 8px;
+    padding: 6px 4px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+  .vstats-row:last-child { border-bottom: none; }
+  .vstats-head {
+    color: var(--text-faint);
+    font-size: 9px;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border-bright);
+  }
+  .vnote {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    line-height: 1.6;
+  }
+  .vnote strong { color: var(--text-dim); font-weight: 500; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="title-block">
+      <h1>STAKING <span>SOLVER</span></h1>
+      <p>扑克锦标赛卖股份经济计算器</p>
+    </div>
+  </header>
+
+  <div class="equation" id="eq-display">
+    <strong>核心公式:</strong> &nbsp; 净收入 = 总buy-in × [(1−卖出比例) × 真实ROI + 卖出比例 × (溢价−1)] − 生活成本 &nbsp;&nbsp;·&nbsp;&nbsp; 等效ROI = (1−卖出比例)·ROI ÷ (1−卖出比例·溢价)
+  </div>
+
+  <!-- Help / Guide -->
+  <details class="guide" id="guide-card">
+    <summary><span class="guide-icon">?</span>怎么用：常见问题模板（点击展开）</summary>
+    <div class="guide-body">
+      <div class="guide-section">
+        <div class="guide-q">「按这个配置打一年/一趟，能赚多少？」</div>
+        <div class="guide-a">填：总buy-in、单场买入、生活成本、卖出比例、溢价、真实ROI · 留空：净收入目标 · 输出：期望净收入</div>
+      </div>
+      <div class="guide-section">
+        <div class="guide-q">「想净赚 X 美元，需要打多大总buy-in？」</div>
+        <div class="guide-a">填：单场买入、生活成本、卖出比例、溢价、真实ROI、净收入目标 · 留空：总buy-in · 输出：达成目标所需总盘子（场次跟着算出）</div>
+      </div>
+      <div class="guide-section">
+        <div class="guide-q">「想净赚 X 美元，要打多少场？」</div>
+        <div class="guide-a">同上：先算出总buy-in，场次数 = 总buy-in ÷ 单场买入 自动算出</div>
+      </div>
+      <div class="guide-section">
+        <div class="guide-q">「保本至少需要多少溢价？」</div>
+        <div class="guide-a">填：总buy-in、单场买入、生活成本、卖出比例、真实ROI，把净收入目标设为0（保本） · 留空：溢价倍数 · 输出：保本所需最低溢价</div>
+      </div>
+      <div class="guide-section">
+        <div class="guide-q">「应该卖多少股份才能达到目标？」</div>
+        <div class="guide-a">填：总buy-in、单场买入、生活成本、溢价、真实ROI、净收入目标 · 留空：卖出比例 · 输出：所需卖出比例</div>
+      </div>
+      <div class="guide-section">
+        <div class="guide-q">「以现在配置赚钱，我的真实ROI需要是多少？」</div>
+        <div class="guide-a">填：总buy-in、单场买入、生活成本、卖出比例、溢价、净收入目标 · 留空：真实ROI · 输出：达成目标所需的最低ROI</div>
+      </div>
+      <div class="guide-section">
+        <div class="guide-q">「我能承担多少真实风险，能放大到多大盘子？」</div>
+        <div class="guide-a">填：实际承担风险、卖出比例 · 留空：总buy-in · 输出：总buy-in = 风险 ÷ (1−卖出比例)</div>
+      </div>
+      <div class="guide-section">
+        <div class="guide-q">「自留视角下我的真实回报率多少？」</div>
+        <div class="guide-a">填：卖出比例、溢价、真实ROI · 留空：等效ROI · 输出：扣除溢价收入后净投入的回报率</div>
+      </div>
+      <div class="guide-rules">
+        <strong>使用规则：</strong>
+        <br>① 字段是<strong>实时联动</strong>的，改任何一个，其他依赖字段立即重算。
+        <br>② 主输入是 <strong>总buy-in</strong> 和 <strong>单场买入</strong>；<strong>场次数 = 总buy-in ÷ 单场买入</strong>，自动算出。
+        <br>③ 如果手动改场次数，总buy-in 会跟着 场次×单场 重算（单场不变）。
+        <br>④ 下方"方差实验室"是独立的：上面算期望，下面用蒙特卡洛模拟"运气好/坏会怎样"。
+      </div>
+      <div class="guide-warn">
+        <strong>反推陷阱注意：</strong>
+        <br>反推（让"净收入目标"当输入、求"溢价"/"卖出比例"/"真实ROI"）只在你<u>真的清楚自己的目标</u>时有意义。如果你拍脑袋设一个净收入目标，反推出的溢价或卖出比例可能完全不现实（比如算出溢价1.5在市场上根本卖不出去）。
+        <br><strong>更稳妥的用法：</strong>先填好你能稳定卖到的真实溢价和真实 ROI，让计算器算出净收入——看现实给你多少，再决定接不接受。
+      </div>
+    </div>
+  </details>
+
+  <!-- Preset scenarios -->
+  <div class="presets">
+    <div class="preset-label">快速场景：</div>
+    <button onclick="loadPreset('wsop')">WSOP行程：算能赚多少</button>
+    <button onclick="loadPreset('full_year')">全年plan：算年净收入</button>
+    <button onclick="loadPreset('break_even')">求保本溢价</button>
+    <button onclick="loadPreset('what_s')">求该卖多少比例</button>
+    <button onclick="loadPreset('how_big')">求需多大总buy-in</button>
+    <button onclick="loadPreset('how_many')">求需打多少场</button>
+  </div>
+
+
+  <!-- Unified Inputs -->
+  <div id="grid-A" class="grid">
+    <div class="field" data-key="B">
+      <div class="field-label"><span class="name">总BUY-IN</span><span class="sym">B</span></div>
+      <div class="input-row">
+        <span class="prefix">$</span>
+        <input type="number" id="in-B" placeholder="100000" step="any">
+      </div>
+      <div class="hint" id="hint-B">这趟/这年要打的总金额</div>
+    </div>
+
+    <div class="field" data-key="b">
+      <div class="field-label"><span class="name">单场买入</span><span class="sym">b</span></div>
+      <div class="input-row">
+        <span class="prefix">$</span>
+        <input type="number" id="in-b" placeholder="10000" step="any">
+      </div>
+      <div class="hint" id="hint-b">你打的级别 / 平均单场金额</div>
+    </div>
+
+    <div class="field" data-key="N">
+      <div class="field-label"><span class="name">场次数（自动）</span><span class="sym">N</span></div>
+      <div class="input-row">
+        <input type="number" id="in-N" placeholder="auto" step="any">
+        <span class="suffix">场</span>
+      </div>
+      <div class="hint" id="hint-N">= B ÷ b，可手填覆盖</div>
+    </div>
+
+    <div class="field" data-key="C">
+      <div class="field-label"><span class="name">生活成本</span><span class="sym">C</span></div>
+      <div class="input-row">
+        <span class="prefix">$</span>
+        <input type="number" id="in-C" placeholder="10000" step="any">
+      </div>
+      <div class="hint" id="hint-C">机票+酒店+餐饮等固定开销</div>
+    </div>
+
+    <div class="field" data-key="s">
+      <div class="field-label"><span class="name">卖出比例</span><span class="sym">s</span></div>
+      <div class="input-row">
+        <input type="number" id="in-s" placeholder="50" step="any" min="0" max="100">
+        <span class="suffix">%</span>
+      </div>
+      <div class="hint" id="hint-s">0 = 全自打 · 100 = 全卖给股东</div>
+    </div>
+
+    <div class="field" data-key="m">
+      <div class="field-label"><span class="name">溢价倍数</span><span class="sym">m</span></div>
+      <div class="input-row">
+        <input type="number" id="in-m" placeholder="1.10" step="0.01">
+        <span class="suffix">×</span>
+      </div>
+      <div class="hint" id="hint-m">1.0 = 平价卖 · 1.2 = 加20%卖</div>
+    </div>
+
+    <div class="field" data-key="R">
+      <div class="field-label"><span class="name">真实ROI</span><span class="sym">R</span></div>
+      <div class="input-row">
+        <input type="number" id="in-R" placeholder="30" step="any">
+        <span class="suffix">%</span>
+      </div>
+      <div class="hint" id="hint-R">自打的长期回报率</div>
+    </div>
+
+    <div class="field" data-key="Reff">
+      <div class="field-label"><span class="name">等效ROI（自留视角）</span><span class="sym">R_eff</span></div>
+      <div class="input-row">
+        <input type="number" id="in-Reff" placeholder="auto" step="any">
+        <span class="suffix">%</span>
+      </div>
+      <div class="hint" id="hint-Reff">扣除溢价收入后净花的钱赚多少</div>
+    </div>
+
+    <div class="field" data-key="G">
+      <div class="field-label"><span class="name">净收入目标</span><span class="sym">G</span></div>
+      <div class="input-row">
+        <span class="prefix">$</span>
+        <input type="number" id="in-G" placeholder="50000" step="any">
+      </div>
+      <div class="hint" id="hint-G">扣除生活成本后想净赚多少</div>
+    </div>
+
+    <div class="field" data-key="K">
+      <div class="field-label"><span class="name">实际承担风险</span><span class="sym">K</span></div>
+      <div class="input-row">
+        <span class="prefix">$</span>
+        <input type="number" id="in-K" placeholder="auto" step="any">
+      </div>
+      <div class="hint" id="hint-K">= B × (1−s)，自留的钱</div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="primary" onclick="solve()">▶ 计算 SOLVE</button>
+    <button onclick="clearAll()">清空</button>
+    <button onclick="loadExample()">加载示例</button>
+    <div class="solvable-hint" id="solvable-hint">填好字段后这里会提示能解出什么</div>
+  </div>
+
+  <div class="results">
+    <h2>计算结果<span id="status" class="status-pill exact" style="display:none">—</span></h2>
+    <div class="results-grid">
+      <div class="result-item">
+        <div class="label">期望净收入</div>
+        <div class="value" id="r-net">—</div>
+        <div class="sub" id="r-net-sub">扣除生活成本后剩多少</div>
+      </div>
+      <div class="result-item">
+        <div class="label">总buy-in（名义）</div>
+        <div class="value" id="r-total">—</div>
+        <div class="sub" id="r-total-sub">流过你账户的总额</div>
+      </div>
+      <div class="result-item">
+        <div class="label">实际风险敞口</div>
+        <div class="value" id="r-risk">—</div>
+        <div class="sub" id="r-risk-sub">自留部分（你真正承担的钱）</div>
+      </div>
+      <div class="result-item">
+        <div class="label">卖股份的溢价收入</div>
+        <div class="value" id="r-prem">—</div>
+        <div class="sub" id="r-prem-sub">和打牌结果无关的稳定收入</div>
+      </div>
+      <div class="result-item">
+        <div class="label">自留打牌的期望盈利</div>
+        <div class="value" id="r-self">—</div>
+        <div class="sub" id="r-self-sub">来自自留股份的盈亏</div>
+      </div>
+      <div class="result-item">
+        <div class="label">生活成本占比</div>
+        <div class="value" id="r-ratio">—</div>
+        <div class="sub" id="r-ratio-sub">C ÷ 总buy-in（&lt;10%为佳）</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============== VARIANCE LAB =============== -->
+  <div class="vlab" id="vlab">
+    <div class="vlab-head">
+      <h2>VARIANCE <span>LAB</span></h2>
+      <div class="vlab-sub">蒙特卡洛模拟 · 自打 vs 卖股份的方差分布对比</div>
+    </div>
+
+    <div class="vlab-controls">
+      <div class="vfield">
+        <div class="vlabel">场次数</div>
+        <div class="input-row"><input type="number" id="v-N" placeholder="50" step="1"></div>
+        <div class="vhint">这年/这趟打几场</div>
+      </div>
+      <div class="vfield">
+        <div class="vlabel">单场BUY-IN</div>
+        <div class="input-row"><span class="prefix">$</span><input type="number" id="v-b" placeholder="10000" step="any"></div>
+        <div class="vhint">名义buy-in</div>
+      </div>
+      <div class="vfield">
+        <div class="vlabel">参赛人数</div>
+        <div class="input-row"><input type="number" id="v-field" placeholder="500" step="1"></div>
+        <div class="vhint">field size</div>
+      </div>
+      <div class="vfield">
+        <div class="vlabel">ITM比例</div>
+        <div class="input-row"><input type="number" id="v-itm" placeholder="15" step="any"><span class="suffix">%</span></div>
+        <div class="vhint">付费奖位 / 默认15%</div>
+      </div>
+      <div class="vfield">
+        <div class="vlabel">理论ROI</div>
+        <div class="input-row"><input type="number" id="v-R" placeholder="30" step="any"><span class="suffix">%</span></div>
+        <div class="vhint">同上方R · 自动同步</div>
+      </div>
+      <div class="vfield">
+        <div class="vlabel">溢价</div>
+        <div class="input-row"><input type="number" id="v-m" placeholder="1.10" step="0.01"><span class="suffix">×</span></div>
+        <div class="vhint">同上方m</div>
+      </div>
+    </div>
+
+    <div class="vlab-strats">
+      <div class="vstrat-title">对比策略 (s = 卖出比例)</div>
+      <div class="vstrat-row">
+        <div class="vstrat" data-key="A">
+          <span class="dot" style="background:#3affb0"></span>
+          <span class="vlabel-inline">策略A</span>
+          <input type="number" id="v-sA" value="0" step="any" min="0" max="100">
+          <span class="pct">%</span>
+        </div>
+        <div class="vstrat" data-key="B">
+          <span class="dot" style="background:#d4ff3a"></span>
+          <span class="vlabel-inline">策略B</span>
+          <input type="number" id="v-sB" value="50" step="any" min="0" max="100">
+          <span class="pct">%</span>
+        </div>
+        <div class="vstrat" data-key="C">
+          <span class="dot" style="background:#ff6b4a"></span>
+          <span class="vlabel-inline">策略C</span>
+          <input type="number" id="v-sC" value="70" step="any" min="0" max="100">
+          <span class="pct">%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="vlab-actions">
+      <select id="v-paths" class="v-select">
+        <option value="2000">2000 paths · 快速</option>
+        <option value="5000" selected>5000 paths · 标准</option>
+        <option value="10000">10000 paths · 精细</option>
+      </select>
+      <button class="vrun" onclick="runVariance()">▶ RUN SIMULATION</button>
+      <span id="v-status" class="v-status">—</span>
+    </div>
+
+    <canvas id="v-canvas" width="880" height="360"></canvas>
+    <div class="v-legend">
+      <span class="leg-item"><span class="dot" style="background:#3affb0"></span>策略A 中位数与5/95区间</span>
+      <span class="leg-item"><span class="dot" style="background:#d4ff3a"></span>策略B</span>
+      <span class="leg-item"><span class="dot" style="background:#ff6b4a"></span>策略C</span>
+      <span class="leg-item"><span class="dot" style="background:#888"></span>EV(理论)</span>
+    </div>
+
+    <div class="vstats" id="v-stats">
+      <div class="vstats-row vstats-head">
+        <div>策略</div><div>中位数</div><div>5%最差</div><div>95%最佳</div><div>P(亏损)</div><div>典型最大回撤</div>
+      </div>
+      <div class="vstats-row" id="v-row-A"></div>
+      <div class="vstats-row" id="v-row-B"></div>
+      <div class="vstats-row" id="v-row-C"></div>
+    </div>
+
+    <div class="vnote" id="v-note">
+      模拟基于幂律名次分布，参数自动校准到目标ROI。结果反映期望与方差，不预测具体结果。<br>
+      <strong>看法：</strong>策略间均值差异 = 期望损失（卖股份的"价格"）；区间宽度差异 = 方差差异（卖股份"买"到的稳定）。
+    </div>
+  </div>
+  <!-- =============== END VARIANCE LAB =============== -->
+
+  <footer>
+    填入已知值，留空想求解的字段——所有字段实时联动，改一个其他立即重算。<br>
+    主输入：总buy-in + 单场买入。场次数 = 总buy-in ÷ 单场买入，自动算出。<br>
+    <strong>等效ROI</strong> = (1−卖出比例)·真实ROI ÷ (1−卖出比例·溢价) · 例：B=100、ROI=30%、卖50%@1.2 → 净投入40，自留盈利15 → 等效ROI=37.5%<br>
+    所有变量都是期望值，实际单次结果有方差。决策时记得 staking 的真正价值是降方差，不只是改期望。
+  </footer>
+</div>
+
+<script>
+const FIELDS = ['B','N','b','C','s','m','R','Reff','G','K'];
+
+const $ = id => document.getElementById(id);
+
+// Read a value, returns null if blank/invalid
+function read(id) {
+  const v = $(id).value;
+  if (v === '' || v === null) return null;
+  const n = parseFloat(v);
+  return isNaN(n) ? null : n;
+}
+
+function setVal(id, val, isSolved=false) {
+  if (val === null || val === undefined || isNaN(val)) {
+    $(id).value = '';
+  } else {
+    // formatting: integer-ish for big nums, decimals for small
+    let formatted;
+    if (Math.abs(val) >= 1000) formatted = val.toFixed(0);
+    else if (Math.abs(val) >= 10) formatted = val.toFixed(2);
+    else formatted = val.toFixed(3);
+    $(id).value = formatted;
+  }
+  const fld = $(id).closest('.field');
+  if (fld) fld.classList.toggle('solved', isSolved);
+}
+
+function clearSolved() {
+  document.querySelectorAll('.field.solved').forEach(f => f.classList.remove('solved'));
+}
+
+function clearAll() {
+  const ids = ['in-B','in-N','in-b','in-C','in-s','in-m','in-R','in-Reff','in-G','in-K'];
+  ids.forEach(id => $(id).value = '');
+  document.querySelectorAll('.field.can-solve').forEach(f => f.classList.remove('can-solve'));
+  document.querySelectorAll('.field.required').forEach(f => f.classList.remove('required'));
+  document.querySelectorAll('.field.target').forEach(f => f.classList.remove('target'));
+  Object.keys(editTimestamps).forEach(k => delete editTimestamps[k]);
+  clearSolved();
+  recompute();
+  if (typeof updateSolvableHint === 'function') updateSolvableHint();
+}
+
+function loadExample() {
+  // Generic example: WSOP-like trip, B+b as inputs, N derived
+  Object.keys(editTimestamps).forEach(k => delete editTimestamps[k]);
+  let ts = Date.now() - 1000;
+  $('in-B').value = '100000'; editTimestamps['in-B'] = ts++;
+  $('in-N').value = '';
+  $('in-b').value = '10000';  editTimestamps['in-b'] = ts++;
+  $('in-C').value = '10000';  editTimestamps['in-C'] = ts++;
+  $('in-s').value = '50';     editTimestamps['in-s'] = ts++;
+  $('in-m').value = '1.10';   editTimestamps['in-m'] = ts++;
+  $('in-R').value = '30';     editTimestamps['in-R'] = ts++;
+  $('in-Reff').value = '';
+  $('in-G').value = '';
+  $('in-K').value = '';
+  clearSolved();
+  document.querySelectorAll('.field.required').forEach(f => f.classList.remove('required'));
+  document.querySelectorAll('.field.target').forEach(f => f.classList.remove('target'));
+  solve();
+}
+
+// ====== Preset scenarios ======
+// Each preset switches mode if needed and pre-fills typical values for that question type.
+// The blank field is what the user wants to solve for.
+// Each preset: provide values to fill, target = which field to leave blank/solve.
+function loadPreset(kind) {
+  const idMap = {B:'in-B', N:'in-N', b:'in-b', C:'in-C', s:'in-s', m:'in-m', R:'in-R', Reff:'in-Reff', G:'in-G', K:'in-K'};
+  // Always start from clean slate
+  Object.values(idMap).forEach(id => $(id).value = '');
+  document.querySelectorAll('.field.required').forEach(f => f.classList.remove('required'));
+  document.querySelectorAll('.field.target').forEach(f => f.classList.remove('target'));
+  document.querySelectorAll('.field.solved').forEach(f => f.classList.remove('solved'));
+
+  let cfg = null;
+  switch(kind) {
+    case 'wsop':
+      cfg = {
+        vals: { B:100000, b:10000, C:10000, s:50, m:1.10, R:30 },
+        target: 'G',
+        explain: 'WSOP行程：总buy-in $100k、单场 $10k（→ N=10场自动算出）、生活成本 $10k、卖50%@1.10、ROI 30%。计算后会显示净收入 G、等效ROI、各项细分。'
+      };
+      break;
+    case 'full_year':
+      cfg = {
+        vals: { B:300000, b:25000, C:30000, s:60, m:1.15, R:25 },
+        target: 'G',
+        explain: '全年plan：年总buy-in $300k、单场 $25k（→ N=12场）、年生活成本 $30k、卖60%@1.15、ROI 25%。计算后会显示年净收入 G、等效ROI 等。'
+      };
+      break;
+    case 'break_even':
+      cfg = {
+        vals: { B:100000, b:10000, C:10000, s:70, R:30, G:0 },
+        target: 'm',
+        explain: '求保本溢价：已知总buy-in $100k、单场 $10k、生活成本 $10k、卖70%、ROI 30%、目标净收入=0（保本）。计算后会算出最低需要的溢价倍数 m。注意：这种"反推"只在你确实想保本时有意义。'
+      };
+      break;
+    case 'what_s':
+      cfg = {
+        vals: { B:150000, b:15000, C:10000, m:1.15, R:30, G:30000 },
+        target: 's',
+        explain: '求该卖多少：已知总buy-in $150k、单场 $15k、生活成本 $10k、能稳定卖1.15溢价、ROI 30%、想净赚 $30k。计算后会算出对应的卖出比例 s。注意：G 设得太高会算出负 s 或 >100%，意味着此 G 不可达。'
+      };
+      break;
+    case 'how_big':
+      cfg = {
+        vals: { b:10000, C:10000, s:50, m:1.10, R:30, G:50000 },
+        target: 'B',
+        explain: '求需多大B：已知单场 $10k、生活成本 $10k、卖50%@1.10、ROI 30%、想净赚 $50k。计算后会算出所需总buy-in B（以及对应的场次 N=B÷b）。'
+      };
+      break;
+    case 'how_many':
+      cfg = {
+        vals: { b:10000, C:10000, s:50, m:1.10, R:30, G:30000 },
+        target: 'B',
+        explain: '求需打多少场：已知单场 $10k、生活成本 $10k、卖50%@1.10、ROI 30%、想净赚 $30k。先算出所需总buy-in B，然后 N = B÷b 自动得到场次数。'
+      };
+      break;
+  }
+  if (!cfg) return;
+
+  // Reset edit timestamps and assign sequential ones based on fill order
+  // (so all preset-filled fields are "older" than future user edits)
+  Object.keys(editTimestamps).forEach(k => delete editTimestamps[k]);
+  let ts = Date.now() - 1000;
+
+  // Fill values and mark fields
+  Object.entries(cfg.vals).forEach(([k, v]) => {
+    const id = idMap[k];
+    if (!id) return;
+    $(id).value = v;
+    const fld = $(id).closest('.field');
+    if (fld) fld.classList.add('required');
+    editTimestamps[id] = ts++;
+  });
+  // Mark target field
+  const targetId = idMap[cfg.target];
+  if (targetId) {
+    const fld = $(targetId).closest('.field');
+    if (fld) fld.classList.add('target');
+  }
+
+  flashMessage(cfg.explain);
+  if (typeof updateSolvableHint === 'function') updateSolvableHint();
+  lightUpdate();
+}
+
+// Brief flash message above results
+function flashMessage(text) {
+  let el = $('flash-msg');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'flash-msg';
+    el.className = 'flash';
+    const target = document.querySelector('.actions');
+    target.parentNode.insertBefore(el, target.nextSibling);
+  }
+  el.textContent = text;
+  el.classList.add('show');
+  clearTimeout(window._flashTimer);
+  window._flashTimer = setTimeout(() => el.classList.remove('show'), 6000);
+}
+
+// ============== CORE MATH ==============
+//
+// YEAR MODE variables:
+//   B  = total annual buy-in
+//   C  = fixed life cost
+//   s  = sell fraction (0..1)
+//   m  = premium multiplier (1.0 = par)
+//   R  = theoretical ROI (decimal)
+//   Reff = effective ROI on retained money = [(1-s)R + s(m-1)] / (1-s)
+//          equivalently: R + s(m-1-R)/(1-s)
+//   G  = annual net income target  G = B*[(1-s)R + s(m-1)] - C
+//   K  = retained risk = B*(1-s)
+//
+// TRIP MODE: B is replaced by N*b. Solve for either N or b given the other.
+
+function pct(x) { return x === null ? null : x/100; }
+function unpct(x) { return x === null ? null : x*100; }
+
+function solveAll() {
+  // Unified solver. Reads all 10 fields, attempts to solve any blanks.
+  let B    = read('in-B');
+  let N    = read('in-N');
+  let b    = read('in-b');
+  let C    = read('in-C');
+  let s    = pct(read('in-s'));
+  let m    = read('in-m');
+  let R    = pct(read('in-R'));
+  let Reff = pct(read('in-Reff'));
+  let G    = read('in-G');
+  let K    = read('in-K');
+
+  const wasUnknown = {
+    B: B===null, N: N===null, b: b===null, C: C===null, s: s===null,
+    m: m===null, R: R===null, Reff: Reff===null, G: G===null, K: K===null
+  };
+
+  let changed = true, iter = 0;
+  while (changed && iter < 30) {
+    changed = false; iter++;
+
+    // B <-> N*b
+    if (B === null && N !== null && b !== null) { B = N*b; changed = true; }
+    if (N === null && B !== null && b !== null && b>0) { N = B/b; changed = true; }
+    if (b === null && B !== null && N !== null && N>0) { b = B/N; changed = true; }
+
+    // K = B*(1-s)
+    if (K === null && B !== null && s !== null) { K = B*(1-s); changed = true; }
+    if (B === null && K !== null && s !== null && s < 0.9999) { B = K/(1-s); changed = true; }
+    if (s === null && K !== null && B !== null && B > 0) { s = 1 - K/B; changed = true; }
+
+    // Reff = (1-s)R / (1-s*m)
+    // Only meaningful when denom > 0 (i.e., s*m < 1, you're net-investing money).
+    // When s*m >= 1, you're getting net cash from selling — "negative投入"，等效ROI在此区间无意义。
+    if (Reff === null && R !== null && s !== null && m !== null) {
+      const denom = 1 - s*m;
+      if (denom > 1e-9) { Reff = (1-s)*R / denom; changed = true; }
+      // else: skip (will be flagged as "无风险套利" in UI)
+    }
+    if (R === null && Reff !== null && s !== null && m !== null && (1-s) > 1e-9) {
+      R = Reff * (1 - s*m) / (1-s); changed = true;
+    }
+    if (m === null && Reff !== null && R !== null && s !== null && s > 1e-9 && Math.abs(Reff) > 1e-9) {
+      m = (1 - (1-s)*R/Reff) / s; changed = true;
+    }
+    if (s === null && Reff !== null && R !== null && m !== null) {
+      const denom = Reff*m - R;
+      if (Math.abs(denom) > 1e-9) { s = (Reff - R) / denom; changed = true; }
+    }
+
+    // phi = (1-s)R + s(m-1)
+    let phi = null;
+    if (s !== null && R !== null && m !== null) {
+      phi = (1-s)*R + s*(m-1);
+    }
+
+    // G = B*phi - C
+    if (G === null && B !== null && C !== null && phi !== null) { G = B*phi - C; changed = true; }
+    if (B === null && G !== null && C !== null && phi !== null && Math.abs(phi)>1e-9) { B = (G+C)/phi; changed = true; }
+    if (C === null && G !== null && B !== null && phi !== null) { C = B*phi - G; changed = true; }
+
+    // After B is known, try N or b again
+    if (B !== null) {
+      if (N === null && b !== null && b > 0) { N = B/b; changed = true; }
+      if (b === null && N !== null && N > 0) { b = B/N; changed = true; }
+    }
+
+    // Solve s from G,B,C,R,m
+    if (s === null && G !== null && B !== null && C !== null && R !== null && m !== null && B>0) {
+      const denom = m-1-R;
+      if (Math.abs(denom) > 1e-9) { s = ((G+C)/B - R)/denom; changed = true; }
+    }
+    // Solve m from G,B,C,R,s
+    if (m === null && G !== null && B !== null && C !== null && R !== null && s !== null && s>1e-9 && B>0) {
+      m = 1 + ((G+C)/B - (1-s)*R)/s; changed = true;
+    }
+    // Solve R from G,B,C,s,m
+    if (R === null && G !== null && B !== null && C !== null && s !== null && m !== null && (1-s)>1e-9 && B>0) {
+      R = ((G+C)/B - s*(m-1))/(1-s); changed = true;
+    }
+  }
+
+  return { B, N, b, C, s, m, R, Reff, G, K, wasUnknown };
+}
+
+function fmtMoney(x) {
+  if (x === null || x === undefined || isNaN(x)) return '—';
+  const sign = x < 0 ? '-' : '';
+  const abs = Math.abs(x);
+  if (abs >= 1e6) return sign + '$' + (abs/1e6).toFixed(2) + 'M';
+  if (abs >= 1e3) return sign + '$' + Math.round(abs).toLocaleString();
+  return sign + '$' + abs.toFixed(0);
+}
+function fmtPct(x) {
+  if (x === null || x === undefined || isNaN(x)) return '—';
+  return (x*100).toFixed(1) + '%';
+}
+function fmtNum(x, dp=2) {
+  if (x === null || x === undefined || isNaN(x)) return '—';
+  return x.toFixed(dp);
+}
+
+function solve() {
+  // Computation is now live (lightUpdate runs on every input).
+  // This button just forces a refresh in case anything got out of sync.
+  lightUpdate();
+}
+
+function updateResults(r) {
+  const B = r.B, C = r.C, s = r.s, m = r.m, R = r.R;
+  let net = null, premProfit = null, selfProfit = null;
+  if (B !== null && s !== null && R !== null && m !== null) {
+    selfProfit = B*(1-s)*R;
+    premProfit = B*s*(m-1);
+    if (C !== null) net = selfProfit + premProfit - C;
+  }
+
+  const netEl = $('r-net');
+  netEl.textContent = fmtMoney(net);
+  netEl.classList.remove('good','warn');
+  if (net !== null) {
+    if (net > 0) netEl.classList.add('good');
+    else if (net < 0) netEl.classList.add('warn');
+  }
+
+  $('r-total').textContent = fmtMoney(B);
+  $('r-risk').textContent = (B!==null && s!==null) ? fmtMoney(B*(1-s)) : '—';
+  $('r-prem').textContent = fmtMoney(premProfit);
+  $('r-self').textContent = fmtMoney(selfProfit);
+  $('r-ratio').textContent = (C!==null && B!==null && B>0) ? ((C/B)*100).toFixed(1)+'%' : '—';
+
+  // status pill: compare net to G if both available
+  const G = r.G;
+  const pill = $('status');
+  if (net !== null && G !== null) {
+    pill.style.display = 'inline-block';
+    pill.classList.remove('under','over','exact');
+    const diff = net - G;
+    if (Math.abs(diff) < 0.01 * Math.max(Math.abs(G),1)) {
+      pill.textContent = '= TARGET';
+      pill.classList.add('exact');
+    } else if (diff > 0) {
+      pill.textContent = '+' + fmtMoney(diff) + ' OVER';
+      pill.classList.add('over');
+    } else {
+      pill.textContent = fmtMoney(diff) + ' UNDER';
+      pill.classList.add('under');
+    }
+  } else {
+    pill.style.display = 'none';
+  }
+
+  // ratio sub: warning if too high
+  const ratioEl = $('r-ratio');
+  ratioEl.classList.remove('good','warn');
+  if (C!==null && B!==null && B>0) {
+    const r2 = C/B;
+    if (r2 > 0.20) ratioEl.classList.add('warn');
+    else if (r2 < 0.10) ratioEl.classList.add('good');
+  }
+}
+
+function recompute() {
+  // Soft recompute — just update results from current visible inputs without solving
+  // (Triggered on input changes, we don't auto-solve to avoid surprising the user)
+}
+
+// Track when each field was last edited by the user (for resolving B/N/b conflicts)
+const editTimestamps = {};
+
+function attachLiveListeners() {
+  const ids = ['in-B','in-N','in-b','in-C','in-s','in-m','in-R','in-Reff','in-G','in-K'];
+  ids.forEach(id => {
+    const el = $(id);
+    if (!el) return;
+    el.addEventListener('input', () => {
+      const fld = el.closest('.field');
+      const wasSolved = fld && fld.classList.contains('solved');
+      if (fld) {
+        fld.classList.remove('solved');
+        fld.classList.remove('required');
+        fld.classList.remove('target');
+      }
+      // Record edit time for this field (used for B/N/b conflict resolution)
+      editTimestamps[id] = Date.now();
+
+      // If user edited a previously-solved field, clear all OTHER solved fields
+      // (they were derived; their values are now stale).
+      if (wasSolved) {
+        document.querySelectorAll('.field.solved').forEach(f => {
+          f.classList.remove('solved');
+          const inp = f.querySelector('input');
+          if (inp) inp.value = '';
+        });
+      }
+      lightUpdate();
+    });
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); solve(); }
+    });
+  });
+}
+
+// Track which fields are USER-filled (not derived) so we don't overwrite them.
+function getUserFilledSet() {
+  const ids = ['in-B','in-N','in-b','in-C','in-s','in-m','in-R','in-Reff','in-G','in-K'];
+  const userFilled = new Set();
+  ids.forEach(id => {
+    const el = $(id);
+    if (!el) return;
+    const fld = el.closest('.field');
+    if (el.value !== '' && fld && !fld.classList.contains('solved')) {
+      userFilled.add(id);
+    }
+  });
+  return userFilled;
+}
+
+// If all three of B, N, b are user-filled, this is overdetermined (only 1 equation: B = N×b).
+// Resolution strategy: B and b are user inputs (规模 + 级别). N is the natural derived result.
+// - If user just edited B  → recompute N (b stays)
+// - If user just edited b  → recompute N (B stays)
+// - If user just edited N  → recompute B (b stays). Rare; user explicitly overrode N.
+function resolveBNbConflict() {
+  const ids = ['in-B','in-N','in-b'];
+  const filledIds = ids.filter(id => {
+    const el = $(id);
+    const fld = el && el.closest('.field');
+    return el && el.value !== '' && fld && !fld.classList.contains('solved');
+  });
+  if (filledIds.length < 3) return null;
+
+  const B = parseFloat($('in-B').value);
+  const N = parseFloat($('in-N').value);
+  const b = parseFloat($('in-b').value);
+  if (Math.abs(B - N * b) < 0.5) return null; // already consistent
+
+  let newest = null, newestTs = -Infinity;
+  for (const id of filledIds) {
+    const ts = editTimestamps[id] !== undefined ? editTimestamps[id] : 0;
+    if (ts > newestTs) {
+      newestTs = ts;
+      newest = id;
+    }
+  }
+
+  // Default: clear N (let it be derived). Only if user just edited N, clear B.
+  let toClear;
+  if (newest === 'in-N') toClear = 'in-B';   // user explicitly changed N → keep b, recompute B
+  else                   toClear = 'in-N';   // user changed B or b → recompute N
+
+  const el = $(toClear);
+  el.value = '';
+  const fld = el.closest('.field');
+  if (fld) {
+    fld.classList.remove('required');
+    fld.classList.remove('target');
+  }
+  return toClear;
+}
+
+function lightUpdate() {
+  // Resolve B/N/b conflict before reading values (clears the oldest-edited field)
+  resolveBNbConflict();
+
+  const userFilled = getUserFilledSet();
+
+  // Clear .solved field values (they'll be recomputed)
+  document.querySelectorAll('.field.solved').forEach(f => {
+    const inp = f.querySelector('input');
+    if (inp) inp.value = '';
+  });
+
+  const r = solveAll();
+
+  const writes = [
+    ['in-B', r.B,    1],
+    ['in-N', r.N,    1],
+    ['in-b', r.b,    1],
+    ['in-C', r.C,    1],
+    ['in-s', r.s,    100],
+    ['in-m', r.m,    1],
+    ['in-R', r.R,    100],
+    ['in-Reff', r.Reff, 100],
+    ['in-G', r.G,    1],
+    ['in-K', r.K,    1],
+  ];
+  for (const [id, val, scale] of writes) {
+    if (userFilled.has(id)) continue;
+    if (val === null || val === undefined || isNaN(val)) continue;
+    setVal(id, val * scale, true);
+  }
+
+  // Special UI state: arbitrage zone (s*m >= 1)
+  updateArbitrageState(r);
+
+  updateResults(r);
+  updateSolvableHint();
+}
+
+// When s*m >= 1, the player gets net cash from selling shares (premium income exceeds
+// retained stake cost). Equivalent ROI is undefined/meaningless here. Flag it visually.
+function updateArbitrageState(r) {
+  const reffField = $('in-Reff').closest('.field');
+  if (!reffField) return;
+
+  const isArb = (r.s !== null && r.m !== null && r.s * r.m >= 1 - 1e-9);
+  const hintEl = reffField.querySelector('.hint');
+
+  if (isArb) {
+    reffField.classList.add('arbitrage');
+    if (hintEl) hintEl.innerHTML = '⚡ <strong>无风险套利区</strong>：卖出比例×溢价 ≥ 100%，溢价收入已覆盖自留成本，等效ROI无意义';
+    // Clear the Reff input only if it was auto-derived (not user-filled)
+    const inp = $('in-Reff');
+    if (inp) {
+      if (reffField.classList.contains('solved')) inp.value = '';
+      inp.placeholder = '无穷大 / 无意义';
+    }
+  } else {
+    reffField.classList.remove('arbitrage');
+    if (hintEl) hintEl.textContent = '扣除溢价收入后净花的钱赚多少';
+    const inp = $('in-Reff');
+    if (inp) inp.placeholder = 'auto';
+  }
+}
+
+// ====== Solvability hint ======
+// Detect what variable(s) are currently solvable based on what's filled.
+function updateSolvableHint() {
+  const hintEl = $('solvable-hint');
+  if (!hintEl) return;
+
+  // "User-filled" means: has a value AND is NOT marked as .solved (auto-derived)
+  const isUserFilled = (id) => {
+    const el = $(id);
+    if (!el || el.value === '') return false;
+    const fld = el.closest('.field');
+    return !(fld && fld.classList.contains('solved'));
+  };
+
+  const Bfilled = isUserFilled('in-B');
+  const Nfilled = isUserFilled('in-N');
+  const bfilled = isUserFilled('in-b');
+  const Beffective = Bfilled || (Nfilled && bfilled);
+
+  const filled = {
+    B:    Beffective,
+    Braw: Bfilled,
+    N:    Nfilled,
+    b:    bfilled,
+    C:    isUserFilled('in-C'),
+    s:    isUserFilled('in-s'),
+    m:    isUserFilled('in-m'),
+    R:    isUserFilled('in-R'),
+    Reff: isUserFilled('in-Reff'),
+    G:    isUserFilled('in-G'),
+    K:    isUserFilled('in-K'),
+  };
+
+  const solvable = [];
+  if (!filled.K && filled.B && filled.s) solvable.push('K');
+  if (!filled.B && filled.K && filled.s) solvable.push('B');
+  if (!filled.s && filled.K && filled.B) solvable.push('s');
+  if (!filled.Reff && filled.s && filled.m && filled.R) solvable.push('R_eff');
+  if (!filled.R && filled.Reff && filled.s && filled.m) solvable.push('R');
+  if (!filled.m && filled.Reff && filled.R && filled.s) solvable.push('m');
+  if (!filled.s && filled.Reff && filled.R && filled.m) solvable.push('s');
+
+  const haveCore = filled.s && filled.m && filled.R;
+  if (!filled.G && haveCore && filled.B && filled.C) solvable.push('G');
+  if (!filled.B && haveCore && filled.G && filled.C) solvable.push('B');
+  if (!filled.C && haveCore && filled.G && filled.B) solvable.push('C');
+  if (!filled.s && filled.G && filled.B && filled.C && filled.R && filled.m) solvable.push('s');
+  if (!filled.m && filled.G && filled.B && filled.C && filled.R && filled.s) solvable.push('m');
+  if (!filled.R && filled.G && filled.B && filled.C && filled.s && filled.m) solvable.push('R');
+
+  if (!filled.N && filled.b && filled.B) solvable.push('N');
+  if (!filled.b && filled.N && filled.B) solvable.push('b');
+
+  const uniq = [...new Set(solvable)];
+
+  // Apply .can-solve marker (visual hint of fields that will be auto-derived)
+  const idMap = {B:'in-B', N:'in-N', b:'in-b', C:'in-C', s:'in-s', m:'in-m', R:'in-R', Reff:'in-Reff', R_eff:'in-Reff', G:'in-G', K:'in-K'};
+  document.querySelectorAll('.field.can-solve').forEach(f => f.classList.remove('can-solve'));
+  for (const k of uniq) {
+    const id = idMap[k];
+    if (!id) continue;
+    const inputEl = $(id);
+    if (!inputEl) continue;
+    const fieldEl = inputEl.closest('.field');
+    if (!fieldEl) continue;
+    // Mark .can-solve only on fields that aren't user-input and aren't already solved
+    if (!fieldEl.classList.contains('solved') &&
+        !fieldEl.classList.contains('required') &&
+        !isUserFilled(id)) {
+      fieldEl.classList.add('can-solve');
+    }
+  }
+
+  hintEl.classList.remove('ready','warn');
+
+  const userFilledCount = ['Braw','N','b','C','s','m','R','Reff','G','K'].filter(k => filled[k]).length;
+  if (userFilledCount === 0) {
+    hintEl.innerHTML = '<span style="color:var(--text-faint)">填好字段后，其他会自动算出来</span>';
+    return;
+  }
+
+  // Count how many fields are auto-derived (have .solved)
+  const solvedCount = document.querySelectorAll('.field.solved').length;
+
+  if (uniq.length > 0 || solvedCount > 0) {
+    hintEl.classList.add('ready');
+    if (solvedCount > 0) {
+      hintEl.innerHTML = `✓ 已自动算出 <strong>${solvedCount}</strong> 项（标"已算出"）。改任何字段会立即重算。`;
+    } else {
+      // Map symbol → Chinese name
+      const nameMap = {
+        B: '总buy-in', N: '场次数', b: '单场买入', C: '生活成本',
+        s: '卖出比例', m: '溢价', R: '真实ROI', R_eff: '等效ROI',
+        Reff: '等效ROI', G: '净收入目标', K: '实际承担风险'
+      };
+      const labels = uniq.map(k => nameMap[k] || k);
+      hintEl.innerHTML = `✓ 当前可自动算出：<strong>${labels.join(' / ')}</strong>`;
+    }
+  } else {
+    hintEl.classList.add('warn');
+    hintEl.innerHTML = '△ 当前组合还不够算出更多字段。通常需要：总buy-in、单场买入、生活成本、卖出比例、溢价、真实ROI 中至少 4 个';
+  }
+}
+
+// Run once on init
+setTimeout(updateSolvableHint, 50);
+
+attachLiveListeners();
+
+// ============================================================
+// VARIANCE LAB
+// ============================================================
+
+// Build a generic top-heavy MTT payout structure
+function buildPayouts(itmCount) {
+  let decay;
+  if (itmCount <= 5) decay = 1.5;
+  else if (itmCount <= 20) decay = 2.5;
+  else if (itmCount <= 100) decay = 3.5;
+  else decay = 4.5;
+  const raw = [];
+  for (let i = 0; i < itmCount; i++) raw.push(Math.exp(-decay * i / itmCount));
+  const sum = raw.reduce((a,b) => a+b, 0);
+  return raw.map(x => x/sum);
+}
+
+// Realize ROI for given alpha (skill exponent)
+// rank = ceil(N * u^alpha), alpha>1 = better (skewed to lower ranks)
+function realizeROI(buyin, N, payouts, alpha, samples) {
+  const itm = payouts.length;
+  let total = 0;
+  for (let i = 0; i < samples; i++) {
+    const u = Math.random();
+    const rank = Math.max(1, Math.min(N, Math.ceil(N * Math.pow(u, alpha))));
+    if (rank > itm) total -= buyin;
+    else total += payouts[rank-1] * (buyin * N) - buyin;
+  }
+  return total / (samples * buyin);
+}
+
+// Calibrate alpha so empirical ROI matches target R
+function calibrateAlpha(buyin, N, payouts, targetR, samples) {
+  let lo = 0.3, hi = 5.0;
+  for (let iter = 0; iter < 22; iter++) {
+    const mid = (lo + hi) / 2;
+    const roi = realizeROI(buyin, N, payouts, mid, samples);
+    if (roi < targetR) lo = mid;
+    else hi = mid;
+  }
+  return (lo + hi) / 2;
+}
+
+// Run Monte Carlo for one strategy: returns array of {final, maxDD, traj}
+// `s` = sell fraction (0..1), `m` = premium multiplier
+// Per tournament profit to PLAYER: rank profit * (1-s) + buyin * s * (m-1)
+//   (i.e. tournament rank P/L is shared 1-s with player; s share is "sold" with premium)
+// Wait: standard staking: player puts in (1-s) of buyin, sells s share at price (s*buyin*m).
+// Net cash flow at start: player's pocket = -buyin + s*buyin*m  →  net invested per buyin = (1-s*m)*buyin? 
+// Actually let's think carefully:
+//   Player owes the buyin: -buyin
+//   Receives from investors: s * buyin * m   (selling s share at premium m)
+//   Player effectively invested: buyin - s*buyin*m = buyin*(1-s*m)
+//   When tournament returns P (= rank prize - buyin? no, rank prize), 
+//   player keeps (1-s) of net result ...
+// Actually the cleanest model:
+//   Tournament outcome = rank prize R_t (could be 0 or payout amount)
+//   Net P/L for the entire entry = R_t - buyin
+//   Player's share of the net P/L = (1-s) * (R_t - buyin)
+//   Player's premium income from selling = s * buyin * (m - 1)
+//   Player's net per tourney = (1-s)*(R_t - buyin) + s*buyin*(m-1)
+//
+// At theoretical ROI R: E[R_t] = (1+R) * buyin
+//   E[player net per tourney] = (1-s) * R * buyin + s * buyin * (m-1)
+//   matches our formula ✓
+function simStrategy(buyin, N_field, payouts, alpha, sellFrac, premium, numTourneys, numPaths) {
+  const itm = payouts.length;
+  const premIncomePerT = buyin * sellFrac * (premium - 1);
+  const finals = new Float64Array(numPaths);
+  const maxDDs = new Float64Array(numPaths);
+  // Store sample paths (only keep first 30 for plotting + median path)
+  const trajSample = [];
+  const SAMPLE_TRAJ = Math.min(30, numPaths);
+
+  for (let p = 0; p < numPaths; p++) {
+    let cum = 0, peak = 0, maxDD = 0;
+    const traj = (p < SAMPLE_TRAJ) ? new Float64Array(numTourneys + 1) : null;
+    if (traj) traj[0] = 0;
+
+    for (let t = 0; t < numTourneys; t++) {
+      const u = Math.random();
+      const rank = Math.max(1, Math.min(N_field, Math.ceil(N_field * Math.pow(u, alpha))));
+      let prize = 0;
+      if (rank <= itm) prize = payouts[rank-1] * (buyin * N_field);
+      const tourneyPL = prize - buyin;
+      const playerPL = (1 - sellFrac) * tourneyPL + premIncomePerT;
+      cum += playerPL;
+      if (cum > peak) peak = cum;
+      const dd = peak - cum;
+      if (dd > maxDD) maxDD = dd;
+      if (traj) traj[t+1] = cum;
+    }
+    finals[p] = cum;
+    maxDDs[p] = maxDD;
+    if (traj) trajSample.push(traj);
+  }
+  return { finals, maxDDs, trajSample, numTourneys };
+}
+
+function quantile(sortedArr, p) {
+  const idx = Math.max(0, Math.min(sortedArr.length-1, Math.floor(p * sortedArr.length)));
+  return sortedArr[idx];
+}
+
+// Sync inputs from upper section
+function syncVlabInputs() {
+  const R = read('in-R'); if (R !== null && $('v-R').value === '') $('v-R').value = R;
+  const m = read('in-m'); if (m !== null && $('v-m').value === '') $('v-m').value = m;
+  const N = read('in-N'); if (N !== null && $('v-N').value === '') $('v-N').value = N;
+  const b = read('in-b'); if (b !== null && $('v-b').value === '') $('v-b').value = b;
+}
+
+// Read variance lab inputs
+function readVlab() {
+  const v = (id, def) => {
+    const x = parseFloat($(id).value);
+    return isNaN(x) ? def : x;
+  };
+  return {
+    N: Math.max(1, Math.round(v('v-N', 50))),
+    buyin: Math.max(1, v('v-b', 10000)),
+    field: Math.max(2, Math.round(v('v-field', 500))),
+    itmPct: Math.max(1, Math.min(100, v('v-itm', 15))) / 100,
+    R: v('v-R', 30) / 100,
+    m: v('v-m', 1.10),
+    sA: Math.max(0, Math.min(1, v('v-sA', 0)/100)),
+    sB: Math.max(0, Math.min(1, v('v-sB', 50)/100)),
+    sC: Math.max(0, Math.min(1, v('v-sC', 70)/100)),
+    paths: parseInt($('v-paths').value, 10) || 5000
+  };
+}
+
+let vSimResults = null;
+
+async function runVariance() {
+  const cfg = readVlab();
+  const status = $('v-status');
+  const btn = document.querySelector('.vrun');
+  btn.disabled = true;
+  status.textContent = 'building payouts...';
+
+  // Yield to UI before heavy work
+  await new Promise(r => setTimeout(r, 30));
+
+  const itmCount = Math.max(1, Math.floor(cfg.field * cfg.itmPct));
+  const payouts = buildPayouts(itmCount);
+
+  status.textContent = `calibrating skill (alpha) for R=${(cfg.R*100).toFixed(0)}%...`;
+  await new Promise(r => setTimeout(r, 20));
+
+  // Calibrate alpha — use a smaller sample for speed but adequate accuracy
+  const calSamples = Math.min(40000, Math.max(15000, cfg.paths * 4));
+  const alpha = calibrateAlpha(cfg.buyin, cfg.field, payouts, cfg.R, calSamples);
+
+  const strategies = [
+    { key: 'A', sell: cfg.sA, color: '#3affb0' },
+    { key: 'B', sell: cfg.sB, color: '#d4ff3a' },
+    { key: 'C', sell: cfg.sC, color: '#ff6b4a' }
+  ];
+
+  const results = [];
+  for (let i = 0; i < strategies.length; i++) {
+    const st = strategies[i];
+    status.textContent = `simulating strategy ${st.key} (s=${(st.sell*100).toFixed(0)}%)...`;
+    await new Promise(r => setTimeout(r, 20));
+    const sim = simStrategy(cfg.buyin, cfg.field, payouts, alpha, st.sell, cfg.m, cfg.N, cfg.paths);
+    // Sort copies for stats
+    const sortedFinals = Array.from(sim.finals).sort((a,b)=>a-b);
+    const sortedDDs = Array.from(sim.maxDDs).sort((a,b)=>a-b);
+    results.push({
+      ...st,
+      sortedFinals,
+      sortedDDs,
+      trajSample: sim.trajSample,
+      mean: sortedFinals.reduce((a,b)=>a+b,0)/sortedFinals.length,
+      pLoss: sortedFinals.filter(x=>x<0).length / sortedFinals.length
+    });
+  }
+
+  vSimResults = { cfg, alpha, payouts, strategies: results };
+  status.textContent = `done · α=${alpha.toFixed(3)} · ITM-est=${(cfg.itmPct*100).toFixed(0)}% (${itmCount}/${cfg.field})`;
+  btn.disabled = false;
+
+  drawChart();
+  fillStats();
+}
+
+// ===== Canvas rendering =====
+function drawChart() {
+  if (!vSimResults) return;
+  const cv = $('v-canvas');
+  const dpr = window.devicePixelRatio || 1;
+  // Set actual pixel size to display CSS size × DPR
+  const cssW = cv.clientWidth || 880;
+  const cssH = 360;
+  cv.width = cssW * dpr;
+  cv.height = cssH * dpr;
+  cv.style.height = cssH + 'px';
+  const ctx = cv.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, cssW, cssH);
+
+  const { cfg, strategies } = vSimResults;
+  const N = cfg.N;
+
+  // Find Y range across all strategies (use 2nd–98th percentile of finals as scale)
+  let yMin = Infinity, yMax = -Infinity;
+  for (const st of strategies) {
+    const lo = st.sortedFinals[Math.floor(0.02 * st.sortedFinals.length)];
+    const hi = st.sortedFinals[Math.floor(0.98 * st.sortedFinals.length)];
+    yMin = Math.min(yMin, lo);
+    yMax = Math.max(yMax, hi);
+    // Also include trajectory extents
+    for (const tr of st.trajSample) {
+      for (let i = 0; i < tr.length; i += Math.max(1, Math.floor(N/30))) {
+        if (tr[i] < yMin) yMin = tr[i];
+        if (tr[i] > yMax) yMax = tr[i];
+      }
+    }
+  }
+  // Pad
+  const pad = (yMax - yMin) * 0.1 || 1000;
+  yMin -= pad; yMax += pad;
+  if (yMin > 0) yMin = -pad;
+  if (yMax < 0) yMax = pad;
+
+  const PADL = 64, PADR = 14, PADT = 20, PADB = 28;
+  const W = cssW - PADL - PADR;
+  const H = cssH - PADT - PADB;
+
+  const x2px = t => PADL + (t / N) * W;
+  const y2px = y => PADT + H - ((y - yMin) / (yMax - yMin)) * H;
+
+  // Grid + axes
+  ctx.strokeStyle = '#1f1f28';
+  ctx.lineWidth = 1;
+  ctx.font = '10px JetBrains Mono, monospace';
+  ctx.fillStyle = '#5a5a68';
+  // Y gridlines
+  const yTicks = niceTicks(yMin, yMax, 5);
+  for (const y of yTicks) {
+    const py = y2px(y);
+    ctx.beginPath(); ctx.moveTo(PADL, py); ctx.lineTo(PADL + W, py); ctx.stroke();
+    ctx.fillText(fmtMoneyShort(y), 6, py + 3);
+  }
+  // X gridlines
+  const xTicks = niceXTicks(N, 6);
+  for (const t of xTicks) {
+    const px = x2px(t);
+    ctx.beginPath(); ctx.moveTo(px, PADT); ctx.lineTo(px, PADT + H); ctx.stroke();
+    ctx.fillText(t.toString(), px - 8, PADT + H + 14);
+  }
+  // Zero line emphasized
+  if (yMin < 0 && yMax > 0) {
+    ctx.strokeStyle = '#3d3d4d';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(PADL, y2px(0)); ctx.lineTo(PADL + W, y2px(0)); ctx.stroke();
+  }
+
+  // EV line (theoretical mean) — gray dashed
+  ctx.strokeStyle = '#666';
+  ctx.setLineDash([4, 4]);
+  ctx.lineWidth = 1;
+  for (const st of strategies) {
+    // EV per tournament for this strategy
+    const evPerT = (1 - st.sell) * cfg.R * cfg.buyin + st.sell * cfg.buyin * (cfg.m - 1);
+    ctx.beginPath();
+    ctx.moveTo(x2px(0), y2px(0));
+    ctx.lineTo(x2px(N), y2px(evPerT * N));
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  // Per strategy: draw confidence band + median path
+  // Compute per-time-step quantiles by re-running with quick sampling of trajectories
+  // Since we already have trajSample (30 paths), use those to estimate band — approximate
+  // For richer bands, we'd need to store all trajectories. Instead we draw individual sample paths faintly.
+  for (const st of strategies) {
+    // Draw faint sample trajectories
+    ctx.strokeStyle = hexAlpha(st.color, 0.18);
+    ctx.lineWidth = 0.8;
+    for (const tr of st.trajSample) {
+      ctx.beginPath();
+      for (let i = 0; i <= N; i++) {
+        const px = x2px(i);
+        const py = y2px(tr[i]);
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+    }
+  }
+
+  // Draw final-distribution markers at right edge (median + 5/95 percentile dots)
+  for (const st of strategies) {
+    const med = quantile(st.sortedFinals, 0.5);
+    const p05 = quantile(st.sortedFinals, 0.05);
+    const p95 = quantile(st.sortedFinals, 0.95);
+    const xR = x2px(N) + 4;
+    ctx.fillStyle = st.color;
+    // Median dot (large)
+    ctx.beginPath(); ctx.arc(xR, y2px(med), 4, 0, Math.PI*2); ctx.fill();
+    // 5/95 small dots with vertical line
+    ctx.strokeStyle = hexAlpha(st.color, 0.6);
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(xR, y2px(p05));
+    ctx.lineTo(xR, y2px(p95));
+    ctx.stroke();
+    ctx.beginPath(); ctx.arc(xR, y2px(p05), 2.5, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(xR, y2px(p95), 2.5, 0, Math.PI*2); ctx.fill();
+  }
+
+  // Border
+  ctx.strokeStyle = '#2a2a35';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(PADL, PADT, W, H);
+
+  // Axis labels
+  ctx.fillStyle = '#5a5a68';
+  ctx.font = '10px JetBrains Mono, monospace';
+  ctx.fillText('累计盈亏 ($)', 8, PADT - 6);
+  ctx.fillText('场次', PADL + W - 30, cssH - 8);
+}
+
+function niceTicks(min, max, n) {
+  const range = max - min;
+  if (range <= 0) return [min];
+  const rough = range / n;
+  const mag = Math.pow(10, Math.floor(Math.log10(rough)));
+  const norm = rough / mag;
+  let step;
+  if (norm < 1.5) step = 1*mag;
+  else if (norm < 3) step = 2*mag;
+  else if (norm < 7) step = 5*mag;
+  else step = 10*mag;
+  const ticks = [];
+  const start = Math.ceil(min/step)*step;
+  for (let v = start; v <= max; v += step) ticks.push(v);
+  return ticks;
+}
+function niceXTicks(N, n) {
+  const step = Math.max(1, Math.ceil(N/n));
+  const ticks = [];
+  for (let v = 0; v <= N; v += step) ticks.push(v);
+  return ticks;
+}
+function fmtMoneyShort(x) {
+  const a = Math.abs(x);
+  const sign = x < 0 ? '-' : '';
+  if (a >= 1e6) return sign + '$' + (a/1e6).toFixed(1) + 'M';
+  if (a >= 1e3) return sign + '$' + (a/1e3).toFixed(0) + 'k';
+  return sign + '$' + Math.round(a);
+}
+function hexAlpha(hex, a) {
+  // hex = "#rrggbb"
+  const r = parseInt(hex.slice(1,3), 16);
+  const g = parseInt(hex.slice(3,5), 16);
+  const b = parseInt(hex.slice(5,7), 16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+function fillStats() {
+  if (!vSimResults) return;
+  for (const st of vSimResults.strategies) {
+    const row = $('v-row-' + st.key);
+    const med = quantile(st.sortedFinals, 0.5);
+    const p05 = quantile(st.sortedFinals, 0.05);
+    const p95 = quantile(st.sortedFinals, 0.95);
+    const medDD = quantile(st.sortedDDs, 0.5);
+    const dd90 = quantile(st.sortedDDs, 0.9);
+    const sellPct = (st.sell * 100).toFixed(0);
+    row.innerHTML = `
+      <div><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${st.color};margin-right:6px"></span>${st.key} · 卖${sellPct}%</div>
+      <div>${fmtMoneyShort(med)}</div>
+      <div style="color:${p05<0?'#ff6b4a':'#e8e8ee'}">${fmtMoneyShort(p05)}</div>
+      <div style="color:#3affb0">${fmtMoneyShort(p95)}</div>
+      <div>${(st.pLoss*100).toFixed(1)}%</div>
+      <div>${fmtMoneyShort(medDD)} <span style="color:#5a5a68">/ 90%: ${fmtMoneyShort(dd90)}</span></div>
+    `;
+  }
+}
+
+// Sync R/m/N/b from upper inputs into vlab when those change
+function attachVlabSync() {
+  const sync = (srcId, dstId) => {
+    const el = $(srcId); if (!el) return;
+    el.addEventListener('input', () => {
+      const v = parseFloat(el.value);
+      if (!isNaN(v)) $(dstId).value = v;
+    });
+  };
+  sync('in-R', 'v-R');
+  sync('in-m', 'v-m');
+  sync('in-N', 'v-N');
+  sync('in-b', 'v-b');
+}
+attachVlabSync();
+syncVlabInputs();
+
+</script>
+</body>
+</html>

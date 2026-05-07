@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>红烧扑克工具集 · Hongshao Poker Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0c;
+    --bg-elev: #131318;
+    --bg-hover: #1a1a21;
+    --border: #2a2a35;
+    --border-bright: #3d3d4d;
+    --text: #e8e8ee;
+    --text-dim: #8a8a99;
+    --text-faint: #5a5a68;
+    --accent: #d4ff3a;
+    --mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+    --sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 64px 32px 96px;
+  }
+  header {
+    margin-bottom: 64px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+  }
+  .brand {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  h1 {
+    font-size: 42px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+  }
+  .subtitle {
+    color: var(--text-dim);
+    font-size: 16px;
+    line-height: 1.6;
+    max-width: 640px;
+  }
+  .section-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-faint);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin: 48px 0 20px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+  }
+  .card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    transition: background .15s, border-color .15s, transform .15s;
+  }
+  .card:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-bright);
+    transform: translateY(-2px);
+  }
+  .card-tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border: 1px solid var(--border-bright);
+    border-radius: 4px;
+    margin-bottom: 14px;
+  }
+  .card-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+  }
+  .card-desc {
+    color: var(--text-dim);
+    font-size: 14px;
+    line-height: 1.55;
+    margin-bottom: 16px;
+  }
+  .card-meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-faint);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+  }
+  .card-arrow {
+    color: var(--text-dim);
+    transition: color .15s, transform .15s;
+  }
+  .card:hover .card-arrow {
+    color: var(--accent);
+    transform: translateX(3px);
+  }
+  footer {
+    margin-top: 80px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    color: var(--text-faint);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+  }
+  footer a {
+    color: var(--text-dim);
+    text-decoration: none;
+  }
+  footer a:hover { color: var(--accent); }
+  @media (max-width: 600px) {
+    .wrap { padding: 40px 20px 64px; }
+    h1 { font-size: 32px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">Hongshao Poker Tools</div>
+    <h1>红烧扑克工具集</h1>
+    <p class="subtitle">为 MTT / 现金桌玩家设计的一组离线计算工具。所有工具均可在浏览器中直接运行，无需后端。</p>
+  </header>
+
+  <div class="section-label">Staking · 投资分析</div>
+  <div class="grid">
+    <a class="card" href="tools/mtt-staking/index.html">
+      <span class="card-tag">React</span>
+      <div class="card-title">MTT Staking Calculator</div>
+      <div class="card-desc">基于 ICM / ChipEV 的 MTT 投资回报计算，支持多场次组合、Make-up、分润比例与可视化。</div>
+      <div class="card-meta">
+        <span>tools/mtt-staking</span>
+        <span class="card-arrow">→</span>
+      </div>
+    </a>
+    <a class="card" href="tools/staking-solver/index.html">
+      <span class="card-tag">Vanilla</span>
+      <div class="card-title">Staking Solver</div>
+      <div class="card-desc">求解多方投资场景下的最优分配与定价，单文件零依赖。</div>
+      <div class="card-meta">
+        <span>tools/staking-solver</span>
+        <span class="card-arrow">→</span>
+      </div>
+    </a>
+  </div>
+
+  <footer>
+    <a href="https://github.com/hongshao2026/hongshao-poker-tools" target="_blank" rel="noopener">github.com/hongshao2026/hongshao-poker-tools</a>
+  </footer>
+</div>
+</body>
+</html>
