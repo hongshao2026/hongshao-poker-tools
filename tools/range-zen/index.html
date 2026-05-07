@@ -4,90 +4,50 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Range Zen · 范围胜率计算器</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/shared.css">
 <style>
-  :root {
-    --bg: #0a0a0c;
-    --bg-elev: #131318;
-    --bg-input: #1a1a21;
-    --border: #2a2a35;
-    --border-bright: #3d3d4d;
-    --text: #e8e8ee;
-    --text-dim: #8a8a99;
-    --text-faint: #5a5a68;
-    --accent: #d4ff3a;
-    --accent-dim: #8aa820;
-    --warn: #ff6b4a;
-    --good: #3affb0;
-    --p1: #d4ff3a;
-    --p2: #4ac8ff;
-    --mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
-    --sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--sans);
-    min-height: 100vh;
-    -webkit-font-smoothing: antialiased;
-  }
-  .wrap { max-width: 960px; margin: 0 auto; padding: 48px 24px 96px; }
-  header { margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
-  .back { font-family: var(--mono); font-size: 11px; color: var(--text-dim); text-decoration: none; letter-spacing: 0.1em; }
-  .back:hover { color: var(--accent); }
-  h1 { font-size: 28px; font-weight: 600; margin-top: 12px; letter-spacing: -0.01em; }
-  .sub { color: var(--text-dim); font-size: 13px; margin-top: 6px; }
-  .panel { background: var(--bg-elev); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 16px; }
-  .row { display: grid; grid-template-columns: 100px 1fr; gap: 12px; align-items: center; margin-bottom: 12px; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 56px 24px 96px; }
+  header { margin-bottom: 32px; padding-bottom: 22px; border-bottom: 1px solid var(--border); }
+  h1 { font-size: var(--fs-xl); font-weight: 600; letter-spacing: -0.01em; }
+  h1 .ver { color: var(--text-faint); font-weight: 400; font-size: var(--fs-sm); margin-left: 10px; }
+  .sub { color: var(--text-dim); font-size: var(--fs-sm); margin-top: 6px; }
+
+  .panel { background: var(--bg-elev); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 22px; margin-bottom: 18px; }
+  .row { display: grid; grid-template-columns: 110px 1fr; gap: 14px; align-items: center; margin-bottom: 14px; }
   .row:last-child { margin-bottom: 0; }
-  label { font-family: var(--mono); font-size: 11px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; }
-  input[type="text"], input[type="number"] {
-    background: var(--bg-input); border: 1px solid var(--border); color: var(--text);
-    padding: 10px 12px; border-radius: 6px; font-family: var(--mono); font-size: 13px; width: 100%;
-    transition: border-color .15s;
-  }
-  input:focus { outline: none; border-color: var(--border-bright); }
+  label { font-family: var(--font-mono); font-size: var(--fs-tiny); color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; }
+
   input.p1 { border-left: 3px solid var(--p1); }
   input.p2 { border-left: 3px solid var(--p2); }
-  .examples { font-family: var(--mono); font-size: 10px; color: var(--text-faint); margin-top: 4px; grid-column: 2; }
-  .ex { color: var(--text-dim); cursor: pointer; }
+  .examples { font-family: var(--font-mono); font-size: var(--fs-tiny); color: var(--text-faint); margin-top: 4px; grid-column: 2; }
+  .ex { color: var(--text-dim); cursor: pointer; padding: 0 2px; }
   .ex:hover { color: var(--accent); }
-  .actions { display: flex; gap: 12px; align-items: center; }
-  button {
-    background: var(--accent); color: #000; border: none; padding: 10px 20px;
-    font-family: var(--sans); font-size: 13px; font-weight: 600; border-radius: 6px;
-    cursor: pointer; transition: opacity .15s;
-  }
-  button:hover { opacity: 0.85; }
-  button:disabled { opacity: 0.4; cursor: not-allowed; }
-  button.stop { background: var(--warn); color: #fff; }
-  .status { font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+
+  .actions { display: flex; gap: 14px; align-items: center; }
+  .btn-go { background: var(--accent); color: #000; padding: 12px 24px; font-size: var(--fs-base); }
+  .btn-stop { background: var(--warn); color: #fff; padding: 12px 24px; font-size: var(--fs-base); }
+  .status { font-family: var(--font-mono); font-size: var(--fs-tiny); color: var(--text-dim); }
   .status.err { color: var(--warn); }
-  .results { margin-top: 24px; }
-  .result-bar {
-    display: grid; grid-template-columns: 80px 1fr 100px; gap: 12px; align-items: center;
-    margin-bottom: 12px;
-  }
-  .result-name { font-family: var(--mono); font-size: 12px; }
-  .bar-track { height: 28px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; position: relative; }
+
+  .results { margin-top: 28px; }
+  .result-bar { display: grid; grid-template-columns: 90px 1fr 110px; gap: 14px; align-items: center; margin-bottom: 14px; }
+  .result-name { font-family: var(--font-mono); font-size: var(--fs-sm); font-weight: 500; }
+  .bar-track { height: 32px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; position: relative; }
   .bar-fill { height: 100%; transition: width .3s ease; }
   .bar-fill.p1 { background: linear-gradient(90deg, var(--p1) 0%, var(--accent-dim) 100%); }
   .bar-fill.p2 { background: linear-gradient(90deg, var(--p2) 0%, #2a8aaa 100%); }
-  .bar-pct { position: absolute; top: 50%; left: 12px; transform: translateY(-50%); font-family: var(--mono); font-size: 13px; font-weight: 600; color: #000; }
-  .bar-detail { font-family: var(--mono); font-size: 10px; color: var(--text-dim); text-align: right; }
-  .meta { font-family: var(--mono); font-size: 11px; color: var(--text-faint); margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; }
-  .progress { font-family: var(--mono); font-size: 12px; color: var(--text-dim); }
-  .progress-bar-track { height: 4px; background: var(--bg-input); border-radius: 2px; overflow: hidden; margin-top: 8px; }
-  .progress-bar-fill { height: 100%; background: var(--accent); transition: width .1s; }
-  details { margin-top: 16px; font-family: var(--mono); font-size: 12px; color: var(--text-dim); }
-  summary { cursor: pointer; padding: 8px 0; }
+  .bar-pct { position: absolute; top: 50%; left: 14px; transform: translateY(-50%); font-family: var(--font-mono); font-size: var(--fs-base); font-weight: 600; color: #000; }
+  .bar-detail { font-family: var(--font-mono); font-size: var(--fs-tiny); color: var(--text-dim); text-align: right; }
+  .meta { font-family: var(--font-mono); font-size: var(--fs-tiny); color: var(--text-faint); margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; }
+
+  details { margin-top: 18px; font-family: var(--font-mono); font-size: var(--fs-sm); color: var(--text-dim); }
+  summary { cursor: pointer; padding: 10px 0; font-size: var(--fs-sm); }
   summary:hover { color: var(--text); }
-  pre { background: var(--bg-input); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 11px; line-height: 1.6; }
+  pre { background: var(--bg-input); padding: 14px; border-radius: var(--radius-sm); overflow-x: auto; font-size: var(--fs-tiny); line-height: 1.7; }
   .err-box {
     background: #2a0e0e; border: 1px solid #5a1f1f; color: #ff8888;
-    padding: 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px;
-    margin-top: 12px; display: none; white-space: pre-wrap;
+    padding: 14px; border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: var(--fs-sm);
+    margin-top: 14px; display: none; white-space: pre-wrap;
   }
   @media (max-width: 600px) {
     .row { grid-template-columns: 1fr; gap: 4px; }
@@ -97,10 +57,10 @@
 </style>
 </head>
 <body>
+<a class="portal-back" href="../../index.html">← 工具集</a>
 <div class="wrap">
   <header>
-    <a class="back" href="../../index.html">← 工具集</a>
-    <h1>Range Zen <span style="color:var(--text-faint);font-weight:400;font-size:14px;margin-left:8px;">v0.2 · WASM</span></h1>
+    <h1>Range Zen <span class="ver">v0.2 · WASM</span></h1>
     <p class="sub">范围对范围胜率计算 · Rust 引擎编译为 WASM,在 Web Worker 中运行,主线程不卡顿</p>
   </header>
 
@@ -138,8 +98,8 @@
   </div>
 
   <div class="actions">
-    <button id="run">计算</button>
-    <button id="stop" class="stop" style="display:none;">停止</button>
+    <button id="run" class="btn-go">计算</button>
+    <button id="stop" class="btn-stop" style="display:none;">停止</button>
     <span class="status" id="status">未加载</span>
   </div>
 

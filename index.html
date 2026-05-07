@@ -4,63 +4,41 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>红烧扑克工具集 · Hongshao Poker Tools</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/shared.css">
 <style>
-  :root {
-    --bg: #0a0a0c;
-    --bg-elev: #131318;
-    --bg-hover: #1a1a21;
-    --border: #2a2a35;
-    --border-bright: #3d3d4d;
-    --text: #e8e8ee;
-    --text-dim: #8a8a99;
-    --text-faint: #5a5a68;
-    --accent: #d4ff3a;
-    --accent-dim: #8aa820;
-    --mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
-    --sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--sans);
-    min-height: 100vh;
-    -webkit-font-smoothing: antialiased;
-  }
   .wrap {
     max-width: 1100px;
     margin: 0 auto;
     padding: 64px 32px 96px;
   }
   header {
-    margin-bottom: 64px;
+    margin-bottom: 56px;
     padding-bottom: 32px;
     border-bottom: 1px solid var(--border);
   }
   .brand {
-    font-family: var(--mono);
-    font-size: 13px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
     color: var(--accent);
     letter-spacing: 0.15em;
     text-transform: uppercase;
     margin-bottom: 16px;
   }
   h1 {
-    font-size: 42px;
+    font-size: var(--fs-xxl);
     font-weight: 600;
     letter-spacing: -0.02em;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
   }
   .subtitle {
     color: var(--text-dim);
-    font-size: 16px;
+    font-size: var(--fs-md);
     line-height: 1.6;
-    max-width: 640px;
+    max-width: 700px;
   }
   .section-label {
-    font-family: var(--mono);
-    font-size: 11px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-tiny);
     color: var(--text-faint);
     letter-spacing: 0.2em;
     text-transform: uppercase;
@@ -89,43 +67,43 @@
   .card-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
   .card-tag {
     display: inline-block;
-    font-family: var(--mono);
-    font-size: 10px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-tiny);
     color: var(--text-dim);
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    padding: 2px 7px;
+    padding: 3px 8px;
     border: 1px solid var(--border);
     border-radius: 3px;
   }
   .card-tag.scen {
     color: var(--accent);
-    border-color: var(--accent-dim, #8aa820);
+    border-color: var(--accent-dim);
   }
   .card-title {
-    font-size: 20px;
+    font-size: var(--fs-lg);
     font-weight: 600;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
     letter-spacing: -0.01em;
   }
   .card-q {
-    font-size: 13px;
+    font-size: var(--fs-base);
     color: var(--text);
-    margin-bottom: 10px;
-    padding-left: 10px;
+    margin-bottom: 12px;
+    padding-left: 12px;
     border-left: 2px solid var(--accent);
     line-height: 1.5;
     font-style: italic;
   }
   .card-desc {
     color: var(--text-dim);
-    font-size: 13px;
+    font-size: var(--fs-sm);
     line-height: 1.55;
     margin-bottom: 16px;
   }
   .card-meta {
-    font-family: var(--mono);
-    font-size: 11px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-tiny);
     color: var(--text-faint);
     display: flex;
     justify-content: space-between;
@@ -154,8 +132,8 @@
     padding-top: 24px;
     border-top: 1px solid var(--border);
     color: var(--text-faint);
-    font-family: var(--mono);
-    font-size: 11px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-tiny);
     letter-spacing: 0.05em;
   }
   footer a {

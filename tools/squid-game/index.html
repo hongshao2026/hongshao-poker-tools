@@ -3,226 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>鱿鱼博弈计算器 (EV & 概率)</title>
+    <title>鱿鱼博弈计算器 · Squid Game</title>
+    <link rel="stylesheet" href="/assets/shared.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Microsoft YaHei', 'SimHei', Arial, sans-serif;
-            background: #f5f5f5;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            padding: 20px;
-        }
-        
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 20px;
-        }
-        
-        .section {
-            margin-bottom: 20px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background: #fafafa;
-        }
-        
-        .section-title {
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: #555;
-        }
-        
-        .form-group {
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-        }
-        
-        .form-group label {
-            width: 250px;
-            text-align: right;
-            margin-right: 10px;
-        }
-        
-        .form-group input {
-            flex: 1;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-        
-        .form-group .radio-group {
-            display: flex;
-            gap: 15px;
-        }
-        
-        .form-group .radio-group label {
-            width: auto;
-            margin-right: 5px;
-        }
-        
-        .btn {
-            padding: 10px 20px;
-            background: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            margin: 10px 5px;
-        }
-        
-        .btn:hover {
-            background: #45a049;
-        }
-        
-        .btn-secondary {
-            background: #2196F3;
-        }
-        
-        .btn-secondary:hover {
-            background: #0b7dda;
-        }
-        
-        .btn-danger {
-            background: #f44336;
-        }
-        
-        .btn-danger:hover {
-            background: #da190b;
-        }
-        
-        .btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-        
-        .results {
-            margin-top: 20px;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-        
-        table th, table td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: center;
-        }
-        
-        table th {
-            background: #4CAF50;
-            color: white;
-        }
-        
-        table tr:nth-child(even) {
-            background: #f9f9f9;
-        }
-        
-        .error {
-            color: red;
-            margin: 10px 0;
-            padding: 10px;
-            background: #ffebee;
-            border-radius: 4px;
-        }
-        .portal-back { position: fixed; top: 12px; left: 16px; z-index: 1000;
-            font-family: ui-monospace, Consolas, monospace; font-size: 11px;
-            color: #666; text-decoration: none; letter-spacing: 0.1em;
-            background: rgba(255,255,255,0.92); border: 1px solid #ddd;
-            border-radius: 6px; padding: 6px 10px; transition: color .15s, border-color .15s; }
-        .portal-back:hover { color: #000; border-color: #999; }
+      .wrap { max-width: 760px; margin: 0 auto; padding: 56px 24px 80px; }
+      header { margin-bottom: 32px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+      h1 { font-size: var(--fs-xl); font-weight: 600; letter-spacing: -0.01em; }
+      .sub { color: var(--text-dim); font-size: var(--fs-sm); margin-top: 6px; }
+
+      .panel { background: var(--bg-elev); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 22px; margin-bottom: 18px; }
+      .panel-title { font-family: var(--font-mono); font-size: var(--fs-tiny); color: var(--text-faint); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 16px; }
+
+      .field { display: grid; grid-template-columns: 220px 1fr; gap: 14px; align-items: center; margin-bottom: 12px; }
+      .field:last-child { margin-bottom: 0; }
+      .field > label { font-size: var(--fs-sm); color: var(--text-dim); }
+
+      .radio-group { display: flex; gap: 18px; }
+      .radio-group label { display: flex; align-items: center; gap: 6px; color: var(--text); font-size: var(--fs-sm); cursor: pointer; }
+      .radio-group input[type="radio"] { width: auto; margin: 0; accent-color: var(--accent); }
+
+      .actions { text-align: center; margin-top: 18px; }
+      .btn-go { background: var(--accent); color: #000; padding: 12px 28px; font-size: var(--fs-md); border-radius: var(--radius-sm); }
+
+      table { width: 100%; border-collapse: collapse; }
+      th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: var(--fs-sm); }
+      th { color: var(--text-faint); font-family: var(--font-mono); font-size: var(--fs-tiny); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 500; }
+      td { font-family: var(--font-mono); color: var(--text); }
+      tr:last-child td { border-bottom: none; }
+
+      #rewardTable td { font-size: var(--fs-md); }
+      #rewardTable td:last-child { color: var(--accent); font-weight: 600; }
+
+      @media (max-width: 600px) {
+        .wrap { padding: 40px 16px 60px; }
+        .field { grid-template-columns: 1fr; gap: 4px; }
+      }
     </style>
 </head>
 <body>
     <a class="portal-back" href="../../index.html">← 工具集</a>
-    <div class="container">
-        <h1>鱿鱼博弈计算器 (EV & 概率)</h1>
+    <div class="wrap">
+        <header>
+          <h1>鱿鱼博弈计算器</h1>
+          <p class="sub">8 人桌 11 鱿鱼场景 · DP 精确求解击中/未击中收益</p>
+        </header>
         
-        <div class="section">
-            <div class="section-title">游戏参数设置</div>
-            
-            <div class="form-group">
-                <label>1. 游戏结束的最大鱿鱼数 (N):</label>
-                <input type="number" id="maxCakes" value="11" min="1">
+        <div class="panel">
+            <div class="panel-title">游戏参数设置</div>
+
+            <div class="field"><label>最大鱿鱼数 (N)</label><input type="number" id="maxCakes" value="11" min="1"></div>
+            <div class="field"><label>玩家总人数</label><input type="number" id="numPeople" value="8" min="2"></div>
+            <div class="field"><label>你当前持有的鱿鱼数</label><input type="number" id="myCake" value="0" min="0"></div>
+            <div class="field"><label>其他玩家持有 (逗号分隔)</label><input type="text" id="othersCake" value="0,0,0,0,0,0,0"></div>
+            <div class="field"><label>奖惩规则 (逗号分隔)</label><input type="text" id="rules" value="1,2,3,4,5,6,7,8,9,10,11"></div>
+            <div class="field"><label>规则模式</label>
+              <div class="radio-group">
+                <label><input type="radio" name="ruleMode" value="default" checked onchange="updateRules()"> 默认</label>
+                <label><input type="radio" name="ruleMode" value="double" onchange="updateRules()"> 翻倍</label>
+                <label><input type="radio" name="ruleMode" value="custom" onchange="updateRules()"> 自定义</label>
+              </div>
             </div>
-            
-            <div class="form-group">
-                <label>2. 玩家总人数:</label>
-                <input type="number" id="numPeople" value="8" min="2">
-            </div>
-            
-            <div class="form-group">
-                <label>3. 你当前持有的鱿鱼数:</label>
-                <input type="number" id="myCake" value="0" min="0">
-            </div>
-            
-            <div class="form-group">
-                <label>4. 其他玩家持有的鱿鱼 (逗号分隔):</label>
-                <input type="text" id="othersCake" value="0,0,0,0,0,0,0">
-            </div>
-            
-            <div class="form-group">
-                <label>5. 奖惩规则 (逗号分隔):</label>
-                <input type="text" id="rules" value="1,2,3,4,5,6,7,8,9,10,11">
-            </div>
-            
-            <div class="form-group">
-                <label>规则模式:</label>
-                <div class="radio-group">
-                    <label><input type="radio" name="ruleMode" value="default" checked onchange="updateRules()"> 默认</label>
-                    <label><input type="radio" name="ruleMode" value="double" onchange="updateRules()"> 翻倍</label>
-                    <label><input type="radio" name="ruleMode" value="custom" onchange="updateRules()"> 自定义</label>
-                </div>
-            </div>
-            
-            <div style="text-align: center; margin-top: 15px;">
-                <button class="btn" onclick="calculate()">开始计算</button>
+
+            <div class="actions">
+              <button class="btn-go" onclick="calculate()">开始计算</button>
             </div>
         </div>
-        
-        <div class="results" id="results" style="display: none;">
-            <div class="section">
-                <div class="section-title">概率分布</div>
+
+        <div id="results" style="display: none;">
+            <div class="panel">
+                <div class="panel-title">概率分布 — 我最终持有的鱿鱼数</div>
                 <table id="probTable">
-                    <thead>
-                        <tr>
-                            <th>最终持有鱿鱼个数</th>
-                            <th>概率</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>最终持有</th><th>概率</th></tr></thead>
                     <tbody></tbody>
                 </table>
             </div>
-            
-            <div class="section">
-                <div class="section-title">决策收益</div>
+
+            <div class="panel">
+                <div class="panel-title">决策收益对比</div>
                 <table id="rewardTable">
-                    <thead>
-                        <tr>
-                            <th>获得价值</th>
-                            <th>未获得价值</th>
-                            <th>差值</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>获得 (Hit)</th><th>未获得 (Miss)</th><th>差值</th></tr></thead>
                     <tbody></tbody>
                 </table>
             </div>

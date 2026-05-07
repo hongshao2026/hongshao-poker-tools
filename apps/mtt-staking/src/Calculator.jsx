@@ -35,21 +35,22 @@ const calcTop1BI = (field, type) => {
 // ============================================================
 // 颜色与样式系统
 // ============================================================
+// Aligned with the portal-wide palette (assets/shared.css).
 const C = {
-  bg: "#0a0e1a",
-  panel: "#111827",
-  panelLight: "#1a2236",
-  border: "#1f2937",
-  borderBright: "#374151",
-  accent: "#fbbf24",  // 金
-  accentDim: "#92400e",
-  good: "#10b981",    // 绿
-  bad: "#ef4444",     // 红
-  blue: "#3b82f6",
+  bg: "#0a0a0c",
+  panel: "#131318",
+  panelLight: "#1a1a21",
+  border: "#2a2a35",
+  borderBright: "#3d3d4d",
+  accent: "#d4ff3a",      // lime
+  accentDim: "#8aa820",
+  good: "#3affb0",
+  bad: "#ff6b4a",
+  blue: "#4ac8ff",
   purple: "#a78bfa",
-  text: "#f3f4f6",
-  textDim: "#9ca3af",
-  textFaint: "#6b7280",
+  text: "#ececf2",
+  textDim: "#a0a0b0",
+  textFaint: "#6f6f7c",
 };
 
 // ============================================================

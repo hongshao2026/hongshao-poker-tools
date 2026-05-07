@@ -1,0 +1,132 @@
+/* ============================================================
+   Hongshao Poker Tools — shared design tokens & typography
+   Loaded by every tool page; tools may override anything below
+   via their own <style> block.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+:root {
+  /* ---- color tokens ---- */
+  --bg:            #0a0a0c;
+  --bg-elev:       #131318;
+  --bg-hover:      #1a1a21;
+  --bg-input:      #1a1a21;
+  --bg-readonly:   #0d0d11;
+  --border:        #2a2a35;
+  --border-bright: #3d3d4d;
+  --text:          #ececf2;
+  --text-dim:      #a0a0b0;
+  --text-faint:    #6f6f7c;
+  --accent:        #d4ff3a;
+  --accent-dim:    #8aa820;
+  --warn:          #ff6b4a;
+  --good:          #3affb0;
+  --solved:        #ffd23a;
+  --p1:            #d4ff3a;
+  --p2:            #4ac8ff;
+
+  /* ---- typography ---- */
+  --font-mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+  --font-sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", Roboto, sans-serif;
+
+  /* ---- font sizes (bumped from earlier 11–13px range) ---- */
+  --fs-tiny: 12px;   /* uppercase mono tags */
+  --fs-sm:   14px;   /* labels, secondary text */
+  --fs-base: 16px;   /* body */
+  --fs-md:   18px;   /* emphasized */
+  --fs-lg:   22px;   /* card / section titles */
+  --fs-xl:   30px;   /* page heading */
+  --fs-xxl:  44px;   /* portal hero */
+
+  --radius-sm: 5px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}
+
+/* ---- reset ---- */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  line-height: 1.55;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- form elements (dark inputs) ---- */
+input, button, textarea, select {
+  font-family: inherit;
+  color: var(--text);
+}
+
+input[type="text"], input[type="number"], textarea, select {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  width: 100%;
+  transition: border-color .15s;
+}
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--border-bright);
+}
+input[readonly], input:disabled, textarea:disabled {
+  background: var(--bg-readonly);
+  color: var(--text-dim);
+  cursor: default;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  padding: 10px 16px;
+  transition: opacity .15s, background .15s, border-color .15s;
+}
+button:hover:not(:disabled) { opacity: 0.85; }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ---- back-link, fixed top-left on every tool page ---- */
+.portal-back {
+  position: fixed;
+  top: 14px;
+  left: 18px;
+  z-index: 1000;
+  font-family: var(--font-mono);
+  font-size: var(--fs-tiny);
+  color: var(--text-dim);
+  text-decoration: none;
+  letter-spacing: 0.1em;
+  background: rgba(10, 10, 12, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  transition: color .15s, border-color .15s;
+}
+.portal-back:hover {
+  color: var(--accent);
+  border-color: var(--border-bright);
+}
+
+/* ---- selection ---- */
+::selection {
+  background: var(--accent);
+  color: #000;
+}
+
+/* ---- scrollbar (webkit) ---- */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-bright); }
