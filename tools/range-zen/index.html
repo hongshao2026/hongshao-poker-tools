@@ -40,6 +40,92 @@
   .bar-detail { font-family: var(--font-mono); font-size: var(--fs-tiny); color: var(--text-dim); text-align: right; }
   .meta { font-family: var(--font-mono); font-size: var(--fs-tiny); color: var(--text-faint); margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; }
 
+  /* ---- 13×13 hand matrix ---- */
+  .mat-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+  .mat-tab {
+    background: var(--bg-input); color: var(--text-dim);
+    padding: 8px 18px; font-size: var(--fs-sm); font-weight: 500;
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+  }
+  .mat-tab:hover { color: var(--text); opacity: 1; }
+  .mat-tab.active.p1 { color: #000; background: var(--p1); border-color: var(--p1); }
+  .mat-tab.active.p2 { color: #000; background: var(--p2); border-color: var(--p2); }
+
+  .matrix {
+    display: grid;
+    grid-template-columns: repeat(13, minmax(0, 1fr));
+    gap: 2px;
+    background: var(--bg);
+    padding: 2px;
+    border-radius: var(--radius-sm);
+    user-select: none;
+    margin-bottom: 14px;
+    aspect-ratio: 1 / 1;
+    max-width: 600px;
+  }
+  .cell {
+    position: relative;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    overflow: hidden;
+    transition: transform .08s, border-color .08s;
+  }
+  .cell.pair    { background: rgba(255, 210, 58, 0.06); }
+  .cell.suited  { background: rgba(58, 255, 176, 0.04); }
+  .cell.offsuit { background: rgba(212, 255, 58, 0.02); }
+  .cell:hover { border-color: var(--border-bright); transform: scale(1.05); z-index: 5; }
+  .cell .lbl { position: relative; z-index: 2; }
+  .cell .fill {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    background: var(--accent);
+    opacity: 0.85;
+    pointer-events: none;
+    transition: height .12s;
+  }
+  .matrix.p2 .cell .fill { background: var(--p2); }
+  .cell.selected { color: #000; font-weight: 600; }
+  .cell.selected .lbl { z-index: 3; }
+
+  .freq-control { display: grid; grid-template-columns: 100px 1fr 60px; gap: 14px; align-items: center; margin-bottom: 12px; }
+  .freq-control label { font-size: var(--fs-tiny); }
+  .freq-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 6px;
+    background: var(--bg-input); border-radius: 3px; outline: none; padding: 0;
+    border: 1px solid var(--border);
+  }
+  .freq-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px;
+    background: var(--accent); border-radius: 50%; cursor: pointer; }
+  .freq-slider::-moz-range-thumb { width: 18px; height: 18px;
+    background: var(--accent); border-radius: 50%; cursor: pointer; border: none; }
+  .freq-value { font-family: var(--font-mono); color: var(--accent); font-size: var(--fs-base); font-weight: 600; text-align: right; }
+
+  .preset-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .preset {
+    background: var(--bg-input); color: var(--text-dim); border: 1px solid var(--border);
+    padding: 6px 12px; font-size: var(--fs-tiny); border-radius: var(--radius-sm);
+  }
+  .preset:hover { color: var(--accent); border-color: var(--border-bright); opacity: 1; }
+  .preset.danger:hover { color: var(--warn); }
+
+  .combo-info { font-family: var(--font-mono); font-size: var(--fs-tiny); color: var(--text-faint);
+    display: flex; justify-content: space-between; padding-top: 12px; border-top: 1px solid var(--border); }
+
+  .sync-btn {
+    background: transparent; color: var(--text-faint);
+    padding: 4px 8px; font-size: var(--fs-tiny);
+    border: 1px solid var(--border); border-radius: 3px;
+  }
+  .sync-btn:hover { color: var(--accent); border-color: var(--border-bright); opacity: 1; }
+  .row-with-sync { display: grid; grid-template-columns: 110px 1fr 90px; gap: 10px; align-items: center; margin-bottom: 14px; }
+
   details { margin-top: 18px; font-family: var(--font-mono); font-size: var(--fs-sm); color: var(--text-dim); }
   summary { cursor: pointer; padding: 10px 0; font-size: var(--fs-sm); }
   summary:hover { color: var(--text); }
@@ -65,27 +151,46 @@
   </header>
 
   <div class="panel">
-    <div class="row">
+    <div class="mat-tabs">
+      <button class="mat-tab p1 active" data-player="p1">● Player 1</button>
+      <button class="mat-tab p2" data-player="p2">● Player 2</button>
+    </div>
+
+    <div class="matrix p1" id="matrix"></div>
+
+    <div class="freq-control">
+      <label>FREQUENCY</label>
+      <input type="range" id="freq-slider" class="freq-slider" min="0" max="100" value="100" step="5">
+      <div class="freq-value"><span id="freq-value">100</span>%</div>
+    </div>
+
+    <div class="preset-row">
+      <button class="preset" data-preset="all">All (1326)</button>
+      <button class="preset" data-preset="top5">Top 5%</button>
+      <button class="preset" data-preset="top10">Top 10%</button>
+      <button class="preset" data-preset="top15">Top 15%</button>
+      <button class="preset" data-preset="top25">Top 25%</button>
+      <button class="preset" data-preset="pairs">All Pairs</button>
+      <button class="preset" data-preset="suited">All Suited</button>
+      <button class="preset danger" data-preset="clear">Clear</button>
+    </div>
+
+    <div class="combo-info">
+      <span id="combo-info">0 combos · 0.0%</span>
+      <span style="color:var(--text-dim);">点击单格设置当前频率 · 拖动批量 · 右键清空</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="row-with-sync">
       <label>Player 1</label>
-      <input class="p1" id="r1" type="text" value="AA,KK,QQ,AKs" placeholder="AA,KK,AKs">
+      <input class="p1" id="r1" type="text" value="" placeholder="自动生成,或手动输入后点导入">
+      <button class="sync-btn" data-sync="r1">↑ 导入</button>
     </div>
-    <div class="examples">
-      预设:
-      <span class="ex" data-target="r1" data-value="AA">AA</span> ·
-      <span class="ex" data-target="r1" data-value="QQ+,AKs,AKo">QQ+,AK</span> ·
-      <span class="ex" data-target="r1" data-value="TT+,AQs+,AKo">~5%</span> ·
-      <span class="ex" data-target="r1" data-value="77+,A9s+,KTs+,QTs+,JTs,T9s,98s,ATo+,KJo+,QJo">~15%</span>
-    </div>
-    <div class="row">
+    <div class="row-with-sync">
       <label>Player 2</label>
-      <input class="p2" id="r2" type="text" value="QQ,JJ,AKs,AQs" placeholder="QQ-TT,AQo+">
-    </div>
-    <div class="examples">
-      预设:
-      <span class="ex" data-target="r2" data-value="22+">22+</span> ·
-      <span class="ex" data-target="r2" data-value="TT+,AQs+,AKo">~5%</span> ·
-      <span class="ex" data-target="r2" data-value="77+,A9s+,KTs+,QTs+,JTs,T9s,98s,ATo+,KJo+,QJo">~15%</span> ·
-      <span class="ex" data-target="r2" data-value="22+,A2s+,K9s+,Q9s+,J9s+,T8s+,97s+,86s+,75s+,64s+,54s,A8o+,KTo+,QTo+,JTo">~30%</span>
+      <input class="p2" id="r2" type="text" value="" placeholder="自动生成,或手动输入后点导入">
+      <button class="sync-btn" data-sync="r2">↑ 导入</button>
     </div>
     <div class="row">
       <label>Board</label>
@@ -135,7 +240,14 @@
   ATs+        —— ATs, AJs, AQs, AKs
   AJo+        —— AJo, AQo, AKo
   77+         —— 77, 88, 99, ..., AA
-  多个范围用逗号分隔: TT+,AQs+,AKo
+
+频率前缀 (新):
+  0.5:AKs     —— 50% 频率的 AKs
+  0.25:QQ     —— 25% 频率的 QQ
+  AA,0.5:AKs  —— AA 全选 + AKs 半频
+  (矩阵会自动生成此语法,无需手输)
+
+多个范围用逗号分隔。
 
 Board 语法:
   空字符串    —— 翻前
@@ -163,11 +275,241 @@ Board 语法:
   const elPct1 = $('pct1'), elPct2 = $('pct2'), elDet1 = $('det1'), elDet2 = $('det2');
   const elMetaSamples = $('meta-samples'), elMetaTime = $('meta-time');
 
-  document.querySelectorAll('.ex').forEach(el => {
-    el.addEventListener('click', () => {
-      $(el.dataset.target).value = el.dataset.value;
+  // ============================================================
+  // 13×13 Hand Matrix
+  // ============================================================
+  const RANKS = ['A','K','Q','J','T','9','8','7','6','5','4','3','2'];
+  const RANK_INDEX = Object.fromEntries(RANKS.map((r, i) => [r, i]));
+  const ALL_COMBOS = 1326;
+
+  function cellLabel(r, c) {
+    if (r === c) return RANKS[r] + RANKS[r];
+    if (r < c)  return RANKS[r] + RANKS[c] + 's';
+    return RANKS[c] + RANKS[r] + 'o';
+  }
+  function cellType(r, c) { return r === c ? 'pair' : (r < c ? 'suited' : 'offsuit'); }
+  function comboCount(label) {
+    if (label.length === 2) return 6;
+    if (label.endsWith('s')) return 4;
+    return 12;
+  }
+
+  // State
+  const ranges = { p1: new Map(), p2: new Map() };
+  let activePlayer = 'p1';
+  let isDragging = false, dragMode = 'set';
+
+  const getCurrentFreq = () => parseInt($('freq-slider').value, 10);
+
+  function buildMatrix() {
+    const grid = $('matrix');
+    grid.innerHTML = '';
+    for (let r = 0; r < 13; r++) {
+      for (let c = 0; c < 13; c++) {
+        const label = cellLabel(r, c);
+        const cell = document.createElement('div');
+        cell.className = 'cell ' + cellType(r, c);
+        cell.dataset.label = label;
+        cell.innerHTML = `<div class="fill" style="height:0%;"></div><span class="lbl">${label}</span>`;
+        cell.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          if (e.button === 2) {
+            dragMode = 'clear';
+            applyToCell(label, 0);
+          } else {
+            const cur = ranges[activePlayer].get(label) || 0;
+            const target = (cur === getCurrentFreq()) ? 0 : getCurrentFreq();
+            dragMode = (target === 0) ? 'clear' : 'set';
+            applyToCell(label, target);
+          }
+          isDragging = true;
+        });
+        cell.addEventListener('mouseenter', () => {
+          if (!isDragging) return;
+          applyToCell(label, dragMode === 'clear' ? 0 : getCurrentFreq());
+        });
+        cell.addEventListener('contextmenu', (e) => e.preventDefault());
+        grid.appendChild(cell);
+      }
+    }
+    document.addEventListener('mouseup', () => { isDragging = false; });
+  }
+
+  function applyToCell(label, freq) {
+    if (freq <= 0) ranges[activePlayer].delete(label);
+    else ranges[activePlayer].set(label, freq);
+    renderCell(label);
+    updateInfo();
+    syncToInput();
+  }
+
+  function renderCell(label) {
+    const cell = document.querySelector(`#matrix [data-label="${label}"]`);
+    if (!cell) return;
+    const freq = ranges[activePlayer].get(label) || 0;
+    cell.classList.toggle('selected', freq > 0);
+    cell.querySelector('.fill').style.height = freq + '%';
+  }
+  function renderAllCells() {
+    for (let r = 0; r < 13; r++) for (let c = 0; c < 13; c++) renderCell(cellLabel(r, c));
+  }
+  function updateInfo() {
+    let total = 0;
+    for (const [label, freq] of ranges[activePlayer]) total += comboCount(label) * (freq / 100);
+    $('combo-info').textContent = `${total.toFixed(1)} combos · ${(total / ALL_COMBOS * 100).toFixed(1)}%`;
+  }
+
+  function buildRangeString(player) {
+    const parts = [];
+    for (let r = 0; r < 13; r++) {
+      for (let c = 0; c < 13; c++) {
+        const label = cellLabel(r, c);
+        const freq = ranges[player].get(label) || 0;
+        if (freq <= 0) continue;
+        if (freq >= 100) parts.push(label);
+        else parts.push(`${(freq / 100).toFixed(2)}:${label}`);
+      }
+    }
+    return parts.join(',');
+  }
+  function syncToInput() {
+    $(activePlayer === 'p1' ? 'r1' : 'r2').value = buildRangeString(activePlayer);
+  }
+
+  function switchPlayer(player) {
+    activePlayer = player;
+    document.querySelectorAll('.mat-tab').forEach(b => {
+      b.classList.toggle('active', b.dataset.player === player);
+    });
+    const grid = $('matrix');
+    grid.classList.toggle('p1', player === 'p1');
+    grid.classList.toggle('p2', player === 'p2');
+    renderAllCells();
+    updateInfo();
+  }
+
+  // ----- Range string parser (matches Rust syntax) -----
+  function parseRangeString(str) {
+    const map = new Map();
+    for (const raw of String(str).split(',').map(s => s.trim()).filter(Boolean)) {
+      let weight = 100;
+      let body = raw;
+      const colon = raw.indexOf(':');
+      if (colon > 0) {
+        const w = parseFloat(raw.slice(0, colon));
+        if (Number.isFinite(w) && w >= 0 && w <= 1) {
+          weight = Math.round(w * 100);
+          body = raw.slice(colon + 1).trim();
+        }
+      }
+      try { expandPart(body, weight, map); }
+      catch (_) { /* ignore unparseable parts silently */ }
+    }
+    return map;
+  }
+  function expandPart(s, w, map) {
+    if (s.endsWith('+')) return expandPlus(s.slice(0, -1), w, map);
+    const dash = s.indexOf('-');
+    if (dash > 0) return expandDash(s.slice(0, dash), s.slice(dash + 1), w, map);
+    if (s.length === 4 && /^[2-9TJQKA][shdc][2-9TJQKA][shdc]$/i.test(s)) return; // specific combo: skip
+    applyLabelOrPair(s, w, map);
+  }
+  function applyLabelOrPair(s, w, map) {
+    if (s.length === 2 && s[0] === s[1]) { map.set(s, w); return; }
+    if (s.length === 3) { map.set(s, w); return; }
+    if (s.length === 2) {
+      const a = RANK_INDEX[s[0]], b = RANK_INDEX[s[1]];
+      if (a == null || b == null) return;
+      const high = a < b ? s[0] : s[1], low = a < b ? s[1] : s[0];
+      map.set(high + low + 's', w);
+      map.set(high + low + 'o', w);
+    }
+  }
+  function expandPlus(base, w, map) {
+    if (base.length === 2 && base[0] === base[1]) {
+      const r = RANK_INDEX[base[0]];
+      for (let i = 0; i <= r; i++) map.set(RANKS[i] + RANKS[i], w);
+      return;
+    }
+    if (base.length === 3) {
+      const high = base[0], suffix = base[2];
+      const startKicker = RANK_INDEX[base[1]], highIdx = RANK_INDEX[high];
+      for (let k = startKicker; k > highIdx; k--) map.set(high + RANKS[k] + suffix, w);
+      return;
+    }
+    if (base.length === 2) {
+      expandPlus(base + 's', w, map);
+      expandPlus(base + 'o', w, map);
+    }
+  }
+  function expandDash(left, right, w, map) {
+    if (left.length === 2 && left[0] === left[1] && right.length === 2 && right[0] === right[1]) {
+      const a = RANK_INDEX[left[0]], b = RANK_INDEX[right[0]];
+      const lo = Math.min(a, b), hi = Math.max(a, b);
+      for (let i = lo; i <= hi; i++) map.set(RANKS[i] + RANKS[i], w);
+      return;
+    }
+    if (left.length === 3 && right.length === 3 && left[0] === right[0] && left[2] === right[2]) {
+      const high = left[0], suffix = left[2];
+      const a = RANK_INDEX[left[1]], b = RANK_INDEX[right[1]];
+      const lo = Math.min(a, b), hi = Math.max(a, b);
+      for (let k = lo; k <= hi; k++) {
+        if (k === RANK_INDEX[high]) continue;
+        map.set(high + RANKS[k] + suffix, w);
+      }
+    }
+  }
+
+  function importStringToActive(str) {
+    ranges[activePlayer] = parseRangeString(str);
+    renderAllCells();
+    updateInfo();
+    syncToInput();
+  }
+
+  // ----- Presets -----
+  const PRESETS = {
+    all:    () => { const m = new Map(); for (let r=0;r<13;r++) for (let c=0;c<13;c++) m.set(cellLabel(r,c), 100); return m; },
+    pairs:  () => { const m = new Map(); for (let i=0;i<13;i++) m.set(RANKS[i]+RANKS[i], 100); return m; },
+    suited: () => { const m = new Map(); for (let r=0;r<13;r++) for (let c=r+1;c<13;c++) m.set(cellLabel(r,c), 100); return m; },
+    top5:   () => parseRangeString('TT+,AQs+,AKo'),
+    top10:  () => parseRangeString('77+,AJs+,KQs,AQo+'),
+    top15:  () => parseRangeString('66+,A9s+,KTs+,QTs+,JTs,T9s,98s,ATo+,KJo+,QJo'),
+    top25:  () => parseRangeString('22+,A2s+,K9s+,Q9s+,J9s+,T8s+,97s+,86s+,75s+,64s+,54s,A8o+,KTo+,QTo+,JTo'),
+    clear:  () => new Map(),
+  };
+
+  // ----- Wire up matrix UI -----
+  buildMatrix();
+  document.querySelectorAll('.mat-tab').forEach(b => {
+    b.addEventListener('click', () => switchPlayer(b.dataset.player));
+  });
+  $('freq-slider').addEventListener('input', () => {
+    $('freq-value').textContent = getCurrentFreq();
+  });
+  document.querySelectorAll('.preset').forEach(b => {
+    b.addEventListener('click', () => {
+      ranges[activePlayer] = PRESETS[b.dataset.preset]();
+      renderAllCells();
+      updateInfo();
+      syncToInput();
     });
   });
+  document.querySelectorAll('.sync-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      const which = b.dataset.sync;        // 'r1' or 'r2'
+      const targetPlayer = which === 'r1' ? 'p1' : 'p2';
+      if (targetPlayer !== activePlayer) switchPlayer(targetPlayer);
+      importStringToActive($(which).value);
+    });
+  });
+
+  // Default starting ranges
+  ranges.p1 = PRESETS.top5();
+  ranges.p2 = parseRangeString('22+');
+  $('r1').value = buildRangeString('p1');
+  $('r2').value = buildRangeString('p2');
+  switchPlayer('p1');
 
   let worker = null;
   let startTime = 0;

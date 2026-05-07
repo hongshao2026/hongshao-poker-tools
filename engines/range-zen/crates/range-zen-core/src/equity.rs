@@ -112,9 +112,15 @@ pub fn equity_monte_carlo(
         let mut conflict = false;
 
         for combos in &filtered {
-            // Weighted random selection
             let idx = rng.random_range(0..combos.len());
-            let (combo, _weight) = combos[idx];
+            let (combo, weight) = combos[idx];
+
+            // Weighted rejection: combo at weight=0.5 is accepted half the time.
+            // Combos at weight=1.0 (the common case) skip this branch entirely.
+            if weight < 1.0 && rng.random::<f64>() > weight {
+                conflict = true;
+                break;
+            }
 
             if combo.overlaps(dead) {
                 conflict = true;

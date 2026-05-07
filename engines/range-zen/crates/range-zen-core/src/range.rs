@@ -95,9 +95,31 @@ impl Default for Range {
 }
 
 /// Parse a single part of a range string (between commas).
+/// Supports an optional weight prefix: `0.5:AKs` means AKs at 50%.
 fn parse_part(s: &str, range: &mut Range) -> Result<(), String> {
-    // Check for weight prefix like "0.5:" (not yet supported, add later)
+    // Try to peel off a "0.5:" weight prefix. The colon must come BEFORE any
+    // hand notation (which never contains ':'), so we only need to inspect the
+    // first colon if any.
+    let (weight, body) = match s.find(':') {
+        Some(pos) => match s[..pos].parse::<f64>() {
+            Ok(w) if (0.0..=1.0).contains(&w) => (w, &s[pos + 1..]),
+            Ok(w) => return Err(format!("Weight must be in [0, 1]: {}", w)),
+            Err(_) => return Err(format!("Invalid weight prefix: {}", &s[..pos])),
+        },
+        None => (1.0, s),
+    };
 
+    let before = range.combos.len();
+    parse_part_unweighted(body, range)?;
+    if (weight - 1.0).abs() > f64::EPSILON {
+        for entry in &mut range.combos[before..] {
+            entry.1 = weight;
+        }
+    }
+    Ok(())
+}
+
+fn parse_part_unweighted(s: &str, range: &mut Range) -> Result<(), String> {
     // Try specific combo first: "AhKs"
     if s.len() == 4 {
         if let (Some(c1), Some(c2)) = (Card::from_str(&s[0..2]), Card::from_str(&s[2..4])) {
@@ -385,5 +407,26 @@ mod tests {
         let r = Range::parse("ATo+").unwrap();
         // ATo, AJo, AQo, AKo = 4 * 12 = 48
         assert_eq!(r.combo_count(), 48);
+    }
+
+    #[test]
+    fn test_parse_weighted() {
+        let r = Range::parse("0.5:AKs").unwrap();
+        assert_eq!(r.combo_count(), 4);
+        for (_, w) in &r.combos {
+            assert!((*w - 0.5).abs() < 1e-9);
+        }
+
+        // Mixed weights in one expression
+        let r = Range::parse("AA,0.5:AKs,0.25:QQ").unwrap();
+        assert_eq!(r.combo_count(), 6 + 4 + 6);
+        let pair_aa: f64 = r.combos.iter().filter(|(c, _)| c.0.rank() as u8 == 12 && c.1.rank() as u8 == 12).map(|(_, w)| *w).sum();
+        assert!((pair_aa - 6.0).abs() < 1e-9, "AA combos should sum to 6 (full weight)");
+    }
+
+    #[test]
+    fn test_parse_weight_out_of_range() {
+        assert!(Range::parse("1.5:AA").is_err());
+        assert!(Range::parse("-0.1:AA").is_err());
     }
 }
