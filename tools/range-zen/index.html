@@ -271,6 +271,10 @@ Board 语法:
 </div>
 
 <script type="module">
+  // 169-hand ranking precomputed by Rust WASM (HU equity vs random hand).
+  // See /assets/hand-ranking.js for raw equities.
+  import { HAND_RANKING } from '/assets/hand-ranking.js';
+
   const $ = (id) => document.getElementById(id);
   const elRun = $('run'), elStop = $('stop'), elStatus = $('status'), elErr = $('err');
   const elResults = $('results'), elBar1 = $('bar1'), elBar2 = $('bar2');
@@ -469,29 +473,8 @@ Board 语法:
     syncToInput();
   }
 
-  // ----- Hand strength ranking + Top X% range builder -----
-  // Heuristic approximation of preflop equity vs random hand.
-  // Good enough for the slider UX; user can fine-tune by clicking.
-  function handStrength(label) {
-    if (label.length === 2) {
-      // Pair: AA=200, KK=195, ..., 22=140
-      return 200 - RANK_INDEX[label[0]] * 5;
-    }
-    const r1 = RANK_INDEX[label[0]];   // higher rank (lower idx)
-    const r2 = RANK_INDEX[label[1]];   // lower
-    const suited = label[2] === 's';
-    let s = 130 - r1 * 6 - r2 * 2;
-    if (suited) s += 18;
-    const gap = r2 - r1;
-    if (suited && gap <= 4) s += (5 - gap) * 2;     // suited connectors / 1-gappers bonus
-    if (gap === 1) s += 2;                           // any connector small bonus
-    return s;
-  }
-  const HAND_RANKING = (() => {
-    const all = [];
-    for (let r = 0; r < 13; r++) for (let c = 0; c < 13; c++) all.push(cellLabel(r, c));
-    return all.sort((a, b) => handStrength(b) - handStrength(a));
-  })();
+  // ----- Hand strength ranking (precomputed via WASM, HU equity vs random) -----
+  // Imported at the top of this <script type="module"> block.
   function topPercentRange(percent) {
     if (percent <= 0) return new Map();
     const target = (percent / 100) * ALL_COMBOS;

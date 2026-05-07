@@ -470,4 +470,38 @@ mod tests {
         let b = Board::parse("").unwrap();
         assert_eq!(b.cards.len(), 0);
     }
+
+    /// Generates the 169-hand strength ranking by HU equity vs a fully random hand.
+    /// Run with: cargo test print_hand_ranking --release -- --nocapture --ignored
+    #[test]
+    #[ignore]
+    fn print_hand_ranking() {
+        let ranks = ['A','K','Q','J','T','9','8','7','6','5','4','3','2'];
+        let mut labels: Vec<String> = Vec::with_capacity(169);
+        for i in 0..13 {
+            for j in 0..13 {
+                if i == j { labels.push(format!("{}{}", ranks[i], ranks[i])); }
+                else if i < j { labels.push(format!("{}{}{}", ranks[i], ranks[j], 's')); }
+                else { labels.push(format!("{}{}{}", ranks[j], ranks[i], 'o')); }
+            }
+        }
+        let full_range = Range::parse(&labels.join(",")).expect("full range parse");
+
+        let board = Board::new();
+        let mut entries: Vec<(String, f64)> = labels.iter().map(|label| {
+            let r1 = Range::parse(label).expect("hand parse");
+            let result = equity_monte_carlo(&[&r1, &full_range], &board, 200_000);
+            (label.clone(), result.players[0].equity)
+        }).collect();
+        entries.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+
+        // Print as a JS array literal for direct paste into hand-ranking.js
+        println!("\n// === BEGIN HAND_RANKING ===");
+        println!("const HAND_RANKING_FULL = [");
+        for (label, eq) in &entries {
+            println!("  ['{}', {:.4}],", label, eq);
+        }
+        println!("];");
+        println!("// === END HAND_RANKING ===\n");
+    }
 }
