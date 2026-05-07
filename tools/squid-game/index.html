@@ -229,11 +229,9 @@
         </div>
     </div>
 
-    <script>
-        // 全局变量
-        let memoEv = {};
-        let memoProb = {};
-        
+    <script type="module">
+        import { analyzeDecision } from '../../packages/core/squid/index.js';
+
         // 更新规则
         function updateRules() {
             const mode = document.querySelector('input[name="ruleMode"]:checked').value;
@@ -259,172 +257,10 @@
             }
         }
         
-        // 获取奖励金额
-        function getRewardAmount(cakeCount, rules) {
-            if (cakeCount === 0) return 0;
-            const idx = cakeCount - 1;
-            if (idx >= rules.length) return rules[rules.length - 1];
-            return rules[idx];
-        }
-        
-        // 计算终局收益
-        function calculateTerminalPayoff(cakes, rules) {
-            const zerosCount = cakes.filter(c => c === 0).length;
-            const payoffMap = {};
-            let totalPaymentPerZeroPlayer = 0;
-            
-            const uniqueCounts = [...new Set(cakes)];
-            for (const k of uniqueCounts) {
-                if (k > 0) {
-                    const reward = getRewardAmount(k, rules);
-                    const income = reward * zerosCount;
-                    payoffMap[k] = income;
-                    const countOfPeopleWithK = cakes.filter(c => c === k).length;
-                    totalPaymentPerZeroPlayer += reward * countOfPeopleWithK;
-                }
-            }
-            
-            if (uniqueCounts.includes(0)) {
-                payoffMap[0] = -totalPaymentPerZeroPlayer;
-            }
-            
-            return payoffMap;
-        }
-        
-        // 获取状态键
-        function getStateKey(cakes) {
-            return JSON.stringify([...cakes].sort((a, b) => b - a));
-        }
-        
-        // 计算期望值 (DP)
-        function solveEv(cakes, maxCakes, stopCount, rules, numPeople) {
-            const stateKey = getStateKey(cakes);
-            if (memoEv[stateKey]) {
-                return memoEv[stateKey];
-            }
-            
-            const occupiedCount = cakes.filter(c => c > 0).length;
-            const currentSum = cakes.reduce((a, b) => a + b, 0);
-            
-            if (occupiedCount >= stopCount || currentSum >= maxCakes) {
-                const result = calculateTerminalPayoff(cakes, rules);
-                memoEv[stateKey] = result;
-                return result;
-            }
-            
-            const prob = 1.0 / numPeople;
-            const currentPlayersTotalEv = new Array(numPeople).fill(0);
-            
-            for (let receiverIdx = 0; receiverIdx < numPeople; receiverIdx++) {
-                const nextCakes = [...cakes];
-                nextCakes[receiverIdx] += 1;
-                
-                const futureEvMap = solveEv(nextCakes, maxCakes, stopCount, rules, numPeople);
-                
-                for (let pIdx = 0; pIdx < numPeople; pIdx++) {
-                    const kInFuture = nextCakes[pIdx];
-                    const val = futureEvMap[kInFuture] || 0.0;
-                    currentPlayersTotalEv[pIdx] += val;
-                }
-            }
-            
-            const resultMap = {};
-            const countsCheck = {};
-            
-            for (let pIdx = 0; pIdx < numPeople; pIdx++) {
-                const k = cakes[pIdx];
-                const avgEv = (currentPlayersTotalEv[pIdx] * prob);
-                
-                if (!resultMap[k]) {
-                    resultMap[k] = 0;
-                    countsCheck[k] = 0;
-                }
-                resultMap[k] += avgEv;
-                countsCheck[k] += 1;
-            }
-            
-            for (const k in resultMap) {
-                resultMap[k] /= countsCheck[k];
-            }
-            
-            memoEv[stateKey] = resultMap;
-            return resultMap;
-        }
-        
-        // 计算概率分布 (DP)
-        function solveProb(cakes, maxCakes, stopCount, numPeople) {
-            const stateKey = getStateKey(cakes);
-            if (memoProb[stateKey]) {
-                return memoProb[stateKey];
-            }
-            
-            const occupiedCount = cakes.filter(c => c > 0).length;
-            const currentSum = cakes.reduce((a, b) => a + b, 0);
-            
-            if (occupiedCount >= stopCount || currentSum >= maxCakes) {
-                const res = {};
-                const uniqueKs = [...new Set(cakes)];
-                for (const k of uniqueKs) {
-                    res[k] = {[k]: 1.0};
-                }
-                memoProb[stateKey] = res;
-                return res;
-            }
-            
-            const probStep = 1.0 / numPeople;
-            const positionDists = new Array(numPeople).fill(0).map(() => ({}));
-            
-            for (let receiverIdx = 0; receiverIdx < numPeople; receiverIdx++) {
-                const nextCakes = [...cakes];
-                nextCakes[receiverIdx] += 1;
-                
-                const futureProbMap = solveProb(nextCakes, maxCakes, stopCount, numPeople);
-                
-                for (let pIdx = 0; pIdx < numPeople; pIdx++) {
-                    const kInFuture = nextCakes[pIdx];
-                    const futureDist = futureProbMap[kInFuture] || {};
-                    
-                    for (const finalK in futureDist) {
-                        if (!positionDists[pIdx][finalK]) {
-                            positionDists[pIdx][finalK] = 0;
-                        }
-                        positionDists[pIdx][finalK] += futureDist[finalK] * probStep;
-                    }
-                }
-            }
-            
-            const result = {};
-            const uniqueKs = [...new Set(cakes)];
-            
-            for (const k of uniqueKs) {
-                const indices = cakes.map((c, i) => c === k ? i : -1).filter(i => i !== -1);
-                const combinedDist = {};
-                
-                for (const idx of indices) {
-                    for (const finalK in positionDists[idx]) {
-                        if (!combinedDist[finalK]) {
-                            combinedDist[finalK] = 0;
-                        }
-                        combinedDist[finalK] += positionDists[idx][finalK];
-                    }
-                }
-                
-                const countK = indices.length;
-                for (const finalK in combinedDist) {
-                    combinedDist[finalK] /= countK;
-                }
-                
-                result[k] = combinedDist;
-            }
-            
-            memoProb[stateKey] = result;
-            return result;
-        }
-        
+
         // 主计算函数
         function calculate() {
             try {
-                // 获取输入
                 const maxCakes = parseInt(document.getElementById('maxCakes').value);
                 const numPeople = parseInt(document.getElementById('numPeople').value);
                 const myCake = parseInt(document.getElementById('myCake').value);
@@ -432,86 +268,43 @@
                 const othersCakes = othersStr.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
                 const rulesStr = document.getElementById('rules').value.replace(/，/g, ',');
                 const rules = rulesStr.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
-                
+
                 // 补齐人数
                 const neededOthers = numPeople - 1;
-                while (othersCakes.length < neededOthers) {
-                    othersCakes.push(0);
-                }
-                if (othersCakes.length > neededOthers) {
-                    othersCakes.splice(neededOthers);
-                }
-                
+                while (othersCakes.length < neededOthers) othersCakes.push(0);
+                if (othersCakes.length > neededOthers) othersCakes.splice(neededOthers);
+
                 const allCakes = [myCake, ...othersCakes];
-                const stopCount = numPeople - 1;
-                
-                // 检查合法性
                 const totalCakes = allCakes.reduce((a, b) => a + b, 0);
-                if (totalCakes > maxCakes) {
-                    alert('错误：当前鱿鱼总数已超过最大值！');
-                    return;
+                if (totalCakes > maxCakes) { alert('错误：当前鱿鱼总数已超过最大值！'); return; }
+
+                const result = analyzeDecision({
+                    allCakes, maxCakes, stopCount: numPeople - 1, rules, numPeople, myIndex: 0,
+                });
+                if (result.gameEnded) {
+                    alert('游戏已结束：当前持有鱿鱼数已经达到最大鱿鱼数。');
                 }
-                
-                // 如果已经达到最大值，直接结算
-                if (totalCakes === maxCakes) {
-                    alert('游戏已结束：当前持有鱿鱼数已经达到最大鱿鱼数，游戏已结束。');
-                    const payoffMap = calculateTerminalPayoff(allCakes, rules);
-                    const myFinalPayoff = payoffMap[myCake] || 0.0;
-                    
-                    displayResults({[myCake]: {[myCake]: 1.0}}, myFinalPayoff, 0.0, myFinalPayoff);
-                    return;
-                }
-                
-                // 清空缓存
-                memoEv = {};
-                memoProb = {};
-                
-                // 计算概率分布
-                const probMap = solveProb(allCakes, maxCakes, stopCount, numPeople);
-                const myProbDist = probMap[myCake] || {};
-                
-                // 计算决策收益
-                const nextCakesIfGet = [myCake + 1, ...othersCakes];
-                const evMapIfGet = solveEv(nextCakesIfGet, maxCakes, stopCount, rules, numPeople);
-                const evValIfGet = evMapIfGet[myCake + 1] || 0.0;
-                
-                let totalEvIfNotGet = 0.0;
-                for (let i = 0; i < othersCakes.length; i++) {
-                    const tempOthers = [...othersCakes];
-                    tempOthers[i] += 1;
-                    const nextCakesIfLose = [myCake, ...tempOthers];
-                    const evMapTemp = solveEv(nextCakesIfLose, maxCakes, stopCount, rules, numPeople);
-                    totalEvIfNotGet += evMapTemp[myCake] || 0.0;
-                }
-                
-                const evValIfNotGet = othersCakes.length > 0 ? totalEvIfNotGet / othersCakes.length : 0.0;
-                const diff = evValIfGet - evValIfNotGet;
-                
-                displayResults({[myCake]: myProbDist}, evValIfGet, evValIfNotGet, diff);
-                
+                displayResults({ [myCake]: result.probDist }, result.evHit, result.evMiss, result.diff);
             } catch (e) {
                 alert('计算错误：' + e.message);
             }
         }
-        
+
         // 显示结果
         function displayResults(probMap, evHit, evMiss, diff) {
             document.getElementById('results').style.display = 'block';
-            
-            // 显示概率分布
+
             const probTbody = document.querySelector('#probTable tbody');
             probTbody.innerHTML = '';
             const myCake = parseInt(document.getElementById('myCake').value);
             const myProbDist = probMap[myCake] || {};
             const sortedOutcomes = Object.entries(myProbDist).sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
-            
             for (const [count, p] of sortedOutcomes) {
                 const row = probTbody.insertRow();
                 row.insertCell(0).textContent = count;
                 row.insertCell(1).textContent = (p * 100).toFixed(2) + '%';
             }
-            
-            // 显示决策收益
+
             const rewardTbody = document.querySelector('#rewardTable tbody');
             rewardTbody.innerHTML = '';
             const row = rewardTbody.insertRow();
@@ -519,7 +312,11 @@
             row.insertCell(1).textContent = evMiss.toFixed(2);
             row.insertCell(2).textContent = diff.toFixed(2);
         }
-        
+
+        // 暴露给 inline onclick/onchange
+        window.updateRules = updateRules;
+        window.calculate = calculate;
+
         // 初始化
         updateRules();
     </script>

@@ -1,38 +1,28 @@
 import { useState, useMemo } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, ComposedChart, Area, Bar, ScatterChart, Scatter, ZAxis } from "recharts";
+import {
+  MODEL, refROI, calcSigma, recommendMarkup, adjustSigmaForShape,
+  calibratedModel, theoreticalModel, FELIX_TABLE,
+} from "../../../packages/core/staking/mtt-model.js";
 
 // ============================================================
-// 模型参数
+// 模型参数说明 (实际定义已迁移到 packages/core/staking/mtt-model.js):
 //
-// 来源说明:
 // - 核心公式 g ≈ μ²/(2σ²) 来自 Kelly 标准与 Felix 文章
-// - markup_slope 来自 Felix 表 27 行精确拟合(双方对半分 ROI 的均衡点)
-// - sigma / top1 用 9 个真实 GG 锦标赛数据点校准:
-//   18/59/137/270/555/1744/2473/2723/6283 人的真实奖励结构
-//   综合拟合(R² > 0.99):
+// - markup_slope 来自 Felix 表精确拟合(双方对半分 ROI 的均衡点)
+// - sigma / top1 用 9 个真实 GG 锦标赛数据点校准 (R² > 0.99):
 //     σ_BI = 0.908 × N^0.286
 //     top1_BI = 0.813 × N^0.738
 // - GG 奖励结构特征:
-//   * 钱圈率约 14%(小场子 11-17% 略有波动)
+//   * 钱圈率约 14% (小场子 11-17% 略有波动)
 //   * 大场子(>200人)前 9 名固定等比 1.297
-//   * 小场子(<200人)更陡:137人 1.188 / 59人 1.420 / 18人 1.980
+//   * 小场子更陡: 137人 1.188 / 59人 1.420 / 18人 1.980
 //   * min cash 约 2 BI
-// - type_mult 仍用业界共识(没有真实 PKO/Mystery 数据)
+// - type_mult 用业界共识 (无真实 PKO/Mystery 数据)
+//
+// calcTop1BI 因依赖本文件内的 generateGGPayout，未抽出。
 // ============================================================
-const MODEL = {
-  // 9 个真实 GG 数据点综合拟合
-  sigma_constant: 0.908,
-  sigma_field_exp: 0.286,
-  top1_constant: 0.813,
-  top1_exp: 0.738,
-  cash_rate: 0.14,
-  type_mult: {
-    Standard: 1.0,
-    PKO: 0.8,
-    Mystery: 1.4,
-  },
-  markup_slope: 0.499,
-};
+
 
 // 冠军赔率(直接从 generateGGPayout 取真实赔率,跟 12 个数据点拟合)
 const calcTop1BI = (field, type) => {
@@ -41,158 +31,6 @@ const calcTop1BI = (field, type) => {
   const payouts = generateGGPayout(field, type);
   return payouts[0] || (MODEL.top1_constant * Math.pow(field, MODEL.top1_exp));
 };
-
-// Felix 隐含的"参考 ROI"(基于 field 和 BI 反推)
-// 从 27 行数据看:ROI ≈ a * log(field) + b - c*log(BI/109)
-const refROI = (field, buyin) => {
-  // 拟合自数据:field=100→7.9%, 1000→14.1%, 5000→20.4%, 20000→24.5% (BI=109)
-  // BI=55 时整体 +3 个百分点左右
-  const baseROI = 1.0 + 3.13 * Math.log(field);  // 经验拟合
-  const biAdjust = -3.0 * Math.log(buyin / 109); // 小买入鱼多
-  return Math.max(0, baseROI + biAdjust);
-};
-
-const calcSigma = (field, type) => {
-  return MODEL.sigma_constant * Math.pow(field, MODEL.sigma_field_exp) * (MODEL.type_mult[type] || 1);
-};
-
-const recommendMarkup = (roiFrac) => 1 + MODEL.markup_slope * roiFrac;
-
-// 方差形状调整:shape 0 = 稳健入围型(低方差),shape 1 = 搏深跑型(高方差)
-// shape 0.5 = 均衡型(基线,系数 1.0,等同 Felix 模型默认)
-//
-// 拟合三个点:(0, 0.85), (0.5, 1.0), (1.0, 1.4)
-// 二次插值:f(x) = a*x² + b*x + c
-//   c = 0.85
-//   a*0.25 + b*0.5 + 0.85 = 1.0  →  a + 2b = 0.6
-//   a + b + 0.85 = 1.4           →  a + b = 0.55
-// 解得:b = 0.05,a = 0.5
-const adjustSigmaForShape = (sigma, shape) => {
-  const mult = 0.5 * shape * shape + 0.05 * shape + 0.85;
-  return sigma * mult;
-};
-
-// ============================================================
-// 计算引擎
-// ============================================================
-
-// 校准模型(反推 Felix 表的输出)
-// 用 g_per_bullet ≈ m/BR - v/(2*BR²) 的近似
-const calibratedModel = ({ buyin, field, roi, BR, type, markup, shape }) => {
-  const roiFrac = roi / 100;
-  const MU = markup;
-  let sigmaBI = calcSigma(field, type);
-  sigmaBI = adjustSigmaForShape(sigmaBI, shape);
-  const sigma_d_sq = Math.pow(sigmaBI * buyin, 2);
-
-  let oneMinusS = (BR * buyin * (roiFrac - (MU - 1))) / sigma_d_sq;
-  oneMinusS = Math.max(0.001, Math.min(1.0, oneMinusS));
-  const s = 1 - oneMinusS;
-
-  const mu_d = roiFrac * buyin;
-  const m_self = oneMinusS * mu_d + s * (MU - 1) * buyin;
-  const v_self = Math.pow(oneMinusS, 2) * sigma_d_sq;
-  const g_per_bullet = m_self / BR - v_self / (2 * BR * BR);
-  const g_self_only = mu_d / BR - sigma_d_sq / (2 * BR * BR);
-
-  return {
-    optSale: s,
-    sigmaBI,
-    sigma_d: sigmaBI * buyin,
-    expectedSelf: m_self,
-    gPerBullet: g_per_bullet,
-    gSelfOnly: g_self_only,
-    ceGrowth: g_per_bullet * BR,
-    ceSelfOnly: g_self_only * BR,
-  };
-};
-
-// 理论模型(纯 Kelly:f* = E[R]/E[R²])
-// 对所有 s 在 [0,1] 上数值搜索最优,用精确 log-bankroll 增长
-const theoreticalModel = ({ buyin, field, roi, BR, type, markup, shape }) => {
-  const roiFrac = roi / 100;
-  const MU = markup;
-  let sigmaBI = calcSigma(field, type);
-  sigmaBI = adjustSigmaForShape(sigmaBI, shape);
-  const sigma_d = sigmaBI * buyin;
-  const mu_d = roiFrac * buyin;
-
-  // 用三段式分布近似:p_zero, p_cash_small, p_cash_big
-  // ITM ≈ 15-20%, 大爆概率 ≈ 1-3%
-  // 让分布的均值=mu_d, 方差=sigma_d²
-  // 简化:用对数正态近似入围条件下的回报
-  // 但这里我们直接搜索 s,用 g(s) 公式
-
-  // g(s) = m(s)/BR - v(s)/(2 BR²)  + 高阶修正项
-  // 用更精确的 log-utility:E[log(1 + f X)] 其中 X 是单子弹相对回报
-  // 用矩展开到二阶就是上面的近似;Felix 文章用的 f* = E[R]/E[R²] 也是同一阶近似
-  
-  let bestS = 0;
-  let bestG = -Infinity;
-  for (let s = 0; s <= 1; s += 0.005) {
-    const oneMinusS = 1 - s;
-    const m = oneMinusS * mu_d + s * (MU - 1) * buyin;
-    const v = oneMinusS * oneMinusS * sigma_d * sigma_d;
-    // 精确 Kelly: 最优 fraction f* = E[R]/E[R²]
-    // 等价于对数-增长 g = m²/(2(v+m²))  当 f=f* 时
-    // 但我们已固定 f = BI/BR(每子弹必然投这个),不能调 f
-    // 所以 g = m/BR - v/(2 BR²) 仍是正确表达
-    const g = m / BR - v / (2 * BR * BR);
-    if (g > bestG) { bestG = g; bestS = s; }
-  }
-  
-  const oneMinusS = 1 - bestS;
-  const m_self = oneMinusS * mu_d + bestS * (MU - 1) * buyin;
-  const v_self = oneMinusS * oneMinusS * sigma_d * sigma_d;
-  const g_self_only = mu_d / BR - sigma_d * sigma_d / (2 * BR * BR);
-
-  // Felix 文章里 Kelly fraction f* = μ/(σ²+μ²) — 用来做"不卖"情形下的 Kelly 参考
-  const kellyFrac = mu_d / (sigma_d * sigma_d + mu_d * mu_d);
-  const kellyBI = kellyFrac * BR; // 单颗最大可承担 buy-in
-
-  return {
-    optSale: bestS,
-    sigmaBI,
-    sigma_d,
-    expectedSelf: m_self,
-    gPerBullet: bestG,
-    gSelfOnly: g_self_only,
-    ceGrowth: bestG * BR,
-    ceSelfOnly: g_self_only * BR,
-    kellyBI,
-  };
-};
-
-// ============================================================
-// Felix 原表
-// ============================================================
-const FELIX_TABLE = [
-  { type:"PKO",      field:20000, buyin:109, roi:24.5, mu:1.123, sale:97.9, ce:20 },
-  { type:"Standard", field:20000, buyin:109, roi:24.5, mu:1.123, sale:98.4, ce:19 },
-  { type:"Mystery",  field:20000, buyin:109, roi:24.5, mu:1.123, sale:97.0, ce:19 },
-  { type:"PKO",      field:20000, buyin:55,  roi:27.6, mu:1.138, sale:95.4, ce:11 },
-  { type:"Standard", field:20000, buyin:55,  roi:27.6, mu:1.138, sale:96.5, ce:10 },
-  { type:"Standard", field:5000,  buyin:109, roi:20.4, mu:1.102, sale:96.7, ce:17 },
-  { type:"PKO",      field:5000,  buyin:109, roi:20.4, mu:1.102, sale:95.3, ce:17 },
-  { type:"Mystery",  field:5000,  buyin:109, roi:20.4, mu:1.102, sale:94.2, ce:17 },
-  { type:"Mystery",  field:5000,  buyin:55,  roi:23.2, mu:1.116, sale:87.2, ce:9  },
-  { type:"Standard", field:5000,  buyin:55,  roi:23.2, mu:1.116, sale:92.7, ce:8  },
-  { type:"Standard", field:2000,  buyin:109, roi:16.2, mu:1.081, sale:95.4, ce:14 },
-  { type:"PKO",      field:2000,  buyin:109, roi:16.2, mu:1.081, sale:93.1, ce:15 },
-  { type:"Mystery",  field:2000,  buyin:109, roi:16.2, mu:1.081, sale:92.1, ce:15 },
-  { type:"Standard", field:1000,  buyin:109, roi:14.1, mu:1.071, sale:93.6, ce:13 },
-  { type:"PKO",      field:1000,  buyin:109, roi:14.1, mu:1.071, sale:90.5, ce:14 },
-  { type:"Mystery",  field:1000,  buyin:109, roi:14.1, mu:1.071, sale:89.7, ce:14 },
-  { type:"Mystery",  field:500,   buyin:109, roi:12.1, mu:1.06,  sale:86.5, ce:12 },
-  { type:"Standard", field:500,   buyin:109, roi:12.1, mu:1.06,  sale:91.1, ce:12 },
-  { type:"PKO",      field:500,   buyin:109, roi:12.1, mu:1.06,  sale:87.4, ce:13 },
-  { type:"Standard", field:200,   buyin:109, roi:9.7,  mu:1.048, sale:85.9, ce:11 },
-  { type:"Mystery",  field:200,   buyin:109, roi:9.7,  mu:1.048, sale:81.3, ce:11 },
-  { type:"PKO",      field:200,   buyin:109, roi:9.7,  mu:1.048, sale:82.4, ce:12 },
-  { type:"PKO",      field:100,   buyin:109, roi:7.9,  mu:1.039, sale:79.0, ce:11 },
-  { type:"Mystery",  field:100,   buyin:109, roi:7.9,  mu:1.039, sale:79.0, ce:10 },
-  { type:"Standard", field:100,   buyin:109, roi:7.9,  mu:1.039, sale:79.4, ce:10 },
-];
 
 // ============================================================
 // 颜色与样式系统

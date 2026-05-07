@@ -25,6 +25,10 @@
 | 路径 | 用途 |
 |---|---|
 | `bounty/index.js` | PKO + 神秘赏金跟注计算 |
+| `squid/index.js` | 鱿鱼博弈 EV / 概率 DP 求解(`createSolver` 工厂 + `analyzeDecision` 高层 API) |
+| `staking/solver.js` | 10 变量定点迭代代数求解器(B/N/b/C/s/m/R/Reff/G/K) |
+| `staking/simulator.js` | MTT 单场策略蒙特卡洛(`buildPayouts` / `calibrateAlpha` / `simStrategy`) |
+| `staking/mtt-model.js` | Felix 校准的方差/ROI/最优出售模型(`MODEL` / `calibratedModel` / `theoreticalModel` / `FELIX_TABLE`) |
 
 ## 添加新模块的步骤
 

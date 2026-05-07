@@ -234,7 +234,11 @@ packages/core/
 4. **(P3,已完成)** Bounty Calculator web 化:1047 行 tkinter → 单文件 HTML
 5. **(P4,已完成)** `packages/core/bounty` 抽出,服务于未来小程序项目
 6. **(P6,已完成)** Vite 化 mtt-staking,替代浏览器端 Babel(192KB gzip)
-7. **(P5)** 把其它工具的纯逻辑也抽到 `packages/core/`(staking-solver、squid-game、mtt-staking)
+7. **(P5,已完成)** 把其它工具的纯逻辑抽到 `packages/core/`:
+   - `squid/index.js` — DP 求解
+   - `staking/solver.js` + `simulator.js` — 代数求解 + MC 模拟
+   - `staking/mtt-model.js` — Felix 校准的方差/ROI 模型
 8. **(P7)** 启动小程序仓库,通过 npm/git submodule 引用 `packages/core`,WASM 改用 `engines/range-zen-api` 后端
+9. **(P8)** 抽 mtt-staking 的剩余仿真代码(`generateGGPayout`、`simulatePath`、`runSimulation` ~700 行)到 `packages/core/staking/mtt-simulation.js`,P7 真要小程序化时再做
 
 每完成一个工具的迁移再决策下一个,不要一口气铺太多并行工作。
