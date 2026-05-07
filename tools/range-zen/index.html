@@ -159,17 +159,19 @@
     <div class="matrix p1" id="matrix"></div>
 
     <div class="freq-control">
-      <label>FREQUENCY</label>
+      <label>TOP %</label>
+      <input type="range" id="top-slider" class="freq-slider" min="0" max="100" value="0" step="0.5">
+      <div class="freq-value"><span id="top-value">0.0</span>%</div>
+    </div>
+
+    <div class="freq-control">
+      <label>PAINT FREQ</label>
       <input type="range" id="freq-slider" class="freq-slider" min="0" max="100" value="100" step="5">
       <div class="freq-value"><span id="freq-value">100</span>%</div>
     </div>
 
     <div class="preset-row">
       <button class="preset" data-preset="all">All (1326)</button>
-      <button class="preset" data-preset="top5">Top 5%</button>
-      <button class="preset" data-preset="top10">Top 10%</button>
-      <button class="preset" data-preset="top15">Top 15%</button>
-      <button class="preset" data-preset="top25">Top 25%</button>
       <button class="preset" data-preset="pairs">All Pairs</button>
       <button class="preset" data-preset="suited">All Suited</button>
       <button class="preset danger" data-preset="clear">Clear</button>
@@ -177,7 +179,7 @@
 
     <div class="combo-info">
       <span id="combo-info">0 combos · 0.0%</span>
-      <span style="color:var(--text-dim);">点击单格设置当前频率 · 拖动批量 · 右键清空</span>
+      <span style="color:var(--text-dim);">拖 TOP% 滑块自动填充 · 单击/拖动用 PAINT 频率涂格 · 右键清空</span>
     </div>
   </div>
 
@@ -467,15 +469,55 @@ Board 语法:
     syncToInput();
   }
 
-  // ----- Presets -----
+  // ----- Hand strength ranking + Top X% range builder -----
+  // Heuristic approximation of preflop equity vs random hand.
+  // Good enough for the slider UX; user can fine-tune by clicking.
+  function handStrength(label) {
+    if (label.length === 2) {
+      // Pair: AA=200, KK=195, ..., 22=140
+      return 200 - RANK_INDEX[label[0]] * 5;
+    }
+    const r1 = RANK_INDEX[label[0]];   // higher rank (lower idx)
+    const r2 = RANK_INDEX[label[1]];   // lower
+    const suited = label[2] === 's';
+    let s = 130 - r1 * 6 - r2 * 2;
+    if (suited) s += 18;
+    const gap = r2 - r1;
+    if (suited && gap <= 4) s += (5 - gap) * 2;     // suited connectors / 1-gappers bonus
+    if (gap === 1) s += 2;                           // any connector small bonus
+    return s;
+  }
+  const HAND_RANKING = (() => {
+    const all = [];
+    for (let r = 0; r < 13; r++) for (let c = 0; c < 13; c++) all.push(cellLabel(r, c));
+    return all.sort((a, b) => handStrength(b) - handStrength(a));
+  })();
+  function topPercentRange(percent) {
+    if (percent <= 0) return new Map();
+    const target = (percent / 100) * ALL_COMBOS;
+    const map = new Map();
+    let total = 0;
+    for (const label of HAND_RANKING) {
+      const c = comboCount(label);
+      if (total + c <= target + 0.001) {
+        map.set(label, 100);
+        total += c;
+      } else if (total < target) {
+        // Last partial label gets a fractional weight, snapped to 5%
+        const remaining = target - total;
+        const w = Math.max(5, Math.round((remaining / c) * 20) * 5);
+        map.set(label, Math.min(100, w));
+        break;
+      } else break;
+    }
+    return map;
+  }
+
+  // ----- Manual presets (small set; the slider handles % rangefilling) -----
   const PRESETS = {
     all:    () => { const m = new Map(); for (let r=0;r<13;r++) for (let c=0;c<13;c++) m.set(cellLabel(r,c), 100); return m; },
     pairs:  () => { const m = new Map(); for (let i=0;i<13;i++) m.set(RANKS[i]+RANKS[i], 100); return m; },
     suited: () => { const m = new Map(); for (let r=0;r<13;r++) for (let c=r+1;c<13;c++) m.set(cellLabel(r,c), 100); return m; },
-    top5:   () => parseRangeString('TT+,AQs+,AKo'),
-    top10:  () => parseRangeString('77+,AJs+,KQs,AQo+'),
-    top15:  () => parseRangeString('66+,A9s+,KTs+,QTs+,JTs,T9s,98s,ATo+,KJo+,QJo'),
-    top25:  () => parseRangeString('22+,A2s+,K9s+,Q9s+,J9s+,T8s+,97s+,86s+,75s+,64s+,54s,A8o+,KTo+,QTo+,JTo'),
     clear:  () => new Map(),
   };
 
@@ -486,6 +528,14 @@ Board 语法:
   });
   $('freq-slider').addEventListener('input', () => {
     $('freq-value').textContent = getCurrentFreq();
+  });
+  $('top-slider').addEventListener('input', () => {
+    const v = parseFloat($('top-slider').value);
+    $('top-value').textContent = v.toFixed(1);
+    ranges[activePlayer] = topPercentRange(v);
+    renderAllCells();
+    updateInfo();
+    syncToInput();
   });
   document.querySelectorAll('.preset').forEach(b => {
     b.addEventListener('click', () => {
@@ -504,11 +554,13 @@ Board 语法:
     });
   });
 
-  // Default starting ranges
-  ranges.p1 = PRESETS.top5();
-  ranges.p2 = parseRangeString('22+');
+  // Default starting ranges (~5% top for P1, all pairs for P2)
+  ranges.p1 = topPercentRange(5);
+  ranges.p2 = PRESETS.pairs();
   $('r1').value = buildRangeString('p1');
   $('r2').value = buildRangeString('p2');
+  $('top-slider').value = 5;
+  $('top-value').textContent = '5.0';
   switchPlayer('p1');
 
   let worker = null;
