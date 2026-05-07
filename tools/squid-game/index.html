@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鱿鱼博弈计算器 (EV & 概率)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', 'SimHei', Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #fafafa;
+        }
+        
+        .section-title {
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #555;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .form-group label {
+            width: 250px;
+            text-align: right;
+            margin-right: 10px;
+        }
+        
+        .form-group input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .form-group .radio-group {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .form-group .radio-group label {
+            width: auto;
+            margin-right: 5px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        
+        .btn:hover {
+            background: #45a049;
+        }
+        
+        .btn-secondary {
+            background: #2196F3;
+        }
+        
+        .btn-secondary:hover {
+            background: #0b7dda;
+        }
+        
+        .btn-danger {
+            background: #f44336;
+        }
+        
+        .btn-danger:hover {
+            background: #da190b;
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .results {
+            margin-top: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        table th, table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        
+        table th {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        
+        .error {
+            color: red;
+            margin: 10px 0;
+            padding: 10px;
+            background: #ffebee;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>鱿鱼博弈计算器 (EV & 概率)</h1>
+        
+        <div class="section">
+            <div class="section-title">游戏参数设置</div>
+            
+            <div class="form-group">
+                <label>1. 游戏结束的最大鱿鱼数 (N):</label>
+                <input type="number" id="maxCakes" value="11" min="1">
+            </div>
+            
+            <div class="form-group">
+                <label>2. 玩家总人数:</label>
+                <input type="number" id="numPeople" value="8" min="2">
+            </div>
+            
+            <div class="form-group">
+                <label>3. 你当前持有的鱿鱼数:</label>
+                <input type="number" id="myCake" value="0" min="0">
+            </div>
+            
+            <div class="form-group">
+                <label>4. 其他玩家持有的鱿鱼 (逗号分隔):</label>
+                <input type="text" id="othersCake" value="0,0,0,0,0,0,0">
+            </div>
+            
+            <div class="form-group">
+                <label>5. 奖惩规则 (逗号分隔):</label>
+                <input type="text" id="rules" value="1,2,3,4,5,6,7,8,9,10,11">
+            </div>
+            
+            <div class="form-group">
+                <label>规则模式:</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="ruleMode" value="default" checked onchange="updateRules()"> 默认</label>
+                    <label><input type="radio" name="ruleMode" value="double" onchange="updateRules()"> 翻倍</label>
+                    <label><input type="radio" name="ruleMode" value="custom" onchange="updateRules()"> 自定义</label>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 15px;">
+                <button class="btn" onclick="calculate()">开始计算</button>
+            </div>
+        </div>
+        
+        <div class="results" id="results" style="display: none;">
+            <div class="section">
+                <div class="section-title">概率分布</div>
+                <table id="probTable">
+                    <thead>
+                        <tr>
+                            <th>最终持有鱿鱼个数</th>
+                            <th>概率</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">决策收益</div>
+                <table id="rewardTable">
+                    <thead>
+                        <tr>
+                            <th>获得价值</th>
+                            <th>未获得价值</th>
+                            <th>差值</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let memoEv = {};
+        let memoProb = {};
+        
+        // 更新规则
+        function updateRules() {
+            const mode = document.querySelector('input[name="ruleMode"]:checked').value;
+            const maxCakes = parseInt(document.getElementById('maxCakes').value) || 11;
+            const rulesInput = document.getElementById('rules');
+            
+            if (mode === 'default') {
+                const rules = [];
+                for (let i = 1; i <= maxCakes; i++) {
+                    rules.push(i);
+                }
+                rulesInput.value = rules.join(',');
+                rulesInput.disabled = true;
+            } else if (mode === 'double') {
+                const rules = [];
+                for (let i = 1; i <= maxCakes; i++) {
+                    rules.push(2 * i - 1);
+                }
+                rulesInput.value = rules.join(',');
+                rulesInput.disabled = true;
+            } else {
+                rulesInput.disabled = false;
+            }
+        }
+        
+        // 获取奖励金额
+        function getRewardAmount(cakeCount, rules) {
+            if (cakeCount === 0) return 0;
+            const idx = cakeCount - 1;
+            if (idx >= rules.length) return rules[rules.length - 1];
+            return rules[idx];
+        }
+        
+        // 计算终局收益
+        function calculateTerminalPayoff(cakes, rules) {
+            const zerosCount = cakes.filter(c => c === 0).length;
+            const payoffMap = {};
+            let totalPaymentPerZeroPlayer = 0;
+            
+            const uniqueCounts = [...new Set(cakes)];
+            for (const k of uniqueCounts) {
+                if (k > 0) {
+                    const reward = getRewardAmount(k, rules);
+                    const income = reward * zerosCount;
+                    payoffMap[k] = income;
+                    const countOfPeopleWithK = cakes.filter(c => c === k).length;
+                    totalPaymentPerZeroPlayer += reward * countOfPeopleWithK;
+                }
+            }
+            
+            if (uniqueCounts.includes(0)) {
+                payoffMap[0] = -totalPaymentPerZeroPlayer;
+            }
+            
+            return payoffMap;
+        }
+        
+        // 获取状态键
+        function getStateKey(cakes) {
+            return JSON.stringify([...cakes].sort((a, b) => b - a));
+        }
+        
+        // 计算期望值 (DP)
+        function solveEv(cakes, maxCakes, stopCount, rules, numPeople) {
+            const stateKey = getStateKey(cakes);
+            if (memoEv[stateKey]) {
+                return memoEv[stateKey];
+            }
+            
+            const occupiedCount = cakes.filter(c => c > 0).length;
+            const currentSum = cakes.reduce((a, b) => a + b, 0);
+            
+            if (occupiedCount >= stopCount || currentSum >= maxCakes) {
+                const result = calculateTerminalPayoff(cakes, rules);
+                memoEv[stateKey] = result;
+                return result;
+            }
+            
+            const prob = 1.0 / numPeople;
+            const currentPlayersTotalEv = new Array(numPeople).fill(0);
+            
+            for (let receiverIdx = 0; receiverIdx < numPeople; receiverIdx++) {
+                const nextCakes = [...cakes];
+                nextCakes[receiverIdx] += 1;
+                
+                const futureEvMap = solveEv(nextCakes, maxCakes, stopCount, rules, numPeople);
+                
+                for (let pIdx = 0; pIdx < numPeople; pIdx++) {
+                    const kInFuture = nextCakes[pIdx];
+                    const val = futureEvMap[kInFuture] || 0.0;
+                    currentPlayersTotalEv[pIdx] += val;
+                }
+            }
+            
+            const resultMap = {};
+            const countsCheck = {};
+            
+            for (let pIdx = 0; pIdx < numPeople; pIdx++) {
+                const k = cakes[pIdx];
+                const avgEv = (currentPlayersTotalEv[pIdx] * prob);
+                
+                if (!resultMap[k]) {
+                    resultMap[k] = 0;
+                    countsCheck[k] = 0;
+                }
+                resultMap[k] += avgEv;
+                countsCheck[k] += 1;
+            }
+            
+            for (const k in resultMap) {
+                resultMap[k] /= countsCheck[k];
+            }
+            
+            memoEv[stateKey] = resultMap;
+            return resultMap;
+        }
+        
+        // 计算概率分布 (DP)
+        function solveProb(cakes, maxCakes, stopCount, numPeople) {
+            const stateKey = getStateKey(cakes);
+            if (memoProb[stateKey]) {
+                return memoProb[stateKey];
+            }
+            
+            const occupiedCount = cakes.filter(c => c > 0).length;
+            const currentSum = cakes.reduce((a, b) => a + b, 0);
+            
+            if (occupiedCount >= stopCount || currentSum >= maxCakes) {
+                const res = {};
+                const uniqueKs = [...new Set(cakes)];
+                for (const k of uniqueKs) {
+                    res[k] = {[k]: 1.0};
+                }
+                memoProb[stateKey] = res;
+                return res;
+            }
+            
+            const probStep = 1.0 / numPeople;
+            const positionDists = new Array(numPeople).fill(0).map(() => ({}));
+            
+            for (let receiverIdx = 0; receiverIdx < numPeople; receiverIdx++) {
+                const nextCakes = [...cakes];
+                nextCakes[receiverIdx] += 1;
+                
+                const futureProbMap = solveProb(nextCakes, maxCakes, stopCount, numPeople);
+                
+                for (let pIdx = 0; pIdx < numPeople; pIdx++) {
+                    const kInFuture = nextCakes[pIdx];
+                    const futureDist = futureProbMap[kInFuture] || {};
+                    
+                    for (const finalK in futureDist) {
+                        if (!positionDists[pIdx][finalK]) {
+                            positionDists[pIdx][finalK] = 0;
+                        }
+                        positionDists[pIdx][finalK] += futureDist[finalK] * probStep;
+                    }
+                }
+            }
+            
+            const result = {};
+            const uniqueKs = [...new Set(cakes)];
+            
+            for (const k of uniqueKs) {
+                const indices = cakes.map((c, i) => c === k ? i : -1).filter(i => i !== -1);
+                const combinedDist = {};
+                
+                for (const idx of indices) {
+                    for (const finalK in positionDists[idx]) {
+                        if (!combinedDist[finalK]) {
+                            combinedDist[finalK] = 0;
+                        }
+                        combinedDist[finalK] += positionDists[idx][finalK];
+                    }
+                }
+                
+                const countK = indices.length;
+                for (const finalK in combinedDist) {
+                    combinedDist[finalK] /= countK;
+                }
+                
+                result[k] = combinedDist;
+            }
+            
+            memoProb[stateKey] = result;
+            return result;
+        }
+        
+        // 主计算函数
+        function calculate() {
+            try {
+                // 获取输入
+                const maxCakes = parseInt(document.getElementById('maxCakes').value);
+                const numPeople = parseInt(document.getElementById('numPeople').value);
+                const myCake = parseInt(document.getElementById('myCake').value);
+                const othersStr = document.getElementById('othersCake').value.replace(/，/g, ',');
+                const othersCakes = othersStr.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
+                const rulesStr = document.getElementById('rules').value.replace(/，/g, ',');
+                const rules = rulesStr.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
+                
+                // 补齐人数
+                const neededOthers = numPeople - 1;
+                while (othersCakes.length < neededOthers) {
+                    othersCakes.push(0);
+                }
+                if (othersCakes.length > neededOthers) {
+                    othersCakes.splice(neededOthers);
+                }
+                
+                const allCakes = [myCake, ...othersCakes];
+                const stopCount = numPeople - 1;
+                
+                // 检查合法性
+                const totalCakes = allCakes.reduce((a, b) => a + b, 0);
+                if (totalCakes > maxCakes) {
+                    alert('错误：当前鱿鱼总数已超过最大值！');
+                    return;
+                }
+                
+                // 如果已经达到最大值，直接结算
+                if (totalCakes === maxCakes) {
+                    alert('游戏已结束：当前持有鱿鱼数已经达到最大鱿鱼数，游戏已结束。');
+                    const payoffMap = calculateTerminalPayoff(allCakes, rules);
+                    const myFinalPayoff = payoffMap[myCake] || 0.0;
+                    
+                    displayResults({[myCake]: {[myCake]: 1.0}}, myFinalPayoff, 0.0, myFinalPayoff);
+                    return;
+                }
+                
+                // 清空缓存
+                memoEv = {};
+                memoProb = {};
+                
+                // 计算概率分布
+                const probMap = solveProb(allCakes, maxCakes, stopCount, numPeople);
+                const myProbDist = probMap[myCake] || {};
+                
+                // 计算决策收益
+                const nextCakesIfGet = [myCake + 1, ...othersCakes];
+                const evMapIfGet = solveEv(nextCakesIfGet, maxCakes, stopCount, rules, numPeople);
+                const evValIfGet = evMapIfGet[myCake + 1] || 0.0;
+                
+                let totalEvIfNotGet = 0.0;
+                for (let i = 0; i < othersCakes.length; i++) {
+                    const tempOthers = [...othersCakes];
+                    tempOthers[i] += 1;
+                    const nextCakesIfLose = [myCake, ...tempOthers];
+                    const evMapTemp = solveEv(nextCakesIfLose, maxCakes, stopCount, rules, numPeople);
+                    totalEvIfNotGet += evMapTemp[myCake] || 0.0;
+                }
+                
+                const evValIfNotGet = othersCakes.length > 0 ? totalEvIfNotGet / othersCakes.length : 0.0;
+                const diff = evValIfGet - evValIfNotGet;
+                
+                displayResults({[myCake]: myProbDist}, evValIfGet, evValIfNotGet, diff);
+                
+            } catch (e) {
+                alert('计算错误：' + e.message);
+            }
+        }
+        
+        // 显示结果
+        function displayResults(probMap, evHit, evMiss, diff) {
+            document.getElementById('results').style.display = 'block';
+            
+            // 显示概率分布
+            const probTbody = document.querySelector('#probTable tbody');
+            probTbody.innerHTML = '';
+            const myCake = parseInt(document.getElementById('myCake').value);
+            const myProbDist = probMap[myCake] || {};
+            const sortedOutcomes = Object.entries(myProbDist).sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
+            
+            for (const [count, p] of sortedOutcomes) {
+                const row = probTbody.insertRow();
+                row.insertCell(0).textContent = count;
+                row.insertCell(1).textContent = (p * 100).toFixed(2) + '%';
+            }
+            
+            // 显示决策收益
+            const rewardTbody = document.querySelector('#rewardTable tbody');
+            rewardTbody.innerHTML = '';
+            const row = rewardTbody.insertRow();
+            row.insertCell(0).textContent = evHit.toFixed(2);
+            row.insertCell(1).textContent = evMiss.toFixed(2);
+            row.insertCell(2).textContent = diff.toFixed(2);
+        }
+        
+        // 初始化
+        updateRules();
+    </script>
+</body>
+</html>

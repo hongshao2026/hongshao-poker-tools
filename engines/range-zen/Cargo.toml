@@ -1,0 +1,12 @@
+[workspace]
+members = ["crates/range-zen-core", ".", "crates/range-zen-api"]
+resolver = "3"
+
+[package]
+name = "range-zen-cli"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+range-zen-core = { path = "crates/range-zen-core" }
+clap = { version = "4", features = ["derive"] }
