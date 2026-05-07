@@ -35,6 +35,27 @@
     margin-top: 4px;
     letter-spacing: 0.5px;
   }
+  .role-tag {
+    display: inline-block;
+    margin-top: 10px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(212, 255, 58, 0.08);
+    border: 1px solid var(--accent-dim);
+    padding: 3px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+  }
+  .cross-link {
+    display: block;
+    margin-top: 8px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-faint);
+  }
+  .cross-link a { color: var(--text-dim); text-decoration: none; border-bottom: 1px dotted var(--text-faint); }
+  .cross-link a:hover { color: var(--accent); border-color: var(--accent); }
   .grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -734,7 +755,9 @@
   <header>
     <div class="title-block">
       <h1>STAKING <span>SOLVER</span></h1>
-      <p>扑克锦标赛卖股份经济计算器</p>
+      <p>合约算账 · 给已知反推未知 · EV-only,不算方差</p>
+      <span class="role-tag">投资人 / 经纪视角</span>
+      <span class="cross-link">想要"该卖多少股 / Markup 收多少最优"? → <a href="../mtt-staking/">MTT 卖股策略</a>(选手视角,带 Felix 方差模型)</span>
     </div>
   </header>
 
