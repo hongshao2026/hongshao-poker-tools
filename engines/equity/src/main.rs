@@ -1,9 +1,9 @@
 use clap::Parser;
-use range_zen_core::equity::{equity_exact_hands, equity_monte_carlo, Board};
-use range_zen_core::range::Range;
+use equity_core::equity::{equity_exact_hands, equity_monte_carlo, Board};
+use equity_core::range::Range;
 
 #[derive(Parser)]
-#[command(name = "range-zen")]
+#[command(name = "equity")]
 #[command(about = "Texas Hold'em range vs range equity calculator")]
 struct Cli {
     /// Player ranges, e.g. "AA,AKs" "QQ-TT,AQo+"
@@ -43,7 +43,7 @@ fn main() {
         }))
         .collect();
 
-    println!("Range Zen - Texas Hold'em Equity Calculator");
+    println!("Equity Engine - Texas Hold'em Equity Calculator");
     println!("============================================");
 
     for (i, (range_str, range)) in cli.ranges.iter().zip(ranges.iter()).enumerate() {
@@ -72,7 +72,7 @@ fn main() {
     }
 }
 
-fn print_results(players: &[range_zen_core::equity::EquityResult], total: u64) {
+fn print_results(players: &[equity_core::equity::EquityResult], total: u64) {
     println!("--------------------------------------------");
     println!("Results ({} matchups evaluated):", total);
     println!();

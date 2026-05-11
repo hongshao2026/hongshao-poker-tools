@@ -22,7 +22,7 @@
 - **Staking Solver** — `tools/staking-solver/` — 多方投资场景分配求解
 - **鱿鱼博弈计算器** — `tools/squid-game/` — 8 人桌 11 鱿鱼场景 EV 计算
 - **赏金跟注计算器** — `tools/bounty/` — PKO + 神秘赏金所需胜率
-- **Range Zen** — `tools/range-zen/` — Rust → WASM,范围对范围胜率(需本地 HTTP 服务器)
+- **Equity Engine** — `tools/equity/` — Rust → WASM,范围对范围胜率(需本地 HTTP 服务器)
 
 ## 本地运行
 
@@ -31,7 +31,7 @@ python3 -m http.server 8000
 # 访问 http://localhost:8000/
 ```
 
-`tools/range-zen/`、`tools/bounty/`、`tools/mtt-staking/` 用了 ES 模块/WASM,**必须**通过 HTTP 服务器访问,不能 `file://` 直接打开。其余工具(`staking-solver`、`squid-game`)双击 HTML 也行,但走 HTTP 是最简单的统一方式。
+`tools/equity/`、`tools/bounty/`、`tools/mtt-staking/` 用了 ES 模块/WASM,**必须**通过 HTTP 服务器访问,不能 `file://` 直接打开。其余工具(`staking-solver`、`squid-game`)双击 HTML 也行,但走 HTTP 是最简单的统一方式。
 
 ## 重新构建 React 工具
 

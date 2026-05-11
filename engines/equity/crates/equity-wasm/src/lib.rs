@@ -1,7 +1,7 @@
-use range_zen_core::analysis::analyze_range;
-use range_zen_core::card::Card;
-use range_zen_core::equity::{equity_monte_carlo, Board};
-use range_zen_core::range::Range;
+use equity_core::analysis::analyze_range;
+use equity_core::card::Card;
+use equity_core::equity::{equity_monte_carlo, Board};
+use equity_core::range::Range;
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
 

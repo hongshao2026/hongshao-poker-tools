@@ -1,0 +1,15 @@
+{
+  "name": "equity-wasm",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "equity_wasm_bg.wasm",
+    "equity_wasm.js",
+    "equity_wasm.d.ts"
+  ],
+  "main": "equity_wasm.js",
+  "types": "equity_wasm.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}

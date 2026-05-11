@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Range Zen · 范围胜率计算器</title>
+<title>权益计算器 · 范围胜率</title>
 <link rel="stylesheet" href="../../assets/shared.css">
 <style>
   .wrap { max-width: 960px; margin: 0 auto; padding: 56px 24px 96px; }
@@ -146,7 +146,7 @@
 <a class="portal-back" href="../../index.html">← 工具集</a>
 <div class="wrap">
   <header>
-    <h1>Range Zen <span class="ver">v0.2 · WASM</span></h1>
+    <h1>权益计算器 <span class="ver">v0.2 · WASM</span></h1>
     <p class="sub">范围对范围胜率计算 · Rust 引擎编译为 WASM,在 Web Worker 中运行,主线程不卡顿</p>
   </header>
 
@@ -273,7 +273,7 @@ Board 语法:
 
   cd /path/to/hongshao-poker-tools
   python3 -m http.server 8000
-  # 然后访问 http://localhost:8000/tools/range-zen/
+  # 然后访问 http://localhost:8000/tools/equity/
 
 或部署到任何静态托管服务 (Cloudflare Pages, Vercel, Netlify, GitHub Pages)。</pre>
   </details>
@@ -533,13 +533,13 @@ Board 语法:
   });
 
   // Persist rank-mode preference + recompute on switch.
-  const SAVED_RANK_MODE = localStorage.getItem('range-zen-rank-mode') || 'tight';
+  const SAVED_RANK_MODE = localStorage.getItem('equity-rank-mode') || 'tight';
   $('rank-mode').value = SAVED_RANK_MODE in HAND_RANKINGS ? SAVED_RANK_MODE : 'tight';
   HAND_RANKING = HAND_RANKINGS[$('rank-mode').value];
   $('rank-mode').addEventListener('change', () => {
     const mode = $('rank-mode').value;
     HAND_RANKING = HAND_RANKINGS[mode];
-    localStorage.setItem('range-zen-rank-mode', mode);
+    localStorage.setItem('equity-rank-mode', mode);
     // Re-apply current TOP% with new ranking
     const v = parseFloat($('top-slider').value);
     if (v > 0) {

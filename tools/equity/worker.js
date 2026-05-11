@@ -1,4 +1,4 @@
-import init, { equity_mc, analyze } from './pkg/range_zen_wasm.js';
+import init, { equity_mc, analyze } from './pkg/equity_wasm.js';
 
 let ready = false;
 let initPromise = null;

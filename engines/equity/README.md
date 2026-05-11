@@ -1,4 +1,4 @@
-# Range Zen
+# Equity Engine
 
 德州扑克范围对范围胜率计算器 + 翻牌面命中率分析器
 
@@ -30,9 +30,9 @@ Texas Hold'em Range vs Range Equity Calculator & Board Texture Analyzer
 ## 项目结构
 
 ```
-range-zen/
+equity/
 ├── crates/
-│   ├── range-zen-core/        # 核心计算库
+│   ├── equity-core/        # 核心计算库
 │   │   ├── src/
 │   │   │   ├── card.rs        # 牌面数据结构
 │   │   │   ├── eval.rs        # 手牌评估器 (查找表优化)
@@ -41,7 +41,7 @@ range-zen/
 │   │   │   ├── analysis.rs    # 翻牌面命中率分析
 │   │   │   └── lib.rs
 │   │   └── benches/           # 性能基准测试
-│   └── range-zen-api/         # HTTP API 服务
+│   └── equity-api/         # HTTP API 服务
 │       └── src/main.rs
 ├── src/main.rs                # CLI 工具
 └── docs/
@@ -64,20 +64,20 @@ cargo build --release
 
 ```bash
 # 范围对范围 (蒙特卡洛)
-./target/release/range-zen-cli "AA,KK,AKs" "QQ-TT,AQo+" -n 500000
+./target/release/equity-cli "AA,KK,AKs" "QQ-TT,AQo+" -n 500000
 
 # 精确计算特定手牌
-./target/release/range-zen-cli "AhAd" "KhKd" --exact
+./target/release/equity-cli "AhAd" "KhKd" --exact
 
 # 指定公共牌
-./target/release/range-zen-cli "AKs" "QQ" -b "AsKd2c"
+./target/release/equity-cli "AKs" "QQ" -b "AsKd2c"
 ```
 
 ### 启动 API 服务
 
 ```bash
-./target/release/range-zen-api
-# Range Zen API listening on 0.0.0.0:3000
+./target/release/equity-api
+# Equity Engine API listening on 0.0.0.0:3000
 ```
 
 ---
@@ -90,7 +90,7 @@ cargo build --release
 
 ```bash
 curl http://localhost:3000/api/health
-# Range Zen API v0.1.0
+# Equity Engine API v0.1.0
 ```
 
 ### POST /api/equity — 范围对范围胜率计算

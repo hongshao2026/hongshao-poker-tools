@@ -6,10 +6,10 @@ use axum::{
 use serde::{Deserialize, Serialize};
 use tower_http::cors::CorsLayer;
 
-use range_zen_core::analysis::analyze_range;
-use range_zen_core::card::Card;
-use range_zen_core::equity::{equity_monte_carlo, equity_exact_hands, Board};
-use range_zen_core::range::Range;
+use equity_core::analysis::analyze_range;
+use equity_core::card::Card;
+use equity_core::equity::{equity_monte_carlo, equity_exact_hands, Board};
+use equity_core::range::Range;
 
 // ─── Equity endpoint ────────────────────────────────────────────────────────
 
@@ -48,7 +48,7 @@ struct ErrorResponse {
 }
 
 async fn health() -> &'static str {
-    "Range Zen API v0.1.0"
+    "Equity Engine API v0.1.0"
 }
 
 async fn calculate_equity(
@@ -215,7 +215,7 @@ async fn main() {
         .layer(cors);
 
     let addr = "0.0.0.0:3000";
-    println!("Range Zen API listening on {}", addr);
+    println!("Equity Engine API listening on {}", addr);
 
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, app).await.unwrap();

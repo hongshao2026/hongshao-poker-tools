@@ -1,8 +1,8 @@
 use std::time::Instant;
-use range_zen_core::card::Card;
-use range_zen_core::eval::{evaluate_5cards, evaluate_7cards, evaluate_7cards_bruteforce};
-use range_zen_core::equity::{equity_exact_hands, equity_monte_carlo, Board};
-use range_zen_core::range::{Combo, Range};
+use equity_core::card::Card;
+use equity_core::eval::{evaluate_5cards, evaluate_7cards, evaluate_7cards_bruteforce};
+use equity_core::equity::{equity_exact_hands, equity_monte_carlo, Board};
+use equity_core::range::{Combo, Range};
 
 fn bench_eval_5cards(iterations: u64) -> f64 {
     let cards = [
@@ -92,7 +92,7 @@ fn bench_monte_carlo(label: &str, r1_str: &str, r2_str: &str, board_str: &str, n
 
 fn main() {
     println!("========================================");
-    println!(" Range Zen Performance Benchmark");
+    println!(" Equity Engine Performance Benchmark");
     println!("========================================");
     println!();
 
@@ -172,12 +172,12 @@ fn main() {
     println!("[4] Memory Usage");
     println!("────────────────");
     let r_big = Range::parse("22+,A2s+,K2s+,Q5s+,J7s+,T7s+,97s+,86s+,76s,65s,54s,A2o+,K3o+,Q7o+,J7o+,T8o+,98o").unwrap();
-    let combo_size = std::mem::size_of::<(range_zen_core::range::Combo, f64)>();
+    let combo_size = std::mem::size_of::<(equity_core::range::Combo, f64)>();
     println!("  sizeof(Combo, f64) = {} bytes", combo_size);
     println!("  50% range ({} combos) = {} bytes", r_big.combo_count(), r_big.combo_count() * combo_size);
-    println!("  sizeof(Card) = {} bytes", std::mem::size_of::<range_zen_core::card::Card>());
-    println!("  sizeof(CardSet) = {} bytes", std::mem::size_of::<range_zen_core::card::CardSet>());
-    println!("  sizeof(HandValue) = {} bytes", std::mem::size_of::<range_zen_core::eval::HandValue>());
+    println!("  sizeof(Card) = {} bytes", std::mem::size_of::<equity_core::card::Card>());
+    println!("  sizeof(CardSet) = {} bytes", std::mem::size_of::<equity_core::card::CardSet>());
+    println!("  sizeof(HandValue) = {} bytes", std::mem::size_of::<equity_core::eval::HandValue>());
 
     println!();
     println!("========================================");

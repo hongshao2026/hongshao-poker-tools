@@ -230,9 +230,6 @@
       <a class="tool-card" href="tools/mtt-staking/#calc">
         <div class="tool-head">
           <div class="tool-name">MTT 卖股计算器</div>
-          <div class="tool-tags">
-            <span class="tool-tag role">选手</span>
-          </div>
         </div>
         <div class="tool-tagline">该卖多少 · Markup 收多少 · 最优增长</div>
         <div class="tool-desc">输入 buy-in/场子人数/ROI/bankroll，算出最优卖股比例和 markup 推荐。核心计算入口。</div>
@@ -242,9 +239,6 @@
       <a class="tool-card" href="tools/mtt-staking/#reverse">
         <div class="tool-head">
           <div class="tool-name">反推 BR</div>
-          <div class="tool-tags">
-            <span class="tool-tag role">选手</span>
-          </div>
         </div>
         <div class="tool-tagline">给定目标 → 反推所需 bankroll</div>
         <div class="tool-desc">已知卖股比例、markup、ROI 与目标增长率，反向求解打这个 buy-in 所需的最低 bankroll。</div>
@@ -254,9 +248,6 @@
       <a class="tool-card" href="tools/mtt-staking/#quiz">
         <div class="tool-head">
           <div class="tool-name">风格自测</div>
-          <div class="tool-tags">
-            <span class="tool-tag role">选手</span>
-          </div>
         </div>
         <div class="tool-tagline">几分钟问卷 → 推荐 BRM 风格</div>
         <div class="tool-desc">通过短问卷判断你属于保守 / 平衡 / 激进型，输出对应的卖股比例和 bankroll 阈值。</div>
@@ -266,9 +257,6 @@
       <a class="tool-card" href="tools/mtt-staking/#sim">
         <div class="tool-head">
           <div class="tool-name">曲线模拟</div>
-          <div class="tool-tags">
-            <span class="tool-tag role">选手</span>
-          </div>
         </div>
         <div class="tool-tagline">Monte Carlo · 盈亏曲线</div>
         <div class="tool-desc">固定/连续两种卖股模式，蒙特卡洛跑 N 子弹后 bankroll 分布与典型路径。</div>
@@ -278,9 +266,6 @@
       <a class="tool-card" href="tools/mtt-staking/#ladder">
         <div class="tool-head">
           <div class="tool-name">升级测试</div>
-          <div class="tool-tags">
-            <span class="tool-tag role">选手</span>
-          </div>
         </div>
         <div class="tool-tagline">阶梯式升级 · 成功率 / 时间</div>
         <div class="tool-desc">从起始 buy-in 一路冲到目标级别的成功率、预期场次和时间，含降级回退逻辑。</div>
@@ -290,9 +275,6 @@
       <a class="tool-card" href="tools/staking-solver/">
         <div class="tool-head">
           <div class="tool-name">现场赛程股份计算</div>
-          <div class="tool-tags">
-            <span class="tool-tag role">投资人</span>
-          </div>
         </div>
         <div class="tool-tagline">合约算账 · 已知反推未知</div>
         <div class="tool-desc">10 变量定点求解：净收入、ROI、卖出比例、所需总盘子。EV-only，不含方差。适合赛季出发前算账。</div>
@@ -302,9 +284,6 @@
       <a class="tool-card" href="tools/staking-calc/">
         <div class="tool-head">
           <div class="tool-name">Online Day2 合理股份计算</div>
-          <div class="tool-tags">
-            <span class="tool-tag role">买股</span>
-          </div>
         </div>
         <div class="tool-tagline">Day 1/Day 2 · 单注 + 批量 · AdjS·ICM</div>
         <div class="tool-desc">输入赛事参数（奖池/参赛/Day2 玩家数）+ 玩家筹码，算出零和 ROI、买家 ROI 预测、AdjS×Markup 关系图。</div>
@@ -326,9 +305,6 @@
       <a class="tool-card" href="tools/bankroll-plan/">
         <div class="tool-head">
           <div class="tool-name">资金升级计划</div>
-          <div class="tool-tags">
-            <span class="tool-tag role">现金</span>
-          </div>
         </div>
         <div class="tool-tagline">Bankroll · 升级路径 · Monte Carlo</div>
         <div class="tool-desc">5 档级别参数可编辑，自动算升降级阈值、多开时薪、升级时长，含蒙特卡洛模拟和增长曲线。</div>
@@ -356,12 +332,9 @@
         <span class="arrow">OPEN →</span>
       </a>
 
-      <a class="tool-card" href="tools/range-zen/">
+      <a class="tool-card" href="tools/equity/">
         <div class="tool-head">
-          <div class="tool-name">Range Zen</div>
-          <div class="tool-tags">
-            <span class="tool-tag tech">WASM</span>
-          </div>
+          <div class="tool-name">权益计算器</div>
         </div>
         <div class="tool-tagline">范围对范围胜率 + 13×13 矩阵</div>
         <div class="tool-desc">WASM 加速的 enumeration 求精确胜率，支持范围 vs 范围、范围 vs 手牌、指定翻牌/转牌。带 PostFlop 校准。</div>

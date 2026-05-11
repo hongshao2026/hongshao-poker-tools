@@ -1,0 +1,12 @@
+[workspace]
+members = ["crates/equity-core", ".", "crates/equity-api", "crates/equity-wasm"]
+resolver = "3"
+
+[package]
+name = "equity-cli"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+equity-core = { path = "crates/equity-core" }
+clap = { version = "4", features = ["derive"] }

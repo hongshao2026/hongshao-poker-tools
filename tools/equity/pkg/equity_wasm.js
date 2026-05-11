@@ -1,4 +1,4 @@
-/* @ts-self-types="./range_zen_wasm.d.ts" */
+/* @ts-self-types="./equity_wasm.d.ts" */
 
 /**
  * Analyze a range against a board (Flopzilla-style hand-strength distribution).
@@ -94,7 +94,7 @@ function __wbg_get_imports() {
     };
     return {
         __proto__: null,
-        "./range_zen_wasm_bg.js": import0,
+        "./equity_wasm_bg.js": import0,
     };
 }
 
@@ -289,7 +289,7 @@ async function __wbg_init(module_or_path) {
     }
 
     if (module_or_path === undefined) {
-        module_or_path = new URL('range_zen_wasm_bg.wasm', import.meta.url);
+        module_or_path = new URL('equity_wasm_bg.wasm', import.meta.url);
     }
     const imports = __wbg_get_imports();
 

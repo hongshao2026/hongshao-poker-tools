@@ -5,7 +5,7 @@
 ```
 用户手机                              服务器
 ┌──────────────────┐    HTTPS    ┌──────────────────────┐
-│   微信小程序      │ ─────────→ │  range-zen-api        │
+│   微信小程序      │ ─────────→ │  equity-api        │
 │                  │            │  (Rust, axum)         │
 │  · 范围选择器     │            │                      │
 │  · 公共牌选择器   │ ←───────── │  POST /api/equity    │
@@ -29,7 +29,7 @@
 ### Phase 1: 后端部署
 
 - [ ] 服务器环境准备 (腾讯云/阿里云, Linux)
-- [ ] 编译部署 range-zen-api (交叉编译或服务器上编译)
+- [ ] 编译部署 equity-api (交叉编译或服务器上编译)
 - [ ] 配置 systemd 服务保持运行
 - [ ] 配置域名 + HTTPS (小程序强制要求 HTTPS)
 - [ ] 配置 nginx 反向代理 (可选, 直接暴露 axum 也可以)
@@ -111,14 +111,14 @@ J  [AJo] [KJo] [QJo] [JJ ] ...
 ### systemd 服务配置
 
 ```ini
-# /etc/systemd/system/range-zen-api.service
+# /etc/systemd/system/equity-api.service
 [Unit]
-Description=Range Zen Poker Equity API
+Description=Equity Engine Poker Equity API
 After=network.target
 
 [Service]
 Type=simple
-ExecStart=/opt/range-zen/range-zen-api
+ExecStart=/opt/equity/equity-api
 Restart=always
 RestartSec=5
 Environment=RUST_LOG=info

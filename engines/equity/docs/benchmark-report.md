@@ -1,4 +1,4 @@
-# Range Zen 基准测试与正确性验证报告
+# Equity Engine 基准测试与正确性验证报告
 
 **测试日期**: 2026-03-29
 **环境**: Rust 1.94.1, release mode, Linux x86_64 (WSL2)
@@ -10,7 +10,7 @@
 
 使用穷举枚举 (1,712,304 种发牌) 计算精确值，与业界标准工具 PokerStove/Equilab 的已知值对比：
 
-| 对决 | Range Zen (精确) | PokerStove/Equilab 参考值 | 误差 | 验证 |
+| 对决 | Equity Engine (精确) | PokerStove/Equilab 参考值 | 误差 | 验证 |
 |------|:----------------:|:------------------------:|:----:|:----:|
 | AA vs KK (AhAd vs KhKd) | **82.64%** | ~82.4–82.6% | <0.3pp | PASS |
 | AKs vs QQ (AhKh vs QsQd) | **46.21%** | ~46.0–46.3% | <0.3pp | PASS |
@@ -92,7 +92,7 @@
 
 ## 四、与开源项目性能对比
 
-| 指标 | Range Zen | OMPEval (C++) | PokerStove (C++) | rs-poker (Rust) |
+| 指标 | Equity Engine | OMPEval (C++) | PokerStove (C++) | rs-poker (Rust) |
 |------|:---------:|:------------:|:---------------:|:--------------:|
 | 7-card 评估 | **1.2 M/sec** | 775 M/sec | ~100 M/sec (估) | 50 M/sec |
 | 方法 | C(7,5) brute force | 完美哈希查找表 | 优化查找表 | 位运算+PDEP |
@@ -132,4 +132,4 @@
 | **性能** | 待优化 | 7-card 评估比 OMPEval 慢 ~650x，主要因为暴力遍历而非查找表 |
 | **内存** | 优秀 | <1 MB 运行时内存，无大型查找表 |
 
-*基准测试由 Range Zen v0.1.0 在 release mode 下完成*
+*基准测试由 Equity Engine v0.1.0 在 release mode 下完成*
