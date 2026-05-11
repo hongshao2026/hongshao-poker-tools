@@ -57,6 +57,16 @@ const C = {
 // 主组件
 // ============================================================
 const VALID_TABS = ["calc", "reverse", "quiz", "sim", "ladder"];
+
+// Each hash deep-links to a standalone sub-tool with its own header.
+const TAB_META = {
+  calc:    { title: "MTT 卖股计算器", subtitle: "该卖多少 · Markup 收多少 · 最优增长" },
+  reverse: { title: "反推 BR",         subtitle: "给定目标 → 反推所需 bankroll" },
+  quiz:    { title: "风格自测",        subtitle: "几分钟问卷 → 推荐 BRM 风格" },
+  sim:     { title: "曲线模拟",        subtitle: "Monte Carlo · 盈亏曲线" },
+  ladder:  { title: "升级测试",        subtitle: "阶梯式升级 · 成功率 / 时间" },
+};
+
 function readHashTab() {
   if (typeof window === "undefined") return "calc";
   const h = window.location.hash.replace(/^#/, "");
@@ -72,20 +82,13 @@ export default function Calculator() {
     return () => window.removeEventListener("hashchange", onHash);
   }, []);
 
-  const selectTab = (id) => {
-    setTab(id);
-    if (typeof window !== "undefined" && window.location.hash !== `#${id}`) {
-      window.history.replaceState(null, "", `#${id}`);
-    }
-  };
-
   return (
     <div style={{
       minHeight: "100vh", background: C.bg, color: C.text,
       fontFamily: "ui-monospace, 'JetBrains Mono', Menlo, monospace",
       padding: "24px",
     }}>
-      <Header tab={tab} setTab={selectTab} />
+      <Header tab={tab} />
       {tab === "calc" && <CalculatorTab />}
       {tab === "reverse" && <ReverseTab />}
       {tab === "sim" && <MonteCarloTab availableModes={["fixed", "continuous"]} defaultMode="fixed" tabKey="sim" />}
@@ -96,36 +99,29 @@ export default function Calculator() {
   );
 }
 
-function Header({ tab, setTab }) {
+function Header({ tab }) {
+  const meta = TAB_META[tab] || TAB_META.calc;
   return (
-    <div style={{ maxWidth: 1400, margin: "0 auto" }}>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 16, marginBottom: 8 }}>
-        <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: -0.5 }}>
-          MTT 卖股份计算器
-        </div>
-        <div style={{ fontSize: 13, color: C.textFaint }}>
-          基于 FelixD 文章数学 + 扑克社区方差共识  ·  逻辑驱动,非完全拟合原表
-        </div>
-      </div>
-      <div style={{ display: "flex", gap: 4, marginBottom: 24, borderBottom: `1px solid ${C.border}` }}>
-        {[
-          { id: "calc", label: "计算器" },
-          { id: "reverse", label: "反推 BR" },
-          { id: "quiz", label: "风格自测" },
-          { id: "sim", label: "曲线模拟" },
-          { id: "ladder", label: "升级测试" },
-        ].map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)}
-            style={{
-              padding: "10px 20px", background: "none",
-              border: "none", borderBottom: tab === t.id ? `2px solid ${C.accent}` : "2px solid transparent",
-              color: tab === t.id ? C.accent : C.textDim,
-              cursor: "pointer", fontSize: 14, fontFamily: "inherit",
-              transition: "all 0.15s",
-            }}>
-            {t.label}
-          </button>
-        ))}
+    <div style={{
+      maxWidth: 1400, margin: "0 auto",
+      marginBottom: 24, paddingBottom: 18,
+      borderBottom: `1px solid ${C.border}`,
+    }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 14, flexWrap: "wrap" }}>
+        <h1 style={{
+          margin: 0,
+          fontFamily: "'JetBrains Mono', ui-monospace, Menlo, monospace",
+          fontSize: 22, fontWeight: 700, letterSpacing: "-0.5px",
+          color: C.text,
+        }}>
+          {meta.title}
+        </h1>
+        <span style={{
+          fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+          fontSize: 12, color: C.textFaint, letterSpacing: "0.04em",
+        }}>
+          {meta.subtitle}
+        </span>
       </div>
     </div>
   );
