@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Staking 计算器 v4 · 红烧扑克</title>
+<link rel="stylesheet" href="/assets/shared.css">
+<style>
+  body {
+    padding: 56px 18px 32px;
+    background-image:
+      radial-gradient(circle at 18% 0%, rgba(212,255,58,0.04) 0%, transparent 42%),
+      radial-gradient(circle at 82% 100%, rgba(74,200,255,0.03) 0%, transparent 42%);
+  }
+  .wrap { max-width: 1200px; margin: 0 auto; }
+
+  header {
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 22px;
+  }
+  header h1 {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: var(--fs-lg);
+    letter-spacing: -0.5px;
+  }
+  header h1 span { color: var(--accent); }
+  header .subtitle {
+    font-family: var(--font-mono);
+    font-size: var(--fs-tiny);
+    color: var(--text-faint);
+    margin-top: 6px;
+    letter-spacing: 0.04em;
+  }
+  .role-tag {
+    display: inline-block;
+    margin-top: 10px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(212, 255, 58, 0.08);
+    border: 1px solid var(--accent-dim);
+    padding: 3px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+  }
+  .cross-link {
+    display: block;
+    margin-top: 8px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-faint);
+  }
+  .cross-link a { color: var(--text-dim); text-decoration: none; border-bottom: 1px dotted var(--text-faint); }
+  .cross-link a:hover { color: var(--accent); border-color: var(--accent); }
+
+  /* ============ tabs ============ */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .tab {
+    padding: 10px 18px;
+    cursor: pointer;
+    color: var(--text-dim);
+    font-size: var(--fs-sm);
+    font-family: var(--font-mono);
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    border-radius: 0;
+    transition: color .12s, border-color .12s;
+  }
+  .tab:hover { color: var(--text); opacity: 1; }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ============ section ============ */
+  .section {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 18px;
+    margin-bottom: 14px;
+  }
+  .section-title {
+    font-family: var(--font-mono);
+    font-size: var(--fs-tiny);
+    color: var(--text-faint);
+    margin-bottom: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* ============ input grid ============ */
+  .input-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  .input-group { display: flex; flex-direction: column; gap: 6px; }
+  .input-group label {
+    font-size: var(--fs-tiny);
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    letter-spacing: 0.04em;
+  }
+  .input-group .hint {
+    font-size: 11px;
+    color: var(--text-faint);
+    margin-top: 2px;
+    font-family: var(--font-mono);
+  }
+  .link-tag {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    margin-left: 4px;
+    letter-spacing: 0.04em;
+  }
+
+  /* ============ metrics ============ */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .metric {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+  }
+  .metric .lbl {
+    font-size: var(--fs-tiny);
+    color: var(--text-faint);
+    margin-bottom: 4px;
+    font-family: var(--font-mono);
+    letter-spacing: 0.04em;
+  }
+  .metric .val {
+    font-size: var(--fs-md);
+    font-weight: 600;
+    font-family: var(--font-mono);
+    color: var(--text);
+  }
+
+  /* ============ verdict ============ */
+  .verdict {
+    margin-top: 14px;
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    border: 1px solid;
+  }
+  .verdict .head {
+    font-size: var(--fs-tiny);
+    opacity: 0.7;
+    margin-bottom: 4px;
+    font-family: var(--font-mono);
+    letter-spacing: 0.04em;
+  }
+  .verdict .body {
+    font-size: var(--fs-md);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .verdict .sub { font-size: var(--fs-sm); opacity: 0.85; }
+  .v-good { background: rgba(58,255,176,0.08); border-color: rgba(58,255,176,0.4); color: var(--good); }
+  .v-ok   { background: rgba(74,200,255,0.08); border-color: rgba(74,200,255,0.4); color: var(--p2); }
+  .v-warn { background: rgba(255,210,58,0.08); border-color: rgba(255,210,58,0.4); color: var(--solved); }
+  .v-bad  { background: rgba(255,107,74,0.08); border-color: rgba(255,107,74,0.4); color: var(--warn); }
+
+  /* ============ tables ============ */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+    font-size: var(--fs-sm);
+    font-family: var(--font-mono);
+  }
+  th, td {
+    padding: 8px 6px;
+    text-align: right;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  th:first-child, td:first-child, td.name { text-align: left; }
+  th {
+    font-size: 10px;
+    color: var(--text-faint);
+    font-weight: 500;
+    text-transform: uppercase;
+    background: var(--bg);
+    position: sticky;
+    top: 0;
+    letter-spacing: 0.04em;
+  }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .pos { color: var(--good); }
+  .neg { color: var(--warn); }
+  .neutral { color: var(--text-faint); }
+  .table-wrapper {
+    overflow-x: auto;
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    max-height: 600px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+  }
+
+  /* ============ buttons ============ */
+  .section button {
+    background: var(--accent);
+    color: #000;
+    padding: 9px 16px;
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    margin-top: 10px;
+    margin-right: 6px;
+  }
+  .section button.secondary {
+    background: var(--bg-input);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+  }
+  .section button.secondary:hover {
+    color: var(--text);
+    border-color: var(--border-bright);
+    opacity: 1;
+  }
+
+  /* ============ batch textarea ============ */
+  .batch-textarea {
+    width: 100%;
+    min-height: 160px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  .batch-textarea:focus { outline: none; border-color: var(--border-bright); }
+
+  /* ============ details / formula card ============ */
+  details {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 12px 16px;
+    margin-top: 12px;
+  }
+  summary {
+    cursor: pointer;
+    font-size: var(--fs-sm);
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    letter-spacing: 0.04em;
+  }
+  details p, details ul { font-size: var(--fs-sm); color: var(--text-dim); margin-bottom: 8px; line-height: 1.7; }
+  details ul { padding-left: 20px; }
+  details code {
+    background: var(--bg-input);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--accent);
+  }
+  details[open] summary { margin-bottom: 12px; color: var(--text); }
+
+  .footer-note {
+    font-size: var(--fs-tiny);
+    color: var(--text-faint);
+    margin-top: 8px;
+    line-height: 1.6;
+    font-family: var(--font-mono);
+  }
+
+  .inline-code {
+    background: var(--bg-input);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--accent);
+  }
+
+  /* ============ chart markup slider ============ */
+  .chart-mu-bar {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    margin-bottom: 14px;
+  }
+  .chart-mu-bar .row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .chart-mu-bar label {
+    font-size: var(--fs-sm);
+    color: var(--text-dim);
+    white-space: nowrap;
+    font-family: var(--font-mono);
+  }
+  #chart-mu-slider {
+    flex: 1;
+    min-width: 200px;
+    accent-color: var(--accent);
+    height: 4px;
+  }
+  #chart-mu-input {
+    width: 90px;
+    text-align: center;
+  }
+
+  /* ============ responsive ============ */
+  @media (max-width: 720px) {
+    body { padding: 50px 12px 20px; }
+    .section { padding: 14px; }
+    th, td { padding: 6px 4px; font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+<a class="portal-back" href="/index.html">← 工具集</a>
+<div class="wrap">
+
+  <header>
+    <h1>STAKING <span>计算器 v4</span></h1>
+    <p class="subtitle">Day 1 / Day 2 单注 + 批量 · AdjS · ICM · 零和 ROI · 含买家 ROI 预测</p>
+    <span class="role-tag">投资人 / 买股视角</span>
+    <span class="cross-link">
+      仅看 EV 反推合约? → <a href="../staking-solver/">Staking Solver</a> ·
+      选手"卖多少股最优"? → <a href="../mtt-staking/">MTT 卖股策略</a>
+    </span>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="day2">Day 2 单注</button>
+    <button class="tab" data-tab="day1">Day 1 单注</button>
+    <button class="tab" data-tab="batch-day2">Day 2 批量</button>
+    <button class="tab" data-tab="batch-day1">Day 1 批量</button>
+  </div>
+
+  <!-- ============ Day 2 单注 ============ -->
+  <div class="tab-content active" id="tab-day2">
+    <div class="section">
+      <div class="section-title">Day 2 赛事参数</div>
+      <div class="input-grid">
+        <div class="input-group">
+          <label>买入金额 ($)</label>
+          <input type="number" id="d2-buyin" value="55" step="1">
+        </div>
+        <div class="input-group">
+          <label>Day 1 起始筹码</label>
+          <input type="number" id="d2-start" value="10000" step="1000">
+        </div>
+        <div class="input-group">
+          <label>总奖池 ($) <span class="link-tag">↔ 联动</span></label>
+          <input type="number" id="d2-pool" value="2106984" step="10000">
+          <span class="hint">改这个会自动算总参赛</span>
+        </div>
+        <div class="input-group">
+          <label>总参赛人次 <span class="link-tag">↔ 联动</span></label>
+          <input type="number" id="d2-entries" value="41640" step="100">
+          <span class="hint">改这个会自动算总奖池</span>
+        </div>
+        <div class="input-group">
+          <label>Rake 率 (%)</label>
+          <input type="number" id="d2-rakeRate" value="8" step="0.5" min="0" max="20">
+          <span class="hint">GG 标准 8%，影响联动计算</span>
+        </div>
+        <div class="input-group">
+          <label>Day 2 玩家数 ★</label>
+          <input type="number" id="d2-players" value="3963" step="50">
+          <span class="hint">实际 Day 2 玩家（不是钱圈），箭头每次 ±50</span>
+        </div>
+      </div>
+      <div class="metrics">
+        <div class="metric"><div class="lbl">Day 2 总筹码</div><div class="val" id="d2-totalChips">-</div></div>
+        <div class="metric"><div class="lbl">Day 2 平均筹码</div><div class="val" id="d2-avgChips">-</div></div>
+        <div class="metric"><div class="lbl">隐含 rake/overlay</div><div class="val" id="d2-rake">-</div></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">玩家股份分析</div>
+      <div class="input-grid">
+        <div class="input-group">
+          <label>玩家筹码</label>
+          <input type="number" id="d2-chips" value="175357" step="1000">
+        </div>
+        <div class="input-group">
+          <label>挂牌 markup</label>
+          <input type="number" id="d2-mu" value="2.0" step="0.01" min="0.5" max="3.0">
+        </div>
+      </div>
+
+      <div class="metrics">
+        <div class="metric"><div class="lbl">AdjS</div><div class="val" id="d2-adjs">-</div></div>
+        <div class="metric"><div class="lbl">1% 价格</div><div class="val" id="d2-price">-</div></div>
+        <div class="metric"><div class="lbl">$EV</div><div class="val" id="d2-ev">-</div></div>
+        <div class="metric"><div class="lbl">码量倍数</div><div class="val" id="d2-ratio">-</div></div>
+        <div class="metric"><div class="lbl">ICM 折扣</div><div class="val" id="d2-icm">-</div></div>
+        <div class="metric"><div class="lbl">零和 ROI</div><div class="val" id="d2-zero">-</div></div>
+      </div>
+
+      <div id="d2-verdict" class="verdict v-ok">
+        <div class="head">综合评价</div>
+        <div class="body" id="d2-vbody">-</div>
+        <div class="sub" id="d2-vsub">-</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">买家 ROI 预测（玩家 ROI 5%–40%）</div>
+      <div class="table-wrapper">
+        <table id="d2-roiTable">
+          <thead><tr><th>玩家 ROI</th><th>1% 公平价</th><th>合理 markup</th><th>买家 ROI</th></tr></thead>
+          <tbody id="d2-roiBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ Day 1 单注 ============ -->
+  <div class="tab-content" id="tab-day1">
+    <div class="section">
+      <div class="section-title">Day 1 玩家股份分析</div>
+      <p class="footer-note" style="margin-bottom:14px;">
+        Day 1 所有人筹码相同，无 AdjS/ICM。<strong style="color:var(--good);">公平 markup = 1 + 玩家 ROI</strong>
+      </p>
+      <div class="input-grid">
+        <div class="input-group">
+          <label>买入金额</label>
+          <input type="number" id="d1-buyin" value="220" step="1">
+        </div>
+        <div class="input-group">
+          <label>挂牌 markup</label>
+          <input type="number" id="d1-mu" value="1.10" step="0.01" min="0.5" max="3.0">
+        </div>
+        <div class="input-group">
+          <label>可用股份 (%)</label>
+          <input type="number" id="d1-avail" value="50" step="1">
+        </div>
+        <div class="input-group">
+          <label>计划买入 (%)</label>
+          <input type="number" id="d1-plan" value="1" step="0.5">
+        </div>
+      </div>
+
+      <div class="metrics">
+        <div class="metric"><div class="lbl">1% 价格</div><div class="val" id="d1-price">-</div></div>
+        <div class="metric"><div class="lbl">零和 ROI</div><div class="val" id="d1-zero">-</div></div>
+        <div class="metric"><div class="lbl">总成本</div><div class="val" id="d1-cost">-</div></div>
+      </div>
+
+      <div id="d1-verdict" class="verdict v-ok">
+        <div class="head">综合评价</div>
+        <div class="body" id="d1-vbody">-</div>
+        <div class="sub" id="d1-vsub">-</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">买家 ROI 预测（玩家 ROI 5%–40%）</div>
+      <div class="table-wrapper">
+        <table id="d1-roiTable">
+          <thead><tr><th>玩家 ROI</th><th>公平 markup</th><th>买家 ROI</th><th>$1 → 期望回收</th></tr></thead>
+          <tbody id="d1-roiBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ Day 2 批量 ============ -->
+  <div class="tab-content" id="tab-batch-day2">
+    <div class="section">
+      <div class="section-title">Day 2 批量分析</div>
+      <p class="footer-note" style="margin-bottom:14px;">
+        使用上方"Day 2 单注"页面的赛事参数（奖池、总参赛、Day 2 玩家数等）。
+      </p>
+      <p style="font-size:var(--fs-sm);margin-bottom:8px;color:var(--text-dim);">
+        <strong>输入格式</strong>：<code class="inline-code">名字, AdjS, markup, 可用%</code>
+      </p>
+      <textarea id="batch-d2-input" class="batch-textarea">BblbpalMydpo, 11.93, 1.23, 51
+Ifold2ndnuts, 3.65, 1.24, 20
+77Futbik77, 5.15, 1.25, 50
+YuanHangPP168, 3.88, 1.26, 59
+Yuanzhuoyi, 4.95, 1.28, 25
+ZhangYaoZU, 9.01, 1.28, 28
+XiaoGe Poker, 6.09, 1.30, 50
+Xodyak19, 10.62, 1.30, 3
+coldshow, 11.23, 1.30, 14
+VoenKom666, 8.51, 1.31, 26
+LatteLion, 8.65, 1.33, 13
+Scarlets, 12.02, 1.33, 42
+FornongZz, 12.69, 1.35, 31
+Feng2418, 7.52, 1.36, 48
+priekulite9, 7.90, 1.38, 30
+Andrejka1313, 7.51, 1.39, 45
+kirrard2866, 3.59, 1.40, 14</textarea>
+      <button onclick="batchAnalyzeD2()">分析</button>
+      <button class="secondary" onclick="document.getElementById('batch-d2-input').value=''">清空</button>
+    </div>
+
+    <div class="section" id="batch-d2-result" style="display:none;">
+      <div class="section-title">分析结果（按零和 ROI 排序）</div>
+      <div class="table-wrapper">
+        <table id="batch-d2-table">
+          <thead>
+            <tr>
+              <th>#</th><th>名字</th><th>AdjS</th><th>Mkup</th><th>可用</th><th>零和</th>
+              <th>5%</th><th>10%</th><th>15%</th><th>20%</th><th>25%</th><th>30%</th><th>35%</th><th>40%</th>
+            </tr>
+          </thead>
+          <tbody id="batch-d2-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ Day 1 批量 ============ -->
+  <div class="tab-content" id="tab-batch-day1">
+    <div class="section">
+      <div class="section-title">Day 1 批量分析</div>
+      <p style="font-size:var(--fs-sm);margin-bottom:8px;color:var(--text-dim);">
+        <strong>输入格式</strong>：<code class="inline-code">名字, 买入($或¥), markup, 可用%</code>
+      </p>
+      <textarea id="batch-d1-input" class="batch-textarea">Xu MingChao 周日六人桌, 220, 1.10, 50
+mufaaasa OFC闪电, 1.08, 1.64, 50
+Xu MingChao 赏金深筹, 32, 1.10, 50
+GL jie 赏金深筹, 32, 1.15, 70
+GL jie 豪客热火, 888, 1.00, 70
+Xu MingChao 赏金特别赛, 88, 1.05, 70
+Doj@ Cat 豪客热火, 888, 1.08, 50
+Wh4TisLoVe 豪客热火, 888, 1.08, 45
+GL jie 赏金特别赛, 88, 1.10, 70</textarea>
+      <button onclick="batchAnalyzeD1()">分析</button>
+      <button class="secondary" onclick="document.getElementById('batch-d1-input').value=''">清空</button>
+    </div>
+
+    <div class="section" id="batch-d1-result" style="display:none;">
+      <div class="section-title">分析结果（按零和 ROI 排序）</div>
+      <div class="table-wrapper">
+        <table id="batch-d1-table">
+          <thead>
+            <tr>
+              <th>#</th><th>名字</th><th>买入</th><th>Mkup</th><th>可用</th><th>零和</th>
+              <th>5%</th><th>10%</th><th>15%</th><th>20%</th><th>25%</th><th>30%</th><th>35%</th><th>40%</th>
+            </tr>
+          </thead>
+          <tbody id="batch-d1-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <details>
+    <summary>v4 修正说明 / 计算公式</summary>
+    <p><strong style="color:var(--text);">v4 关键变更</strong></p>
+    <ul>
+      <li>v3 用奖池反推总报名 → 错误：包含了 overlay 对应的"虚拟人次"</li>
+      <li>v4 让用户直接输入<strong>实际总参赛人次</strong>和<strong>实际 Day 2 玩家数</strong></li>
+      <li>奖池和筹码池<strong>解耦</strong>：奖池含 overlay，筹码池只反映真实报名</li>
+    </ul>
+    <p><strong style="color:var(--text);">为什么这样做</strong></p>
+    <ul>
+      <li><strong>奖池</strong> = 真实报名 × 0.92 + overlay。包含平台补贴。</li>
+      <li><strong>Day 2 总筹码</strong> = 真实报名 × 起始码（筹码守恒）。不含 overlay。</li>
+      <li>两个数字必须分别输入，不能用一个反推另一个。</li>
+    </ul>
+    <p><strong style="color:var(--text);">核心公式</strong></p>
+    <ul>
+      <li>AdjS = <code>1.35 × (筹码/起始码)^0.75</code></li>
+      <li>1% 价 = <code>AdjS × buy-in × markup × 0.01</code></li>
+      <li>Day 2 总筹码 = <code>总参赛人次 × 起始码</code>（筹码守恒）</li>
+      <li>cEV = <code>(玩家筹码/总筹码) × 总奖池</code></li>
+      <li>$EV = <code>cEV × ICM 折扣</code></li>
+      <li>零和 ROI = <code>价格 / ($EV × 0.01) − 1</code></li>
+    </ul>
+  </details>
+
+  <!-- AdjS × Markup → 买家 ROI 图表 -->
+  <div class="section" style="margin-top:16px;">
+    <div class="section-title">AdjS × Markup → 买家 ROI 关系图</div>
+
+    <div class="chart-mu-bar">
+      <div class="row">
+        <label>图表 Markup：</label>
+        <input type="range" id="chart-mu-slider" min="0.5" max="2.0" step="0.01" value="1.30">
+        <input type="number" id="chart-mu-input" min="0.5" max="2.0" step="0.01" value="1.30">
+        <button onclick="syncChartMuFromInput()" class="secondary" style="margin-top:0;">同步上方 markup</button>
+      </div>
+      <p class="footer-note" style="margin-top:8px;margin-bottom:0;">
+        独立控制图表用的 markup，不影响上方"玩家股份分析"。点"同步上方 markup"可以拉回与上方一致。
+      </p>
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;font-size:11px;color:var(--text-dim);font-family:var(--font-mono);" id="chart-legend"></div>
+    <div style="position:relative;width:100%;height:420px;">
+      <canvas id="adjsRoiChart"></canvas>
+    </div>
+    <p class="footer-note" style="margin-top:10px;">
+      💡 曲线穿过 0% 线的位置 = 这种玩家 ROI 下的盈亏平衡 AdjS。<br>
+      正方向（曲线在 0% 上方）= 你赚钱；负方向 = 你亏钱。
+    </p>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+(function(){
+  let chartInstance = null;
+
+  const ROI_LEVELS = [
+    {roi: -0.10, color: '#ff6b4a', label: '-10%'},
+    {roi:  0.00, color: '#6f6f7c', label: '0%'},
+    {roi:  0.10, color: '#4ac8ff', label: '10%'},
+    {roi:  0.20, color: '#7a8eff', label: '20%'},
+    {roi:  0.30, color: '#3affb0', label: '30%'},
+    {roi:  0.40, color: '#ffd23a', label: '40%'},
+    {roi:  0.50, color: '#d4ff3a', label: '50%'},
+  ];
+
+  function renderLegend() {
+    const el = document.getElementById('chart-legend');
+    el.innerHTML = '';
+    ROI_LEVELS.forEach(r => {
+      const span = document.createElement('span');
+      span.style.cssText = 'display:flex;align-items:center;gap:4px;';
+      span.innerHTML = `<span style="width:14px;height:2px;background:${r.color};"></span>玩家 ROI ${r.label}`;
+      el.appendChild(span);
+    });
+  }
+
+  function updateChart() {
+    const params = getD2Params();
+    const mu = parseFloat(document.getElementById('chart-mu-input').value) || 1.0;
+    if (!params.buyin || !params.start || !mu) return;
+
+    const adjsPoints = [];
+    for (let a = 2; a <= 30; a += 0.5) adjsPoints.push(a);
+
+    const datasets = ROI_LEVELS.map(level => {
+      const data = adjsPoints.map(adjs => {
+        const r = calcD2(adjs, mu, params);
+        const fair = r.dollarEV * 0.01 * (1 + level.roi);
+        const buyerROI = (fair - r.price) / r.price;
+        return { x: adjs, y: parseFloat((buyerROI * 100).toFixed(2)) };
+      });
+      return {
+        label: '玩家 ROI ' + level.label,
+        data: data,
+        borderColor: level.color,
+        backgroundColor: level.color,
+        borderWidth: 2,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        tension: 0.2,
+      };
+    });
+
+    if (chartInstance) {
+      chartInstance.data.datasets = datasets;
+      chartInstance.update('none');
+      return;
+    }
+
+    const ctx = document.getElementById('adjsRoiChart').getContext('2d');
+    chartInstance = new Chart(ctx, {
+      type: 'line',
+      data: { datasets: datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            mode: 'nearest',
+            intersect: false,
+            backgroundColor: 'rgba(10,10,12,0.95)',
+            titleColor: '#ececf2',
+            bodyColor: '#ececf2',
+            borderColor: '#3d3d4d',
+            borderWidth: 1,
+            callbacks: {
+              title: items => 'AdjS ' + items[0].parsed.x.toFixed(1),
+              label: item => item.dataset.label + ' → 买家 ROI ' + (item.parsed.y >= 0 ? '+' : '') + item.parsed.y.toFixed(1) + '%'
+            }
+          },
+          annotation: false
+        },
+        scales: {
+          x: {
+            type: 'linear',
+            min: 2, max: 30,
+            title: { display: true, text: 'AdjS', color: '#a0a0b0', font: {size: 12} },
+            ticks: { color: '#6f6f7c', font: {size: 11}, stepSize: 4 },
+            grid: { color: 'rgba(160,160,176,0.08)' }
+          },
+          y: {
+            min: -60, max: 60,
+            title: { display: true, text: '买家 ROI (%)', color: '#a0a0b0', font: {size: 12} },
+            ticks: {
+              color: '#6f6f7c', font: {size: 11},
+              callback: v => (v >= 0 ? '+' : '') + v + '%'
+            },
+            grid: {
+              color: ctx => ctx.tick.value === 0 ? 'rgba(212,255,58,0.5)' : 'rgba(160,160,176,0.08)',
+              lineWidth: ctx => ctx.tick.value === 0 ? 2 : 1
+            }
+          }
+        }
+      }
+    });
+  }
+
+  ['d2-buyin','d2-start','d2-pool','d2-entries','d2-players','d2-rakeRate'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', () => setTimeout(updateChart, 50));
+  });
+
+  const chartSlider = document.getElementById('chart-mu-slider');
+  const chartInput = document.getElementById('chart-mu-input');
+  chartSlider.addEventListener('input', () => {
+    chartInput.value = parseFloat(chartSlider.value).toFixed(2);
+    updateChart();
+  });
+  chartInput.addEventListener('input', () => {
+    const v = parseFloat(chartInput.value);
+    if (!isNaN(v) && v >= 0.5 && v <= 2.0) {
+      chartSlider.value = v;
+      updateChart();
+    }
+  });
+
+  window.syncChartMuFromInput = function() {
+    const mu = parseFloat(document.getElementById('d2-mu').value) || 1.0;
+    chartInput.value = mu.toFixed(2);
+    chartSlider.value = mu;
+    updateChart();
+  };
+
+  renderLegend();
+  setTimeout(updateChart, 100);
+})();
+</script>
+
+<script>
+function n(id) {
+  const v = parseFloat(document.getElementById(id).value);
+  return isNaN(v) ? 0 : v;
+}
+function fmtMoney(v) {
+  if (v == null || isNaN(v)) return '-';
+  if (Math.abs(v) >= 1000) return '$' + Math.round(v).toLocaleString();
+  return '$' + v.toFixed(2);
+}
+function pctClass(v) {
+  if (v > 0.05) return 'pos';
+  if (v < -0.05) return 'neg';
+  return 'neutral';
+}
+function fmtPctSigned1(v) {
+  return (v >= 0 ? '+' : '') + (v*100).toFixed(1) + '%';
+}
+
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
+function icmDiscount(ratio) {
+  if (ratio <= 0.5) return 0.95;
+  if (ratio <= 1)   return 0.95 - (ratio-0.5)*0.10;
+  if (ratio <= 2)   return 0.90 - (ratio-1)*0.12;
+  if (ratio <= 4)   return 0.78 - (ratio-2)*0.065;
+  if (ratio <= 8)   return 0.65 - (ratio-4)*0.04;
+  return Math.max(0.40, 0.49 - (ratio-8)*0.015);
+}
+
+function getD2Params() {
+  const buyin = n('d2-buyin');
+  const start = n('d2-start');
+  const pool = n('d2-pool');
+  const entries = n('d2-entries');
+  const players = n('d2-players');
+  const rakeRate = n('d2-rakeRate') / 100;
+
+  const totalChips = entries * start;
+  const avgChips = totalChips / players;
+
+  const grossBuyin = entries * buyin;
+  const netBuyin = grossBuyin * (1 - rakeRate);
+  const overlay = pool - netBuyin;
+
+  document.getElementById('d2-totalChips').textContent = totalChips.toLocaleString();
+  document.getElementById('d2-avgChips').textContent = Math.round(avgChips).toLocaleString();
+
+  const rakeEl = document.getElementById('d2-rake');
+  if (Math.abs(overlay) < 1) {
+    rakeEl.textContent = '完全平衡';
+    rakeEl.style.color = 'var(--text-faint)';
+  } else if (overlay > 0) {
+    rakeEl.textContent = '+$' + Math.round(overlay).toLocaleString() + ' overlay';
+    rakeEl.style.color = 'var(--good)';
+  } else {
+    rakeEl.textContent = '-$' + Math.round(-overlay).toLocaleString() + ' 缺口';
+    rakeEl.style.color = 'var(--warn)';
+  }
+
+  return { buyin, start, pool, entries, players, totalChips, avgChips };
+}
+
+function calcD2(adjs, markup, params) {
+  const chips = params.start * Math.pow(adjs/1.35, 1/0.75);
+  const price = adjs * params.buyin * markup * 0.01;
+  const chipShare = chips / params.totalChips;
+  const cev = chipShare * params.pool;
+  const ratio = chips / params.avgChips;
+  const disc = icmDiscount(ratio);
+  const dollarEV = cev * disc;
+  const zerosum = price / (dollarEV * 0.01) - 1;
+  return { chips, price, dollarEV, ratio, disc, zerosum };
+}
+
+function buyerROI_d2(playerROI, dollarEV, price) {
+  const fair = dollarEV * 0.01 * (1 + playerROI);
+  return (fair - price) / price;
+}
+
+function updateD2Single() {
+  const params = getD2Params();
+  const adjs = 1.35 * Math.pow(n('d2-chips')/params.start, 0.75);
+  const r = calcD2(adjs, n('d2-mu'), params);
+
+  document.getElementById('d2-adjs').textContent = adjs.toFixed(2);
+  document.getElementById('d2-price').textContent = fmtMoney(r.price);
+  document.getElementById('d2-ev').textContent = fmtMoney(r.dollarEV);
+  document.getElementById('d2-ratio').textContent = r.ratio.toFixed(2) + 'x';
+  document.getElementById('d2-icm').textContent = (r.disc*100).toFixed(0) + '%';
+  document.getElementById('d2-zero').textContent = (r.zerosum*100).toFixed(0) + '%';
+
+  const v = document.getElementById('d2-verdict');
+  v.className = 'verdict';
+  const vb = document.getElementById('d2-vbody');
+  const vs = document.getElementById('d2-vsub');
+  if (r.zerosum <= 0.10) {
+    v.classList.add('v-good');
+    vb.textContent = '极便宜：低门槛正 EV';
+    vs.textContent = `玩家 ROI ≥ ${(r.zerosum*100).toFixed(0)}% 即盈利`;
+  } else if (r.zerosum <= 0.25) {
+    v.classList.add('v-ok');
+    vb.textContent = '合理：中等门槛';
+    vs.textContent = `玩家 ROI ≥ ${(r.zerosum*100).toFixed(0)}% 才不亏`;
+  } else if (r.zerosum <= 0.45) {
+    v.classList.add('v-warn');
+    vb.textContent = '偏贵';
+    vs.textContent = `需玩家 ROI ≥ ${(r.zerosum*100).toFixed(0)}%`;
+  } else {
+    v.classList.add('v-bad');
+    vb.textContent = '严重偏贵，pass';
+    vs.textContent = `需玩家 ROI ≥ ${(r.zerosum*100).toFixed(0)}%`;
+  }
+
+  const tbody = document.getElementById('d2-roiBody');
+  tbody.innerHTML = '';
+  [0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40].forEach(roi => {
+    const fair = r.dollarEV * 0.01 * (1+roi);
+    const fairMu = fair / (adjs * params.buyin * 0.01);
+    const bROI = (fair - r.price) / r.price;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${(roi*100).toFixed(0)}%</td><td>${fmtMoney(fair)}</td><td>${fairMu.toFixed(2)}</td><td class="${pctClass(bROI)}">${fmtPctSigned1(bROI)}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function updateD1Single() {
+  const buyin = n('d1-buyin');
+  const mu = n('d1-mu');
+  const plan = n('d1-plan');
+  const price1pct = buyin * mu * 0.01;
+  const zerosum = mu - 1;
+  const cost = price1pct * plan;
+
+  document.getElementById('d1-price').textContent = fmtMoney(price1pct);
+  document.getElementById('d1-zero').textContent = (zerosum*100).toFixed(0) + '%';
+  document.getElementById('d1-cost').textContent = fmtMoney(cost);
+
+  const v = document.getElementById('d1-verdict');
+  v.className = 'verdict';
+  const vb = document.getElementById('d1-vbody');
+  const vs = document.getElementById('d1-vsub');
+  if (zerosum <= 0.10) {
+    v.classList.add('v-good');
+    vb.textContent = '极便宜';
+    vs.textContent = `玩家 ROI ≥ ${(zerosum*100).toFixed(0)}% 即盈利`;
+  } else if (zerosum <= 0.25) {
+    v.classList.add('v-ok');
+    vb.textContent = '合理';
+    vs.textContent = `玩家 ROI ≥ ${(zerosum*100).toFixed(0)}% 才不亏`;
+  } else if (zerosum <= 0.50) {
+    v.classList.add('v-warn');
+    vb.textContent = '偏贵';
+    vs.textContent = `需玩家 ROI ≥ ${(zerosum*100).toFixed(0)}%`;
+  } else {
+    v.classList.add('v-bad');
+    vb.textContent = '严重偏贵';
+    vs.textContent = `需玩家 ROI ≥ ${(zerosum*100).toFixed(0)}%`;
+  }
+
+  const tbody = document.getElementById('d1-roiBody');
+  tbody.innerHTML = '';
+  [0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40].forEach(roi => {
+    const fairMu = 1 + roi;
+    const bROI = (1+roi) / mu - 1;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${(roi*100).toFixed(0)}%</td><td>${fairMu.toFixed(2)}</td><td class="${pctClass(bROI)}">${fmtPctSigned1(bROI)}</td><td>${fmtMoney(1+bROI)}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function parseInput(text) {
+  return text.trim().split('\n').map(line => {
+    return line.split(/[,\t]/).map(s => s.trim()).filter(s => s);
+  }).filter(p => p.length >= 3);
+}
+
+function batchAnalyzeD2() {
+  const params = getD2Params();
+  const lines = parseInput(document.getElementById('batch-d2-input').value);
+  const results = [];
+
+  lines.forEach(parts => {
+    const name = parts[0];
+    const adjs = parseFloat(parts[1]);
+    const mu = parseFloat(parts[2]);
+    const avail = parts[3] ? parseFloat(parts[3]) : 0;
+    if (isNaN(adjs) || isNaN(mu)) return;
+
+    const r = calcD2(adjs, mu, params);
+    const buyerROIs = [0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40].map(roi =>
+      buyerROI_d2(roi, r.dollarEV, r.price)
+    );
+    results.push({ name, adjs, mu, avail, ...r, buyerROIs });
+  });
+
+  results.sort((a, b) => a.zerosum - b.zerosum);
+
+  const tbody = document.getElementById('batch-d2-body');
+  tbody.innerHTML = '';
+  results.forEach((r, i) => {
+    const tr = document.createElement('tr');
+    let html = `<td>${i+1}</td><td class="name">${r.name}</td>`;
+    html += `<td>${r.adjs.toFixed(2)}</td><td>${r.mu.toFixed(2)}</td>`;
+    html += `<td>${r.avail}%</td>`;
+    html += `<td class="${pctClass(-r.zerosum)}">${(r.zerosum*100).toFixed(0)}%</td>`;
+    r.buyerROIs.forEach(b => {
+      html += `<td class="${pctClass(b)}">${fmtPctSigned1(b)}</td>`;
+    });
+    tr.innerHTML = html;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('batch-d2-result').style.display = 'block';
+}
+
+function batchAnalyzeD1() {
+  const lines = parseInput(document.getElementById('batch-d1-input').value);
+  const results = [];
+
+  lines.forEach(parts => {
+    const name = parts[0];
+    const buyin = parseFloat(parts[1]);
+    const mu = parseFloat(parts[2]);
+    const avail = parts[3] ? parseFloat(parts[3]) : 0;
+    if (isNaN(buyin) || isNaN(mu)) return;
+
+    const zerosum = mu - 1;
+    const buyerROIs = [0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40].map(roi =>
+      (1+roi) / mu - 1
+    );
+    results.push({ name, buyin, mu, avail, zerosum, buyerROIs });
+  });
+
+  results.sort((a, b) => a.zerosum - b.zerosum);
+
+  const tbody = document.getElementById('batch-d1-body');
+  tbody.innerHTML = '';
+  results.forEach((r, i) => {
+    const tr = document.createElement('tr');
+    let html = `<td>${i+1}</td><td class="name">${r.name}</td>`;
+    html += `<td>${r.buyin}</td><td>${r.mu.toFixed(2)}</td>`;
+    html += `<td>${r.avail}%</td>`;
+    html += `<td class="${pctClass(-r.zerosum)}">${(r.zerosum*100).toFixed(0)}%</td>`;
+    r.buyerROIs.forEach(b => {
+      html += `<td class="${pctClass(b)}">${fmtPctSigned1(b)}</td>`;
+    });
+    tr.innerHTML = html;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('batch-d1-result').style.display = 'block';
+}
+
+// 联动逻辑：奖池 <-> 总参赛 互算（基于 rake）
+let d2LinkingFlag = false;
+
+function linkPoolToEntries() {
+  if (d2LinkingFlag) return;
+  d2LinkingFlag = true;
+  const pool = parseFloat(document.getElementById('d2-pool').value) || 0;
+  const buyin = parseFloat(document.getElementById('d2-buyin').value) || 0;
+  const rake = (parseFloat(document.getElementById('d2-rakeRate').value) || 0) / 100;
+  if (buyin > 0 && pool > 0 && (1 - rake) > 0) {
+    const entries = Math.round(pool / (1 - rake) / buyin);
+    document.getElementById('d2-entries').value = entries;
+  }
+  d2LinkingFlag = false;
+  updatePlayersStep();
+  updateD2Single();
+}
+
+function linkEntriesToPool() {
+  if (d2LinkingFlag) return;
+  d2LinkingFlag = true;
+  const entries = parseFloat(document.getElementById('d2-entries').value) || 0;
+  const buyin = parseFloat(document.getElementById('d2-buyin').value) || 0;
+  const rake = (parseFloat(document.getElementById('d2-rakeRate').value) || 0) / 100;
+  if (entries > 0 && buyin > 0) {
+    const pool = Math.round(entries * buyin * (1 - rake));
+    document.getElementById('d2-pool').value = pool;
+  }
+  d2LinkingFlag = false;
+  updateD2Single();
+}
+
+function recalcPoolFromEntries() {
+  if (d2LinkingFlag) return;
+  d2LinkingFlag = true;
+  const entries = parseFloat(document.getElementById('d2-entries').value) || 0;
+  const buyin = parseFloat(document.getElementById('d2-buyin').value) || 0;
+  const rake = (parseFloat(document.getElementById('d2-rakeRate').value) || 0) / 100;
+  if (entries > 0 && buyin > 0) {
+    const pool = Math.round(entries * buyin * (1 - rake));
+    document.getElementById('d2-pool').value = pool;
+  }
+  d2LinkingFlag = false;
+  updateD2Single();
+}
+
+function updatePlayersStep() {
+  document.getElementById('d2-players').step = 50;
+}
+
+document.getElementById('d2-pool').addEventListener('input', linkPoolToEntries);
+document.getElementById('d2-entries').addEventListener('input', () => { linkEntriesToPool(); updatePlayersStep(); });
+document.getElementById('d2-buyin').addEventListener('input', () => { recalcPoolFromEntries(); updatePlayersStep(); });
+document.getElementById('d2-rakeRate').addEventListener('input', () => { recalcPoolFromEntries(); updatePlayersStep(); });
+
+['d2-start','d2-players','d2-chips','d2-mu'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updateD2Single);
+});
+['d1-buyin','d1-mu','d1-avail','d1-plan'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updateD1Single);
+});
+
+updatePlayersStep();
+updateD2Single();
+updateD1Single();
+batchAnalyzeD1();
+</script>
+</body>
+</html>

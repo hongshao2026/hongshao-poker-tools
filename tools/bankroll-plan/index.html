@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>资金升级计划 · 红烧扑克</title>
+<link rel="stylesheet" href="/assets/shared.css">
+<style>
+  :root {
+    --felt: #1a2620;
+    --felt-dark: #11181a;
+  }
+  body {
+    padding: 56px 18px 48px;
+    background-image:
+      radial-gradient(ellipse at top left, rgba(58, 255, 176, 0.05), transparent 50%),
+      radial-gradient(ellipse at bottom right, rgba(212, 255, 58, 0.04), transparent 50%);
+  }
+  .container {
+    max-width: 1280px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  /* ============ header ============ */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 18px;
+    margin-bottom: 28px;
+  }
+  header h1 {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: var(--fs-lg);
+    letter-spacing: -0.5px;
+  }
+  header h1 span { color: var(--accent); }
+  header .subtitle {
+    font-family: var(--font-mono);
+    font-size: var(--fs-tiny);
+    color: var(--text-faint);
+    margin-top: 6px;
+    letter-spacing: 0.04em;
+  }
+  .role-tag {
+    display: inline-block;
+    margin-top: 10px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(212, 255, 58, 0.08);
+    border: 1px solid var(--accent-dim);
+    padding: 3px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+  }
+
+  /* ============ section ============ */
+  section { margin-bottom: 36px; }
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .section-num {
+    font-family: var(--font-mono);
+    font-size: var(--fs-tiny);
+    color: var(--accent);
+    letter-spacing: 0.15em;
+  }
+  .section-header h2 {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: var(--fs-md);
+    letter-spacing: -0.01em;
+  }
+  .section-header .desc {
+    margin-left: auto;
+    font-size: var(--fs-tiny);
+    color: var(--text-faint);
+    font-family: var(--font-mono);
+  }
+
+  /* ============ card ============ */
+  .card {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 20px;
+  }
+
+  /* ============ input grid ============ */
+  .inputs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px 24px;
+  }
+  .input-field { display: flex; flex-direction: column; gap: 6px; }
+  .input-field label {
+    font-size: var(--fs-tiny);
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .input-field .hint {
+    font-size: 11px;
+    color: var(--text-faint);
+    font-family: var(--font-mono);
+    margin-top: 2px;
+    line-height: 1.45;
+  }
+
+  /* ============ table ============ */
+  .table-wrap {
+    overflow-x: auto;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fs-sm);
+    font-family: var(--font-mono);
+  }
+  thead th {
+    background: var(--felt);
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 12px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--accent-dim);
+    white-space: nowrap;
+  }
+  tbody td {
+    padding: 10px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+  tbody td.label {
+    color: var(--accent);
+    font-weight: 600;
+    font-size: var(--fs-sm);
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: rgba(212,255,58,0.03); }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td.center { text-align: center; }
+  td.muted {
+    color: var(--text-dim);
+    font-family: var(--font-sans);
+    font-size: var(--fs-tiny);
+    font-weight: 400;
+  }
+  td.input-cell {
+    background: var(--felt-dark);
+    padding: 4px 6px;
+  }
+  td.input-cell input {
+    margin: 0;
+    text-align: center;
+    background: transparent;
+    border: none;
+    border-bottom: 1px dashed var(--accent-dim);
+    border-radius: 0;
+    padding: 4px 0;
+    font-size: var(--fs-sm);
+    font-family: var(--font-mono);
+    color: var(--text);
+    width: 100%;
+  }
+  td.input-cell input:focus {
+    outline: none;
+    background: rgba(212,255,58,0.06);
+    border-bottom-color: var(--accent);
+  }
+
+  .status-ok { color: var(--good); font-weight: 600; }
+  .status-no { color: var(--text-faint); font-family: var(--font-mono); font-size: var(--fs-tiny); }
+
+  /* ============ scenario ============ */
+  .scenario-input {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 18px 20px;
+    background: linear-gradient(135deg, var(--felt) 0%, var(--felt-dark) 100%);
+    border: 1px solid var(--accent-dim);
+    border-radius: var(--radius-md);
+    margin-bottom: 16px;
+  }
+  .scenario-input label {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--accent);
+    letter-spacing: 0.04em;
+  }
+  .scenario-input input {
+    max-width: 200px;
+    font-size: var(--fs-md);
+  }
+  .scenario-result {
+    margin-left: auto;
+    text-align: right;
+  }
+  .scenario-result .label {
+    font-size: var(--fs-tiny);
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-family: var(--font-mono);
+  }
+  .scenario-result .value {
+    font-family: var(--font-mono);
+    font-size: var(--fs-md);
+    font-weight: 700;
+    color: var(--accent);
+    margin-top: 4px;
+  }
+
+  /* ============ cumulative ============ */
+  .cumulative-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .cum-card {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    padding: 14px 16px;
+    border-radius: var(--radius-sm);
+  }
+  .cum-card .level {
+    font-family: var(--font-mono);
+    font-size: var(--fs-tiny);
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .cum-card .hours {
+    font-family: var(--font-mono);
+    font-size: var(--fs-lg);
+    font-weight: 700;
+    color: var(--text);
+    margin-top: 6px;
+    line-height: 1;
+  }
+  .cum-card .hours .unit {
+    font-size: var(--fs-sm);
+    color: var(--text-dim);
+    font-weight: 400;
+    margin-left: 4px;
+  }
+  .cum-card .meta {
+    font-size: var(--fs-tiny);
+    color: var(--text-dim);
+    margin-top: 6px;
+    font-family: var(--font-mono);
+  }
+
+  /* ============ notes ============ */
+  .note {
+    background: rgba(255, 210, 58, 0.05);
+    border: 1px solid rgba(255, 210, 58, 0.25);
+    border-left: 3px solid var(--solved);
+    padding: 12px 16px;
+    margin-top: 14px;
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-sm);
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+  .note strong { color: var(--solved); font-weight: 600; }
+
+  /* ============ simulation ============ */
+  .sim-controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px 18px;
+    padding: 18px 20px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    margin-bottom: 14px;
+  }
+  .sim-button-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .sim-btn {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    font-weight: 700;
+    font-size: var(--fs-sm);
+    padding: 9px 18px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: opacity .15s;
+  }
+  .sim-btn.secondary {
+    background: var(--bg-input);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+  }
+  .sim-btn.secondary:hover {
+    color: var(--text);
+    border-color: var(--border-bright);
+    opacity: 1;
+  }
+  .sim-legend {
+    margin-left: auto;
+    display: flex;
+    gap: 16px;
+    font-size: var(--fs-tiny);
+    color: var(--text-dim);
+    align-items: center;
+    flex-wrap: wrap;
+    font-family: var(--font-mono);
+  }
+  .sim-legend span { display: flex; align-items: center; gap: 6px; }
+  .legend-line {
+    width: 24px;
+    height: 2px;
+    display: inline-block;
+  }
+  .legend-line.ev { background: var(--accent); }
+  .legend-line.path { background: var(--good); opacity: 0.7; }
+  .legend-line.band { background: rgba(58, 255, 176, 0.25); height: 8px; }
+
+  .chart-wrap {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 18px 14px 14px;
+    position: relative;
+  }
+  #chart {
+    display: block;
+    width: 100%;
+    height: 420px;
+  }
+
+  .sim-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .sim-stat {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--good);
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+  }
+  .sim-stat.gold { border-left-color: var(--accent); }
+  .sim-stat.warn { border-left-color: var(--solved); }
+  .sim-stat.red  { border-left-color: var(--warn); }
+  .sim-stat .lbl {
+    font-size: var(--fs-tiny);
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-family: var(--font-mono);
+  }
+  .sim-stat .val {
+    font-family: var(--font-mono);
+    font-size: var(--fs-md);
+    font-weight: 700;
+    color: var(--text);
+    margin-top: 4px;
+    line-height: 1.1;
+  }
+  .sim-stat .sub {
+    font-size: 11px;
+    color: var(--text-faint);
+    margin-top: 4px;
+    font-family: var(--font-mono);
+  }
+
+  /* ============ recalc bar ============ */
+  .recalc-bar {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  #recalcStatus {
+    font-family: var(--font-mono);
+    font-size: var(--fs-tiny);
+    color: var(--text-faint);
+    transition: color .3s;
+  }
+
+  /* ============ responsive ============ */
+  @media (max-width: 640px) {
+    body { padding: 48px 12px 32px; }
+    .section-header .desc { margin-left: 0; width: 100%; }
+    .scenario-result { margin-left: 0; text-align: left; width: 100%; margin-top: 8px; }
+    tbody td, thead th { padding: 8px 6px; font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+<a class="portal-back" href="/index.html">← 工具集</a>
+<div class="container">
+
+  <header>
+    <h1>资金<span>升级计划</span></h1>
+    <p class="subtitle">CASH GAME · 资金阈值 · 多开时薪 · 升级时长 · Monte Carlo 增长曲线</p>
+    <span class="role-tag">现金桌 · 升级路径</span>
+  </header>
+
+  <!-- 01 / GLOBAL -->
+  <section>
+    <div class="section-header">
+      <span class="section-num">01 / GLOBAL</span>
+      <h2>全局参数</h2>
+      <span class="desc">所有计算的基础假设</span>
+    </div>
+    <div class="card">
+      <div class="inputs-grid">
+        <div class="input-field">
+          <label>每小时手数</label>
+          <input type="number" id="handsPerHour" value="70" min="1">
+          <span class="hint">单桌每小时大约打多少手</span>
+        </div>
+        <div class="input-field">
+          <label>升级所需 BI 数</label>
+          <input type="number" id="upgradeBI" value="30" min="1">
+          <span class="hint">资金达到下一级 N 个 buy-in 时升级</span>
+        </div>
+        <div class="input-field">
+          <label>降级所需 BI 数</label>
+          <input type="number" id="downgradeBI" value="24" min="1">
+          <span class="hint">在新级别亏到只剩 N 个 BI 时降回</span>
+        </div>
+        <div class="input-field">
+          <label>每周打牌小时数</label>
+          <input type="number" id="hoursPerWeek" value="20" min="1">
+          <span class="hint">用于估算升级时长</span>
+        </div>
+        <div class="input-field">
+          <label>多开衰减率 (%)</label>
+          <input type="number" id="decayPct" value="10" min="0" max="100" step="0.5">
+          <span class="hint">每多加一桌盈率掉百分之多少</span>
+        </div>
+      </div>
+      <div class="recalc-bar">
+        <button class="sim-btn" id="recalcAll">↻ 立即重算全部</button>
+        <span id="recalcStatus">输入改动会自动重算，也可手动点这里强制刷新</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 / LEVELS -->
+  <section>
+    <div class="section-header">
+      <span class="section-num">02 / LEVELS</span>
+      <h2>各级别参数</h2>
+      <span class="desc">改 Straddle / 盈率 / 桌人数，下方所有结果同步更新</span>
+    </div>
+    <div class="table-wrap">
+      <table id="levelsTable">
+        <thead>
+          <tr>
+            <th>级别</th>
+            <th class="center">前注/SB</th>
+            <th class="center">BB</th>
+            <th class="center">Straddle</th>
+            <th class="center">桌人数</th>
+            <th class="num">死钱/手 ($)</th>
+            <th class="num">1 BI ($)</th>
+            <th class="center">盈率 ($/100手)</th>
+            <th>备注</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="note">
+      <strong>关键口径说明：</strong>1 BI = 100 × Straddle（最低带入）。<strong>死钱/手 = SB + BB + Straddle + 前注×桌人数</strong>，反映这种 ante+straddle 局的真实底池起点。盈率单位用 <strong>$/100 手</strong>而非 bb/100，因为强制 straddle + ante 局里 bb 单位意义模糊。多开盈率 = 单开 × (1 − 衰减 × (N−1))。
+    </div>
+  </section>
+
+  <!-- 03 / BANKROLL -->
+  <section>
+    <div class="section-header">
+      <span class="section-num">03 / BANKROLL</span>
+      <h2>资金升级 / 降级阈值</h2>
+      <span class="desc">达到升级线即可升级，跌破降级线则回退</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>级别</th>
+            <th class="num">1 BI</th>
+            <th class="num">升级所需资金</th>
+            <th class="num">降级触发线</th>
+            <th class="num">本级别舒适资金</th>
+          </tr>
+        </thead>
+        <tbody id="bankrollBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 04 / HOURLY -->
+  <section>
+    <div class="section-header">
+      <span class="section-num">04 / HOURLY</span>
+      <h2>多开时薪预测</h2>
+      <span class="desc">数学最优 ≠ 实战最优；右列是建议桌数</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>级别</th>
+            <th class="num">1 开</th>
+            <th class="num">2 开</th>
+            <th class="num">3 开</th>
+            <th class="num">4 开</th>
+            <th class="center">建议桌数</th>
+            <th>实战理由</th>
+          </tr>
+        </thead>
+        <tbody id="hourlyBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 05 / TIMELINE -->
+  <section>
+    <div class="section-header">
+      <span class="section-num">05 / TIMELINE</span>
+      <h2>升级时长预估</h2>
+      <span class="desc">每个级别在不同桌数下的时薪 + 升级所需周数</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th rowspan="2" style="vertical-align: middle;">级别</th>
+            <th rowspan="2" style="vertical-align: middle;">→ 升到</th>
+            <th rowspan="2" class="num" style="vertical-align: middle;">所需净盈利</th>
+            <th colspan="2" class="center" style="border-left: 1px solid var(--accent-dim);">1 开</th>
+            <th colspan="2" class="center" style="border-left: 1px solid var(--accent-dim);">2 开</th>
+            <th colspan="2" class="center" style="border-left: 1px solid var(--accent-dim);">3 开</th>
+            <th colspan="2" class="center" style="border-left: 1px solid var(--accent-dim);">4 开</th>
+          </tr>
+          <tr>
+            <th class="num" style="border-left: 1px solid var(--accent-dim); font-size: 10px;">$/h</th>
+            <th class="num" style="font-size: 10px;">周</th>
+            <th class="num" style="border-left: 1px solid var(--accent-dim); font-size: 10px;">$/h</th>
+            <th class="num" style="font-size: 10px;">周</th>
+            <th class="num" style="border-left: 1px solid var(--accent-dim); font-size: 10px;">$/h</th>
+            <th class="num" style="font-size: 10px;">周</th>
+            <th class="num" style="border-left: 1px solid var(--accent-dim); font-size: 10px;">$/h</th>
+            <th class="num" style="font-size: 10px;">周</th>
+          </tr>
+        </thead>
+        <tbody id="timelineBody"></tbody>
+      </table>
+    </div>
+
+    <div class="note" style="margin-top: 12px;">
+      <strong>读法：</strong>每行展示从当前级别升到下一级，分别在 1/2/3/4 开下的时薪和所需周数。<strong>金色高亮</strong>是该级别的建议桌数（实战平衡点）。表面上桌数越多周数越少，但要考虑盈率衰减、tilt 风险和疲劳，所以建议桌数往往不是最快那一栏。
+    </div>
+
+    <h3 style="font-family: var(--font-mono); font-weight: 500; color: var(--text-dim); margin-top: 24px; margin-bottom: 8px; font-size: var(--fs-sm); letter-spacing: 0.04em;">
+      从 1/2/4 起步累计（按建议桌数）：
+    </h3>
+    <div class="cumulative-grid" id="cumGrid"></div>
+
+    <div class="note">
+      <strong>关于方差：</strong>上面是「期望值」。这种 ante+straddle 浅筹局的方差比标准深筹大很多——单手就可能输掉一整个 BI。95% 置信区间内真实路径可能比 EV 快 30%、也可能慢 60%。安全做法：把预估时长 ×1.5 当现实预期。
+    </div>
+  </section>
+
+  <!-- 06 / SCENARIO -->
+  <section>
+    <div class="section-header">
+      <span class="section-num">06 / SCENARIO</span>
+      <h2>当前资金对应级别</h2>
+      <span class="desc">输入你现在的资金，看应该打哪一级</span>
+    </div>
+    <div class="scenario-input">
+      <label for="bankroll">当前资金 $</label>
+      <input type="number" id="bankroll" value="5000" min="0" step="100">
+      <div class="scenario-result">
+        <div class="label">建议级别</div>
+        <div class="value" id="currentLevel">—</div>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>级别</th>
+            <th class="num">升级线</th>
+            <th class="num">差距</th>
+            <th>状态</th>
+          </tr>
+        </thead>
+        <tbody id="scenarioBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 07 / SIMULATION -->
+  <section>
+    <div class="section-header">
+      <span class="section-num">07 / SIMULATION</span>
+      <h2>资金增长曲线模拟</h2>
+      <span class="desc">含动态升降级 · 含方差 · 蒙特卡洛多路径</span>
+    </div>
+
+    <div class="sim-controls">
+      <div class="input-field">
+        <label>起始资金 ($)</label>
+        <input type="number" id="simBankroll" value="5000" min="100" step="100">
+        <span class="hint">从这个数开始打</span>
+      </div>
+      <div class="input-field">
+        <label>模拟周数</label>
+        <input type="number" id="simWeeks" value="52" min="4" max="260" step="1">
+        <span class="hint">想看多久的曲线</span>
+      </div>
+      <div class="input-field">
+        <label>每周小时数</label>
+        <input type="number" id="simHours" value="20" min="1" step="1">
+        <span class="hint">实际打牌时间</span>
+      </div>
+      <div class="input-field">
+        <label>蒙特卡洛路径数</label>
+        <input type="number" id="simPaths" value="30" min="1" max="200" step="1">
+        <span class="hint">画多少条随机路径</span>
+      </div>
+      <div class="input-field">
+        <label>方差强度 σ ($/100手)</label>
+        <input type="number" id="simStd" value="0" min="0" step="10">
+        <span class="hint">每级自动按死钱估算；填非 0 则覆盖为统一值</span>
+      </div>
+    </div>
+
+    <div class="sim-button-row">
+      <button class="sim-btn" id="simRun">▸ 运行模拟</button>
+      <button class="sim-btn secondary" id="simReset">重置默认</button>
+      <div class="sim-legend">
+        <span><span class="legend-line ev"></span>EV 期望（无方差）</span>
+        <span><span class="legend-line path"></span>随机路径</span>
+        <span><span class="legend-line band"></span>5–95% 区间</span>
+      </div>
+    </div>
+
+    <div class="chart-wrap">
+      <canvas id="chart"></canvas>
+    </div>
+
+    <div class="sim-summary" id="simSummary"></div>
+
+    <div class="note">
+      <strong>模拟逻辑：</strong>每周按当前级别和建议桌数计算手数与期望盈利，方差按正态分布抽取。每周末根据资金自动升降级（达到下一级升级线即升、跌破当前级降级线即退）。<strong>蒙特卡洛</strong>跑多条独立路径，绿带是 5–95% 分位区间，反映真实可能波动范围。每次点「运行模拟」会用新的随机种子重跑。
+    </div>
+  </section>
+
+</div>
+
+<script>
+  const defaultLevels = [
+    { name: '1/2/4',    ante: 1,  bb: 2,  straddle: 4,  seats: 8, winRateUSD: 100, tables: 4, reason: '鱼最浓，浅筹结构限制深度技术；价值下注 + 抢死钱为主' },
+    { name: '2/4/8',    ante: 2,  bb: 4,  straddle: 8,  seats: 8, winRateUSD: 180, tables: 4, reason: '常见低级别，鱼仍多，重点累积资金' },
+    { name: '5/10/20',  ante: 5,  bb: 10, straddle: 20, seats: 8, winRateUSD: 325, tables: 3, reason: 'Reg 比例上升，需 GTO 基础 + 选鱼桌' },
+    { name: '10/20/40', ante: 10, bb: 20, straddle: 40, seats: 8, winRateUSD: 400, tables: 2, reason: '大量 reg，鱼浓度暴跌，依赖 exploit 边际' },
+    { name: '20/40/80', ante: 20, bb: 40, straddle: 80, seats: 8, winRateUSD: 400, tables: 1, reason: '近全 reg，盈率薄、方差大，专注单桌' },
+  ];
+
+  let levels = JSON.parse(JSON.stringify(defaultLevels));
+
+  function $(id) { return document.getElementById(id); }
+  function fmt$(n) {
+    if (!isFinite(n)) return '—';
+    return '$' + Math.round(n).toLocaleString('en-US');
+  }
+  function fmtNum(n, dec=0) {
+    if (!isFinite(n)) return '—';
+    return n.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+  }
+
+  function buildLevelsTable() {
+    const tbody = $('levelsTable').querySelector('tbody');
+    tbody.innerHTML = '';
+    levels.forEach((lv, i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="label">${lv.name}</td>
+        <td class="input-cell"><input type="number" data-i="${i}" data-k="ante"       value="${lv.ante}"       min="0" step="0.5"></td>
+        <td class="input-cell"><input type="number" data-i="${i}" data-k="bb"         value="${lv.bb}"         min="0" step="0.5"></td>
+        <td class="input-cell"><input type="number" data-i="${i}" data-k="straddle"   value="${lv.straddle}"   min="0" step="0.5"></td>
+        <td class="input-cell"><input type="number" data-i="${i}" data-k="seats"      value="${lv.seats}"      min="2" max="10" step="1"></td>
+        <td class="num" id="dead-${i}">—</td>
+        <td class="num" id="bi-${i}">—</td>
+        <td class="input-cell"><input type="number" data-i="${i}" data-k="winRateUSD" value="${lv.winRateUSD}" step="5"></td>
+        <td class="muted">${lv.reason}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+    tbody.querySelectorAll('input').forEach(inp => {
+      inp.addEventListener('input', e => {
+        const i = +e.target.dataset.i;
+        const k = e.target.dataset.k;
+        const v = parseFloat(e.target.value);
+        if (!isNaN(v)) {
+          levels[i][k] = v;
+          refreshAll();
+        }
+      });
+    });
+  }
+
+  function recalc() {
+    const handsPerHour = parseFloat($('handsPerHour').value) || 0;
+    const upgradeBI    = parseFloat($('upgradeBI').value) || 0;
+    const downgradeBI  = parseFloat($('downgradeBI').value) || 0;
+    const hoursPerWeek = parseFloat($('hoursPerWeek').value) || 1;
+    const decay        = (parseFloat($('decayPct').value) || 0) / 100;
+
+    const calc = levels.map(lv => {
+      const bi = lv.straddle * 100;
+      const deadMoney = (lv.ante || 0) * (lv.seats || 8) + (lv.bb / 2) + lv.bb + lv.straddle;
+      return { ...lv, bi, deadMoney, upgrade: bi * upgradeBI, downgrade: bi * downgradeBI };
+    });
+
+    calc.forEach((lv, i) => {
+      $(`bi-${i}`).textContent = fmt$(lv.bi);
+      $(`dead-${i}`).textContent = fmt$(lv.deadMoney);
+    });
+
+    const brBody = $('bankrollBody');
+    brBody.innerHTML = '';
+    calc.forEach(lv => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="label">${lv.name}</td>
+        <td class="num">${fmt$(lv.bi)}</td>
+        <td class="num"><strong style="color:var(--accent)">${fmt$(lv.upgrade)}</strong></td>
+        <td class="num">${fmt$(lv.downgrade)}</td>
+        <td class="num">${fmt$(lv.upgrade)}</td>
+      `;
+      brBody.appendChild(tr);
+    });
+
+    function hourlyAt(lv, n) {
+      const factor = Math.max(0, 1 - decay * (n - 1));
+      return n * handsPerHour * lv.winRateUSD / 100 * factor;
+    }
+
+    const hrBody = $('hourlyBody');
+    hrBody.innerHTML = '';
+    calc.forEach(lv => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="label">${lv.name}</td>
+        <td class="num">${fmt$(hourlyAt(lv, 1))}</td>
+        <td class="num">${fmt$(hourlyAt(lv, 2))}</td>
+        <td class="num">${fmt$(hourlyAt(lv, 3))}</td>
+        <td class="num">${fmt$(hourlyAt(lv, 4))}</td>
+        <td class="center" style="color:var(--accent);font-weight:700">${lv.tables} 开</td>
+        <td class="muted">${lv.reason}</td>
+      `;
+      hrBody.appendChild(tr);
+    });
+
+    const tlBody = $('timelineBody');
+    tlBody.innerHTML = '';
+    let cumHours = 0;
+    const cumData = [];
+    for (let i = 0; i < calc.length - 1; i++) {
+      const cur = calc[i];
+      const nxt = calc[i + 1];
+      const need = nxt.upgrade - cur.upgrade;
+
+      let cellsHTML = '';
+      for (let n = 1; n <= 4; n++) {
+        const rate = hourlyAt(cur, n);
+        const hours = rate > 0 ? need / rate : Infinity;
+        const weeks = hours / hoursPerWeek;
+        const isRec = n === cur.tables;
+        const recStyle = isRec ? 'color:var(--accent);font-weight:700' : '';
+        const recBg = isRec ? 'background:rgba(212,255,58,0.06);' : '';
+        cellsHTML += `
+          <td class="num" style="border-left:1px solid rgba(138,168,32,0.3);${recBg}${recStyle ? recStyle + ';' : ''}">${fmt$(rate)}</td>
+          <td class="num" style="${recBg}${recStyle}">${isFinite(weeks) ? fmtNum(weeks, 1) : '—'}</td>
+        `;
+      }
+
+      const recRate = hourlyAt(cur, cur.tables);
+      const recHours = recRate > 0 ? need / recRate : Infinity;
+      cumHours += recHours;
+      cumData.push({ to: nxt.name, hours: cumHours });
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="label">${cur.name}</td>
+        <td class="label" style="color:var(--text-dim);">${nxt.name}</td>
+        <td class="num">${fmt$(need)}</td>
+        ${cellsHTML}
+      `;
+      tlBody.appendChild(tr);
+    }
+
+    const cumGrid = $('cumGrid');
+    cumGrid.innerHTML = '';
+    cumData.forEach(d => {
+      const div = document.createElement('div');
+      div.className = 'cum-card';
+      const weeks = d.hours / hoursPerWeek;
+      const months = weeks / 4.33;
+      div.innerHTML = `
+        <div class="level">→ ${d.to}</div>
+        <div class="hours">${fmtNum(d.hours, 0)}<span class="unit">小时</span></div>
+        <div class="meta">${fmtNum(weeks, 1)} 周 · ${fmtNum(months, 1)} 个月</div>
+      `;
+      cumGrid.appendChild(div);
+    });
+
+    const bankroll = parseFloat($('bankroll').value) || 0;
+    const scBody = $('scenarioBody');
+    scBody.innerHTML = '';
+    let highestLevel = null;
+    calc.forEach(lv => {
+      const diff = bankroll - lv.upgrade;
+      const ok = diff >= 0;
+      if (ok) highestLevel = lv.name;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="label">${lv.name}</td>
+        <td class="num">${fmt$(lv.upgrade)}</td>
+        <td class="num">${diff >= 0 ? '+' + fmt$(diff) : '−' + fmt$(-diff)}</td>
+        <td>${ok ? '<span class="status-ok">✓ 可打</span>' : '<span class="status-no">还差 ' + fmt$(-diff) + '</span>'}</td>
+      `;
+      scBody.appendChild(tr);
+    });
+    $('currentLevel').textContent = highestLevel || '资金不足 · 谨慎打 1/2/4';
+  }
+
+  function refreshAll() {
+    recalc();
+    runSimulation();
+    flashStatus();
+  }
+
+  function flashStatus() {
+    const el = $('recalcStatus');
+    if (!el) return;
+    const original = '输入改动会自动重算，也可手动点这里强制刷新';
+    el.textContent = '✓ 已刷新';
+    el.style.color = 'var(--good)';
+    clearTimeout(window._statusTimer);
+    window._statusTimer = setTimeout(() => {
+      el.textContent = original;
+      el.style.color = 'var(--text-faint)';
+    }, 800);
+  }
+
+  ['handsPerHour', 'upgradeBI', 'downgradeBI', 'hoursPerWeek', 'decayPct', 'bankroll']
+    .forEach(id => $(id).addEventListener('input', refreshAll));
+
+  $('recalcAll').addEventListener('click', refreshAll);
+
+  // ============ Simulation ============
+  function randn() {
+    let u = 0, v = 0;
+    while (u === 0) u = Math.random();
+    while (v === 0) v = Math.random();
+    return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+  }
+
+  function stepLevel(currentIdx, bankroll, calc, upgradeBI, downgradeBI) {
+    let idx = currentIdx;
+    while (idx < calc.length - 1 && bankroll >= calc[idx + 1].bi * upgradeBI) idx++;
+    while (idx > 0 && bankroll < calc[idx].bi * downgradeBI) idx--;
+    return idx;
+  }
+
+  function startLevel(bankroll, calc, upgradeBI) {
+    let idx = 0;
+    for (let i = calc.length - 1; i >= 0; i--) {
+      if (bankroll >= calc[i].bi * upgradeBI) { idx = i; break; }
+    }
+    return idx;
+  }
+
+  function runPath(opts) {
+    const { startBR, weeks, hoursPerWeek, handsPerHour, calc, upgradeBI, downgradeBI, decay, std, randomize } = opts;
+    let br = startBR;
+    let idx = startLevel(br, calc, upgradeBI);
+    const series = [{ week: 0, br, levelIdx: idx }];
+
+    for (let w = 1; w <= weeks; w++) {
+      const lv = calc[idx];
+      const n = lv.tables;
+      const tableFactor = Math.max(0, 1 - decay * (n - 1));
+      const handsThisWeek = hoursPerWeek * handsPerHour * n;
+      const ev$ = handsThisWeek * lv.winRateUSD * tableFactor / 100;
+
+      let pnl = ev$;
+      if (randomize) {
+        const sigmaPer100 = std > 0 ? std : 20 * lv.deadMoney;
+        const sigmaUSD = sigmaPer100 * Math.sqrt(handsThisWeek / 100);
+        pnl = ev$ + randn() * sigmaUSD;
+      }
+
+      br = Math.max(0, br + pnl);
+      idx = stepLevel(idx, br, calc, upgradeBI, downgradeBI);
+      series.push({ week: w, br, levelIdx: idx });
+
+      if (br <= 0) {
+        for (let pw = w + 1; pw <= weeks; pw++) series.push({ week: pw, br: 0, levelIdx: 0 });
+        break;
+      }
+    }
+    return series;
+  }
+
+  function getCalc() {
+    const upgradeBI = parseFloat($('upgradeBI').value) || 30;
+    const downgradeBI = parseFloat($('downgradeBI').value) || 24;
+    const calc = levels.map(lv => ({
+      ...lv,
+      bi: lv.straddle * 100,
+      deadMoney: (lv.ante || 0) * (lv.seats || 8) + (lv.bb / 2) + lv.bb + lv.straddle,
+    }));
+    return { calc, upgradeBI, downgradeBI };
+  }
+
+  function runSimulation() {
+    const { calc, upgradeBI, downgradeBI } = getCalc();
+    const handsPerHour = parseFloat($('handsPerHour').value) || 70;
+    const decay = (parseFloat($('decayPct').value) || 0) / 100;
+    const startBR = parseFloat($('simBankroll').value) || 5000;
+    const weeks = Math.min(260, Math.max(4, parseInt($('simWeeks').value) || 52));
+    const hoursPerWeek = parseFloat($('simHours').value) || 20;
+    const numPaths = Math.min(200, Math.max(1, parseInt($('simPaths').value) || 30));
+    const std = parseFloat($('simStd').value) || 0;
+
+    const baseOpts = { startBR, weeks, hoursPerWeek, handsPerHour, calc, upgradeBI, downgradeBI, decay, std };
+
+    const evPath = runPath({ ...baseOpts, randomize: false });
+    const paths = [];
+    for (let i = 0; i < numPaths; i++) paths.push(runPath({ ...baseOpts, randomize: true }));
+
+    drawChart(evPath, paths, weeks, calc);
+    renderSummary(evPath, paths, weeks, calc, startBR);
+  }
+
+  function renderSummary(evPath, paths, weeks, calc, startBR) {
+    const finalBRs = paths.map(p => p[p.length - 1].br).sort((a, b) => a - b);
+    const median = finalBRs[Math.floor(finalBRs.length / 2)];
+    const p5 = finalBRs[Math.floor(finalBRs.length * 0.05)];
+    const p95 = finalBRs[Math.floor(finalBRs.length * 0.95)];
+    const evFinal = evPath[evPath.length - 1].br;
+    const evMaxIdx = Math.max(...evPath.map(p => p.levelIdx));
+    const evMaxLevel = calc[evMaxIdx].name;
+    const bust = paths.filter(p => p.some(s => s.br <= 0)).length;
+    const bustRate = bust / paths.length;
+
+    $('simSummary').innerHTML = `
+      <div class="sim-stat gold">
+        <div class="lbl">EV 期末资金</div>
+        <div class="val">${fmt$(evFinal)}</div>
+        <div class="sub">无方差路径 · ${weeks} 周后</div>
+      </div>
+      <div class="sim-stat">
+        <div class="lbl">中位数（P50）</div>
+        <div class="val">${fmt$(median)}</div>
+        <div class="sub">${paths.length} 条随机路径</div>
+      </div>
+      <div class="sim-stat">
+        <div class="lbl">P5 — P95 区间</div>
+        <div class="val">${fmt$(p5)} → ${fmt$(p95)}</div>
+        <div class="sub">90% 概率落在此区间</div>
+      </div>
+      <div class="sim-stat gold">
+        <div class="lbl">EV 路径达到最高级别</div>
+        <div class="val">${evMaxLevel}</div>
+        <div class="sub">从 ${fmt$(startBR)} 起步</div>
+      </div>
+      <div class="sim-stat ${bustRate > 0.1 ? 'red' : bustRate > 0 ? 'warn' : ''}">
+        <div class="lbl">破产率</div>
+        <div class="val">${(bustRate * 100).toFixed(1)}%</div>
+        <div class="sub">${bust}/${paths.length} 条路径触底</div>
+      </div>
+    `;
+  }
+
+  function drawChart(evPath, paths, weeks, calc) {
+    const canvas = $('chart');
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const cssW = canvas.clientWidth;
+    const cssH = canvas.clientHeight;
+    canvas.width = cssW * dpr;
+    canvas.height = cssH * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    const padL = 70, padR = 20, padT = 20, padB = 40;
+    const W = cssW - padL - padR;
+    const H = cssH - padT - padB;
+
+    let allValues = evPath.map(p => p.br);
+    paths.forEach(p => p.forEach(s => allValues.push(s.br)));
+    let yMin = Math.min(0, Math.min(...allValues));
+    let yMax = Math.max(...allValues);
+    if (yMax === yMin) yMax = yMin + 1000;
+    const range = yMax - yMin;
+    const niceStep = niceTickStep(range / 6);
+    yMin = Math.floor(yMin / niceStep) * niceStep;
+    yMax = Math.ceil(yMax / niceStep) * niceStep;
+
+    function xOf(w) { return padL + (w / weeks) * W; }
+    function yOf(v) { return padT + H - ((v - yMin) / (yMax - yMin)) * H; }
+
+    ctx.font = '11px JetBrains Mono, monospace';
+    ctx.fillStyle = '#6f6f7c';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.strokeStyle = 'rgba(60, 70, 80, 0.4)';
+    ctx.lineWidth = 1;
+
+    for (let v = yMin; v <= yMax + 1e-6; v += niceStep) {
+      const y = yOf(v);
+      ctx.beginPath();
+      ctx.moveTo(padL, y);
+      ctx.lineTo(padL + W, y);
+      ctx.stroke();
+      ctx.fillText('$' + fmtCompact(v), padL - 8, y);
+    }
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    const xTickEvery = weeks <= 26 ? Math.ceil(weeks / 8) : weeks <= 104 ? Math.ceil(weeks / 10) : Math.ceil(weeks / 12);
+    for (let w = 0; w <= weeks; w += xTickEvery) {
+      const x = xOf(w);
+      ctx.fillStyle = '#6f6f7c';
+      ctx.fillText(w + 'w', x, padT + H + 8);
+      ctx.strokeStyle = 'rgba(60, 70, 80, 0.2)';
+      ctx.beginPath();
+      ctx.moveTo(x, padT);
+      ctx.lineTo(x, padT + H);
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle = 'rgba(212, 255, 58, 0.2)';
+    ctx.fillStyle = 'rgba(212, 255, 58, 0.55)';
+    ctx.setLineDash([3, 4]);
+    ctx.font = '10px JetBrains Mono, monospace';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    const upgradeBI = parseFloat($('upgradeBI').value) || 25;
+    for (let i = 1; i < calc.length; i++) {
+      const threshold = calc[i].bi * upgradeBI;
+      if (threshold >= yMin && threshold <= yMax) {
+        const y = yOf(threshold);
+        ctx.beginPath();
+        ctx.moveTo(padL, y);
+        ctx.lineTo(padL + W, y);
+        ctx.stroke();
+        ctx.fillText('▲ ' + calc[i].name, padL + 4, y - 8);
+      }
+    }
+    ctx.setLineDash([]);
+
+    if (paths.length >= 10) {
+      const bandLow = [], bandHigh = [];
+      for (let w = 0; w <= weeks; w++) {
+        const vals = paths.map(p => (p[w] || p[p.length - 1]).br).sort((a, b) => a - b);
+        bandLow.push(vals[Math.floor(vals.length * 0.05)]);
+        bandHigh.push(vals[Math.floor(vals.length * 0.95)]);
+      }
+      ctx.fillStyle = 'rgba(58, 255, 176, 0.12)';
+      ctx.beginPath();
+      ctx.moveTo(xOf(0), yOf(bandHigh[0]));
+      for (let w = 1; w <= weeks; w++) ctx.lineTo(xOf(w), yOf(bandHigh[w]));
+      for (let w = weeks; w >= 0; w--) ctx.lineTo(xOf(w), yOf(bandLow[w]));
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    ctx.strokeStyle = 'rgba(58, 255, 176, 0.4)';
+    ctx.lineWidth = 1;
+    paths.forEach(path => {
+      ctx.beginPath();
+      path.forEach((s, i) => {
+        const x = xOf(s.week);
+        const y = yOf(s.br);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+    });
+
+    ctx.strokeStyle = '#d4ff3a';
+    ctx.lineWidth = 2.5;
+    ctx.shadowColor = 'rgba(212, 255, 58, 0.4)';
+    ctx.shadowBlur = 8;
+    ctx.beginPath();
+    evPath.forEach((s, i) => {
+      const x = xOf(s.week);
+      const y = yOf(s.br);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    ctx.strokeStyle = 'rgba(60, 70, 80, 0.8)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(padL, padT);
+    ctx.lineTo(padL, padT + H);
+    ctx.lineTo(padL + W, padT + H);
+    ctx.stroke();
+  }
+
+  function niceTickStep(rough) {
+    const exp = Math.floor(Math.log10(rough));
+    const f = rough / Math.pow(10, exp);
+    let nf;
+    if (f < 1.5) nf = 1;
+    else if (f < 3.5) nf = 2;
+    else if (f < 7.5) nf = 5;
+    else nf = 10;
+    return nf * Math.pow(10, exp);
+  }
+
+  function fmtCompact(n) {
+    const a = Math.abs(n);
+    if (a >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M';
+    if (a >= 1_000) return (n / 1_000).toFixed(1).replace(/\.0$/, '') + 'k';
+    return Math.round(n).toString();
+  }
+
+  $('simRun').addEventListener('click', runSimulation);
+  $('simReset').addEventListener('click', () => {
+    $('simBankroll').value = 5000;
+    $('simWeeks').value = 52;
+    $('simHours').value = 20;
+    $('simPaths').value = 30;
+    $('simStd').value = 0;
+    runSimulation();
+  });
+
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(runSimulation, 200);
+  });
+
+  buildLevelsTable();
+  recalc();
+  runSimulation();
+</script>
+</body>
+</html>
