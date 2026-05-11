@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Range Zen · 范围胜率计算器</title>
-<link rel="stylesheet" href="/assets/shared.css">
+<link rel="stylesheet" href="../../assets/shared.css">
 <style>
   .wrap { max-width: 960px; margin: 0 auto; padding: 56px 24px 96px; }
   header { margin-bottom: 32px; padding-bottom: 22px; border-bottom: 1px solid var(--border); }
@@ -283,7 +283,7 @@ Board 语法:
   // 169-hand rankings precomputed by Rust WASM. Two modes:
   //   random — HU equity vs fully-random opponent (raw preflop strength)
   //   tight  — HU equity vs ~25% opener (postflop-style; AKs/AKo rank above 77/66)
-  import { HAND_RANKINGS } from '/assets/hand-ranking.js';
+  import { HAND_RANKINGS } from '../../assets/hand-ranking.js';
   let HAND_RANKING = HAND_RANKINGS.tight;   // default to postflop-oriented
 
   const $ = (id) => document.getElementById(id);
