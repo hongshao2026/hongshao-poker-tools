@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, ComposedChart, Area, Bar, ScatterChart, Scatter, ZAxis } from "recharts";
 import {
   MODEL, refROI, calcSigma, recommendMarkup, adjustSigmaForShape,
@@ -56,22 +56,41 @@ const C = {
 // ============================================================
 // 主组件
 // ============================================================
+const VALID_TABS = ["calc", "reverse", "quiz", "sim", "ladder"];
+function readHashTab() {
+  if (typeof window === "undefined") return "calc";
+  const h = window.location.hash.replace(/^#/, "");
+  return VALID_TABS.includes(h) ? h : "calc";
+}
+
 export default function Calculator() {
-  const [tab, setTab] = useState("calc");
-  
+  const [tab, setTab] = useState(readHashTab);
+
+  useEffect(() => {
+    const onHash = () => setTab(readHashTab());
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
+  const selectTab = (id) => {
+    setTab(id);
+    if (typeof window !== "undefined" && window.location.hash !== `#${id}`) {
+      window.history.replaceState(null, "", `#${id}`);
+    }
+  };
+
   return (
     <div style={{
       minHeight: "100vh", background: C.bg, color: C.text,
       fontFamily: "ui-monospace, 'JetBrains Mono', Menlo, monospace",
       padding: "24px",
     }}>
-      <Header tab={tab} setTab={setTab} />
+      <Header tab={tab} setTab={selectTab} />
       {tab === "calc" && <CalculatorTab />}
       {tab === "reverse" && <ReverseTab />}
       {tab === "sim" && <MonteCarloTab availableModes={["fixed", "continuous"]} defaultMode="fixed" tabKey="sim" />}
       {tab === "ladder" && <MonteCarloTab availableModes={["ladder"]} defaultMode="ladder" tabKey="ladder" />}
       {tab === "quiz" && <QuizTab />}
-      {tab === "table" && <FelixTab />}
       <Footer />
     </div>
   );
@@ -95,7 +114,6 @@ function Header({ tab, setTab }) {
           { id: "quiz", label: "风格自测" },
           { id: "sim", label: "曲线模拟" },
           { id: "ladder", label: "升级测试" },
-          { id: "table", label: "Felix 原表" },
         ].map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             style={{
