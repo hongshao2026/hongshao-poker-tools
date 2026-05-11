@@ -15,6 +15,30 @@ html, body {
 }
 
 /* ============================================================
+   Input panel layout: horizontal auto-fit grid so inputs sit in a
+   wide top bar instead of a tall left column. Applied to any panel
+   marked with className="mtt-input-panel" in Calculator.jsx.
+   ============================================================ */
+.mtt-input-panel {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px 18px;
+  align-items: start;
+}
+.mtt-input-panel > :first-child {
+  grid-column: 1 / -1;
+}
+.mtt-input-panel > * {
+  margin-bottom: 0 !important;
+}
+
+@media (max-width: 760px) {
+  .mtt-input-panel {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================================
    Mobile responsive overrides for the React app's inline grids.
    The React tree uses inline style={{ gridTemplateColumns: ... }}
    throughout; we target those by attribute selector and bump them

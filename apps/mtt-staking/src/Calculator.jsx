@@ -64,7 +64,7 @@ const TAB_META = {
   reverse: { title: "反推 BR",         subtitle: "给定目标 → 反推所需 bankroll" },
   quiz:    { title: "风格自测",        subtitle: "几分钟问卷 → 推荐 BRM 风格" },
   sim:     { title: "曲线模拟",        subtitle: "Monte Carlo · 盈亏曲线" },
-  ladder:  { title: "升级测试",        subtitle: "阶梯式升级 · 成功率 / 时间" },
+  ladder:  { title: "锦标赛升级模拟",  subtitle: "MTT 阶梯式升级 · 成功率 / 时间" },
 };
 
 function readHashTab() {
@@ -181,9 +181,9 @@ function CalculatorTab() {
   }, [buyin, field, effectiveROI, BR, type, markup, shape]);
 
   return (
-    <div style={{ maxWidth: 1400, margin: "0 auto", display: "grid", gridTemplateColumns: "380px 1fr", gap: 20 }}>
-      {/* 左侧输入面板 */}
-      <div style={{ background: C.panel, borderRadius: 12, padding: 24, border: `1px solid ${C.border}` }}>
+    <div style={{ maxWidth: 1400, margin: "0 auto", display: "flex", flexDirection: "column", gap: 20 }}>
+      {/* 输入面板（横向 grid 由 CSS .mtt-input-panel 控制）*/}
+      <div className="mtt-input-panel" style={{ background: C.panel, borderRadius: 12, padding: 24, border: `1px solid ${C.border}` }}>
         <SectionTitle>输入参数</SectionTitle>
 
         <Field label="买入 (Buy-in, $)">
@@ -561,16 +561,16 @@ function ReverseTab() {
   }, [buyin, sigma_d_sq, roiFrac, markup, mode]);
 
   return (
-    <div style={{ maxWidth: 1400, margin: "0 auto", display: "grid", gridTemplateColumns: "380px 1fr", gap: 20 }}>
-      {/* 左侧:输入 */}
-      <div style={{ background: C.panel, borderRadius: 12, padding: 24, border: `1px solid ${C.border}` }}>
+    <div style={{ maxWidth: 1400, margin: "0 auto", display: "flex", flexDirection: "column", gap: 20 }}>
+      {/* 输入面板（横向 grid 由 CSS .mtt-input-panel 控制）*/}
+      <div className="mtt-input-panel" style={{ background: C.panel, borderRadius: 12, padding: 24, border: `1px solid ${C.border}` }}>
         <SectionTitle>反推所需 BR</SectionTitle>
-        <div style={{ fontSize: 12, color: C.textFaint, marginBottom: 16, lineHeight: 1.6 }}>
+        <div style={{ fontSize: 12, color: C.textFaint, marginBottom: 16, lineHeight: 1.6, gridColumn: "1 / -1" }}>
           告诉我赛事参数和你想要的自留比例,我反推出你需要多大的资金。
         </div>
 
         {/* 模式切换 */}
-        <div style={{ marginBottom: 20, padding: 12, background: C.panelLight, borderRadius: 8, border: `1px solid ${C.border}` }}>
+        <div style={{ marginBottom: 20, padding: 12, background: C.panelLight, borderRadius: 8, border: `1px solid ${C.border}`, gridColumn: "1 / -1" }}>
           <div style={{ fontSize: 11, color: C.textDim, marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>反推视角</div>
           <div style={{ display: "flex", gap: 4 }}>
             <button onClick={() => setMode("market")}
@@ -1637,11 +1637,11 @@ function MonteCarloTab({ availableModes = ["fixed", "continuous", "ladder"], def
 
   return (
     <div style={{ maxWidth: 1400, margin: "0 auto" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "380px 1fr", gap: 20 }}>
-        {/* 左侧:输入 */}
-        <div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        {/* 输入区(panels 垂直堆叠;每个 panel 内部由 .mtt-input-panel 横向铺) */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {/* 赛事参数 */}
-          <div style={{ background: C.panel, borderRadius: 12, padding: 24, border: `1px solid ${C.border}`, marginBottom: 16 }}>
+          <div className="mtt-input-panel" style={{ background: C.panel, borderRadius: 12, padding: 24, border: `1px solid ${C.border}` }}>
             <SectionTitle>赛事参数</SectionTitle>
 
             {/* 买入:档位/连续模式下隐藏 */}
@@ -1678,7 +1678,7 @@ function MonteCarloTab({ availableModes = ["fixed", "continuous", "ladder"], def
           </div>
 
           {/* 模拟参数 */}
-          <div style={{ background: C.panel, borderRadius: 12, padding: 24, border: `1px solid ${C.border}`, marginBottom: 16 }}>
+          <div className="mtt-input-panel" style={{ background: C.panel, borderRadius: 12, padding: 24, border: `1px solid ${C.border}` }}>
             <SectionTitle>模拟参数</SectionTitle>
 
             <Field label="初始 BR ($)">
@@ -1739,7 +1739,7 @@ function MonteCarloTab({ availableModes = ["fixed", "continuous", "ladder"], def
           </div>
 
           {/* 复利模式面板 — 仅在多模式时显示切换器 */}
-          <div style={{ background: C.panel, borderRadius: 12, padding: 24, border: `1px solid ${C.border}`, marginBottom: 16 }}>
+          <div className="mtt-input-panel" style={{ background: C.panel, borderRadius: 12, padding: 24, border: `1px solid ${C.border}` }}>
             {availableModes.length > 1 && (
               <>
                 <SectionTitle>复利模式</SectionTitle>
