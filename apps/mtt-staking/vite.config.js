@@ -9,19 +9,22 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 // `base: './'` keeps asset URLs relative — works on any path (file://, /, /sub/).
 // `injectSharedCss` adds the project-wide stylesheet link after Vite's own
 // asset graph (Vite drops relative refs to files outside its root).
-const injectSharedCss = () => ({
-  name: 'inject-shared-css',
+const injectSharedAssets = () => ({
+  name: 'inject-shared-assets',
   transformIndexHtml(html) {
     return html.replace(
       '</head>',
-      '  <link rel="stylesheet" href="../../assets/shared.css">\n</head>'
+      '  <link rel="stylesheet" href="../../assets/shared.css">\n' +
+      '  <link rel="icon" type="image/svg+xml" href="../../assets/icon.svg">\n' +
+      '  <meta name="theme-color" content="#0a0a0c">\n' +
+      '</head>'
     );
   },
 });
 
 export default defineConfig({
   base: './',
-  plugins: [react(), injectSharedCss()],
+  plugins: [react(), injectSharedAssets()],
   build: {
     outDir: resolve(__dirname, '../../tools/mtt-staking'),
     emptyOutDir: true,

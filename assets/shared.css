@@ -130,3 +130,14 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 5px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--border-bright); }
+
+/* ---- mobile baseline ----
+   iOS Safari auto-zooms on any input with font-size < 16px. Bump inputs
+   to 16px on small screens to suppress that. */
+@media (max-width: 760px) {
+  input[type="text"], input[type="number"], textarea, select {
+    font-size: 16px;
+  }
+  button { touch-action: manipulation; }
+  html, body { overflow-x: hidden; }
+}

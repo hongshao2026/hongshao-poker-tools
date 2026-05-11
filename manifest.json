@@ -1,0 +1,20 @@
+{
+  "name": "红烧扑克工具集",
+  "short_name": "红烧扑克",
+  "description": "纯前端、可离线的扑克决策计算器：股份、资金管理、桌上 EV。",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0a0a0c",
+  "theme_color": "#0a0a0c",
+  "lang": "zh-CN",
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
