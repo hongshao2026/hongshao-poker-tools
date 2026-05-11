@@ -6,15 +6,33 @@
 <title>红烧扑克工具集 · Hongshao Poker Tools</title>
 <link rel="stylesheet" href="assets/shared.css">
 <style>
-  body {
-    background-image:
-      radial-gradient(circle at 12% 0%, rgba(212,255,58,0.05) 0%, transparent 45%),
-      radial-gradient(circle at 88% 100%, rgba(74,200,255,0.04) 0%, transparent 45%);
+  /* ============ per-group palette ============ */
+  :root {
+    --g-staking-1: #d4ff3a;   /* lime — finance */
+    --g-staking-2: #ffd23a;   /* amber */
+    --g-cash-1:    #3affb0;   /* mint — growth */
+    --g-cash-2:    #4ac8ff;   /* cyan */
+    --g-table-1:   #ff6b9d;   /* hot pink — heat */
+    --g-table-2:   #ff9b3d;   /* orange */
   }
+
+  /* ============ body atmosphere ============ */
+  body {
+    background:
+      radial-gradient(ellipse 760px 560px at 4% -2%,  rgba(212,255,58,0.13), transparent 60%),
+      radial-gradient(ellipse 640px 520px at 98% 22%, rgba(74,200,255,0.10), transparent 60%),
+      radial-gradient(ellipse 720px 540px at 8% 76%,  rgba(58,255,176,0.09), transparent 60%),
+      radial-gradient(ellipse 620px 480px at 96% 100%,rgba(255,107,157,0.10), transparent 60%),
+      var(--bg);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+
   .portal {
     max-width: 1080px;
     margin: 0 auto;
     padding: 64px 24px 48px;
+    position: relative;
   }
 
   /* ============ hero ============ */
@@ -39,134 +57,242 @@
     letter-spacing: -0.02em;
     margin-bottom: 14px;
   }
-  .hero h1 .accent { color: var(--accent); }
+  .hero h1 .accent {
+    background: linear-gradient(115deg,
+      var(--g-staking-1) 0%,
+      var(--g-cash-1) 55%,
+      var(--g-table-1) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
   .hero p {
     font-size: var(--fs-md);
     color: var(--text-dim);
     max-width: 680px;
     line-height: 1.6;
   }
-  .hero p code {
-    background: var(--bg-input);
-    border: 1px solid var(--border);
-    padding: 1px 7px;
-    border-radius: 4px;
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--accent);
-  }
 
-  /* ============ section ============ */
-  .group { margin-bottom: 48px; }
+  /* ============ section group ============ */
+  .group { margin-bottom: 56px; }
+
+  /* group palette resolution */
+  .group[data-theme="staking"] { --g1: var(--g-staking-1); --g2: var(--g-staking-2); }
+  .group[data-theme="cash"]    { --g1: var(--g-cash-1);    --g2: var(--g-cash-2); }
+  .group[data-theme="table"]   { --g1: var(--g-table-1);   --g2: var(--g-table-2); }
+
   .group-label {
     font-family: var(--font-mono);
     font-size: var(--fs-tiny);
-    color: var(--text-faint);
-    letter-spacing: 0.18em;
+    color: var(--text-dim);
+    letter-spacing: 0.2em;
     text-transform: uppercase;
-    padding-bottom: 10px;
-    margin-bottom: 18px;
-    border-bottom: 1px solid var(--border);
+    padding-bottom: 14px;
+    margin-bottom: 6px;
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
+  }
+  /* gradient flag bar prefix */
+  .group-label::before {
+    content: '';
+    width: 28px;
+    height: 4px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--g1), var(--g2));
+    box-shadow: 0 0 16px color-mix(in oklab, var(--g1) 60%, transparent);
+    flex-shrink: 0;
+  }
+  /* gradient underline */
+  .group-label::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+      color-mix(in oklab, var(--g1) 60%, transparent) 0%,
+      color-mix(in oklab, var(--g2) 35%, transparent) 28%,
+      transparent 75%);
   }
   .group-label .count {
+    margin-left: auto;
     color: var(--text-faint);
     font-size: 10px;
+    letter-spacing: 0.15em;
   }
   .group-desc {
     font-size: var(--fs-sm);
     color: var(--text-faint);
+    margin-top: 16px;
     margin-bottom: 18px;
-    margin-top: -8px;
     font-family: var(--font-mono);
+    letter-spacing: 0.02em;
   }
 
   /* ============ tool grid ============ */
   .tool-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 14px;
+    counter-reset: card;
   }
+
+  /* featured first: spans full row (becomes the headline) */
+  .group[data-featured-first] .tool-grid > .tool-card:first-child {
+    grid-column: 1 / -1;
+    min-height: 132px;
+    padding: 22px 28px 24px;
+  }
+  .group[data-featured-first] .tool-grid > .tool-card:first-child .tool-name {
+    font-size: var(--fs-lg);
+    letter-spacing: -0.015em;
+  }
+  .group[data-featured-first] .tool-grid > .tool-card:first-child::before {
+    height: 3px;
+    opacity: 0.85;
+  }
+  .group[data-featured-first] .tool-grid > .tool-card:first-child::after {
+    font-size: 13px;
+    opacity: 0.7;
+  }
+
+  /* single-card stretch */
+  .group[data-stretch-first] .tool-grid > .tool-card:first-child {
+    grid-column: 1 / -1;
+  }
+
+  /* ============ card ============ */
   .tool-card {
-    background: var(--bg-elev);
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse 420px 320px at -8% -25%,
+        color-mix(in oklab, var(--g1) 9%, transparent) 0%,
+        transparent 60%),
+      radial-gradient(ellipse 320px 240px at 108% 118%,
+        color-mix(in oklab, var(--g2) 7%, transparent) 0%,
+        transparent 60%),
+      linear-gradient(180deg, rgba(255,255,255,0.012), transparent 40%),
+      var(--bg-elev);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
-    padding: 22px 22px 20px;
+    padding: 24px 22px 22px;
     text-decoration: none;
     color: var(--text);
-    transition: border-color .15s, background .15s, transform .15s;
     display: flex;
     flex-direction: column;
-    min-height: 180px;
-    position: relative;
+    min-height: 192px;
+    counter-increment: card;
+    transition:
+      transform .25s cubic-bezier(.2,.7,.2,1),
+      border-color .25s,
+      box-shadow .3s,
+      background .25s;
   }
+
+  /* top color rail */
+  .tool-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--g1) 0%, var(--g2) 70%, transparent 100%);
+    opacity: 0.6;
+    transition: opacity .25s, height .25s;
+  }
+
+  /* index numeral watermark */
+  .tool-card::after {
+    content: counter(card, decimal-leading-zero);
+    position: absolute;
+    top: 16px;
+    right: 18px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: color-mix(in oklab, var(--g1) 35%, var(--text-faint));
+    letter-spacing: 0.12em;
+    opacity: 0.7;
+    transition: opacity .2s, color .2s;
+  }
+
   .tool-card:hover {
-    border-color: var(--border-bright);
-    background: var(--bg-hover);
-    transform: translateY(-1px);
+    border-color: color-mix(in oklab, var(--g1) 45%, var(--border));
+    box-shadow:
+      0 14px 44px -18px color-mix(in oklab, var(--g1) 55%, transparent),
+      inset 0 0 0 1px color-mix(in oklab, var(--g1) 14%, transparent);
+    transform: translateY(-3px);
   }
-  .tool-card:hover .arrow { color: var(--accent); transform: translateX(2px); }
+  .tool-card:hover::before { opacity: 1; height: 3px; }
+  .tool-card:hover::after  { opacity: 1; color: var(--g1); }
+  .tool-card:hover .tool-name { color: var(--g1); }
+  .tool-card:hover .arrow {
+    color: var(--g1);
+    transform: translateX(3px);
+  }
 
   .tool-head {
     display: flex;
     align-items: baseline;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
+    padding-right: 40px; /* reserve space for numeral */
   }
   .tool-name {
     font-size: var(--fs-md);
     font-weight: 600;
     letter-spacing: -0.01em;
-  }
-  .tool-tags {
-    display: flex;
-    gap: 5px;
-    flex-shrink: 0;
-  }
-  .tool-tag {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--text-faint);
-    border: 1px solid var(--border);
-    padding: 1px 6px;
-    border-radius: 3px;
-    letter-spacing: 0.04em;
-  }
-  .tool-tag.role {
-    color: var(--accent);
-    border-color: var(--accent-dim);
-    background: rgba(212,255,58,0.06);
-  }
-  .tool-tag.tech {
-    color: var(--p2);
-    border-color: rgba(74,200,255,0.4);
-    background: rgba(74,200,255,0.06);
+    transition: color .2s;
   }
   .tool-tagline {
     font-family: var(--font-mono);
     font-size: var(--fs-tiny);
-    color: var(--text-dim);
+    color: color-mix(in oklab, var(--g1) 30%, var(--text-dim));
     margin-bottom: 12px;
     line-height: 1.5;
+    letter-spacing: 0.02em;
   }
   .tool-desc {
     font-size: var(--fs-sm);
     color: var(--text-dim);
-    line-height: 1.6;
+    line-height: 1.65;
     flex: 1;
   }
   .arrow {
     position: absolute;
     bottom: 16px;
-    right: 18px;
+    right: 20px;
     font-family: var(--font-mono);
     font-size: var(--fs-tiny);
     color: var(--text-faint);
-    letter-spacing: 0.1em;
-    transition: color .15s, transform .15s;
+    letter-spacing: 0.12em;
+    transition: color .2s, transform .2s;
+  }
+
+  /* ============ stagger fade-in ============ */
+  @keyframes card-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .tool-card {
+    animation: card-in .5s cubic-bezier(.2,.7,.2,1) backwards;
+  }
+  .tool-grid .tool-card:nth-child(1) { animation-delay: .02s; }
+  .tool-grid .tool-card:nth-child(2) { animation-delay: .05s; }
+  .tool-grid .tool-card:nth-child(3) { animation-delay: .08s; }
+  .tool-grid .tool-card:nth-child(4) { animation-delay: .11s; }
+  .tool-grid .tool-card:nth-child(5) { animation-delay: .14s; }
+  .tool-grid .tool-card:nth-child(6) { animation-delay: .17s; }
+  .tool-grid .tool-card:nth-child(7) { animation-delay: .20s; }
+
+  /* keep hover transform separate from load anim */
+  .tool-card:hover { animation: none; }
+
+  /* respect prefers-reduced-motion */
+  @media (prefers-reduced-motion: reduce) {
+    .tool-card { animation: none; }
+    .tool-card { transition: border-color .15s, box-shadow .15s; }
+    .tool-card:hover { transform: none; }
   }
 
   /* ============ footer ============ */
@@ -197,11 +323,18 @@
   }
 
   /* ============ responsive ============ */
-  @media (max-width: 600px) {
+  @media (max-width: 720px) {
     .portal { padding: 36px 16px 32px; }
     .hero h1 { font-size: 34px; }
     .hero p { font-size: var(--fs-base); }
     .tool-grid { grid-template-columns: 1fr; }
+    .group[data-featured-first] .tool-grid > .tool-card:first-child {
+      min-height: 192px;
+      padding: 24px 22px 22px;
+    }
+    .group[data-featured-first] .tool-grid > .tool-card:first-child .tool-name {
+      font-size: var(--fs-md);
+    }
   }
 </style>
 </head>
@@ -219,10 +352,10 @@
   </div>
 
   <!-- ============ Staking ============ -->
-  <section class="group">
+  <section class="group" data-theme="staking" data-featured-first>
     <div class="group-label">
       <span>Staking · 股权交易</span>
-      <span class="count">/ 7 个工具</span>
+      <span class="count">/ 7 TOOLS</span>
     </div>
     <p class="group-desc">选手卖股、投资人买股、合约反推 EV，多角度配套使用。</p>
     <div class="tool-grid">
@@ -294,10 +427,10 @@
   </section>
 
   <!-- ============ 现金桌 ============ -->
-  <section class="group">
+  <section class="group" data-theme="cash" data-stretch-first>
     <div class="group-label">
       <span>Cash Game · 现金桌</span>
-      <span class="count">/ 1 个工具</span>
+      <span class="count">/ 1 TOOL</span>
     </div>
     <p class="group-desc">资金分级、升级路径、多开时薪与 Monte Carlo 增长曲线。</p>
     <div class="tool-grid">
@@ -315,10 +448,10 @@
   </section>
 
   <!-- ============ 桌上决策 ============ -->
-  <section class="group">
+  <section class="group" data-theme="table">
     <div class="group-label">
       <span>桌上决策 · 概率与博弈</span>
-      <span class="count">/ 3 个工具</span>
+      <span class="count">/ 3 TOOLS</span>
     </div>
     <p class="group-desc">实时计算所需胜率、范围对范围胜率、博弈类边桌的精确 EV。</p>
     <div class="tool-grid">
