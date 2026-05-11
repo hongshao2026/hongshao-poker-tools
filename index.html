@@ -309,18 +309,44 @@
     font-size: var(--fs-tiny);
     color: var(--text-faint);
   }
-  footer a {
-    color: var(--text-dim);
+  footer .tagline {
+    letter-spacing: 0.04em;
+  }
+  .star-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     text-decoration: none;
-    border-bottom: 1px dotted var(--text-faint);
-  }
-  footer a:hover { color: var(--accent); border-color: var(--accent); }
-  footer code {
     color: var(--text-dim);
-    background: var(--bg-input);
-    padding: 2px 6px;
-    border-radius: 3px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    padding: 8px 14px 8px 12px;
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-tiny);
+    letter-spacing: 0.04em;
+    transition: color .18s, border-color .18s, background .18s, transform .18s;
   }
+  .star-cta svg {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+    flex-shrink: 0;
+  }
+  .star-cta:hover {
+    color: #0a0a0c;
+    background: var(--g-staking-1);
+    border-color: var(--g-staking-1);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px -10px var(--g-staking-1);
+  }
+  .star-cta .arrow {
+    position: static;
+    color: inherit;
+    font-size: var(--fs-tiny);
+    transition: transform .18s;
+  }
+  .star-cta:hover .arrow { transform: translateX(2px); }
 
   /* ============ responsive ============ */
   @media (max-width: 720px) {
@@ -487,10 +513,14 @@
   </section>
 
   <footer>
-    <span>
-      纯前端 · 离线可用 · 本地启动：<code>python3 -m http.server</code>
-    </span>
-    <a href="https://github.com/hongshao2026/hongshao-poker-tools" target="_blank" rel="noopener">github →</a>
+    <span class="tagline">纯前端 · 零依赖 · 完全开源</span>
+    <a class="star-cta" href="https://github.com/hongshao2026/hongshao-poker-tools" target="_blank" rel="noopener" aria-label="Star this repo on GitHub">
+      <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25z"/>
+      </svg>
+      <span>Star on GitHub</span>
+      <span class="arrow">→</span>
+    </a>
   </footer>
 
 </div>
