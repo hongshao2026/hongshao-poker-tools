@@ -138,9 +138,12 @@
     counter-reset: card;
   }
 
-  /* featured first: spans 2 columns (so 5-card grids stay clean) */
+  /* featured first: spans full row (becomes the headline of the group);
+     for a 4-card group this gives row1=headline / row2=3 cards. */
   .group[data-featured-first] .tool-grid > .tool-card:first-child {
-    grid-column: span 2;
+    grid-column: 1 / -1;
+    min-height: 134px;
+    padding: 22px 28px 24px;
   }
   .group[data-featured-first] .tool-grid > .tool-card:first-child .tool-name {
     font-size: var(--fs-lg);
@@ -348,7 +351,7 @@
   <section class="group" data-theme="staking" data-featured-first>
     <div class="group-label">
       <span>Staking · 股份</span>
-      <span class="count">/ 5 TOOLS</span>
+      <span class="count">/ 4 TOOLS</span>
     </div>
     <p class="group-desc">选手卖股、投资人买股、合约反推 EV，多角度配套使用。</p>
     <div class="tool-grid">
@@ -368,15 +371,6 @@
         </div>
         <div class="tool-tagline">几分钟问卷 → 推荐 BRM 风格</div>
         <div class="tool-desc">通过短问卷判断你属于保守 / 平衡 / 激进型，输出对应的卖股比例和 bankroll 阈值。</div>
-        <span class="arrow">OPEN →</span>
-      </a>
-
-      <a class="tool-card" href="tools/mtt-staking/#sim">
-        <div class="tool-head">
-          <div class="tool-name">曲线模拟</div>
-        </div>
-        <div class="tool-tagline">Monte Carlo · 盈亏曲线</div>
-        <div class="tool-desc">固定/连续两种卖股模式，蒙特卡洛跑 N 子弹后 bankroll 分布与典型路径。</div>
         <span class="arrow">OPEN →</span>
       </a>
 
@@ -402,13 +396,22 @@
   </section>
 
   <!-- ============ 资金管理 ============ -->
-  <section class="group" data-theme="cash">
+  <section class="group" data-theme="cash" data-featured-first>
     <div class="group-label">
       <span>Bankroll · 资金管理</span>
-      <span class="count">/ 3 TOOLS</span>
+      <span class="count">/ 4 TOOLS</span>
     </div>
-    <p class="group-desc">反推所需 bankroll、阶梯升 buy-in 成功率、资金升降级路径。</p>
+    <p class="group-desc">反推所需 bankroll、阶梯升 buy-in 成功率、盈亏曲线模拟、多级资金升降级路径。</p>
     <div class="tool-grid">
+
+      <a class="tool-card" href="tools/bankroll-plan/">
+        <div class="tool-head">
+          <div class="tool-name">资金升级计划</div>
+        </div>
+        <div class="tool-tagline">Bankroll · 升级路径 · Monte Carlo</div>
+        <div class="tool-desc">5 档级别参数可编辑，自动算升降级阈值、多开时薪、升级时长，含蒙特卡洛模拟和增长曲线。</div>
+        <span class="arrow">OPEN →</span>
+      </a>
 
       <a class="tool-card" href="tools/mtt-staking/#reverse">
         <div class="tool-head">
@@ -428,12 +431,12 @@
         <span class="arrow">OPEN →</span>
       </a>
 
-      <a class="tool-card" href="tools/bankroll-plan/">
+      <a class="tool-card" href="tools/mtt-staking/#sim">
         <div class="tool-head">
-          <div class="tool-name">资金升级计划</div>
+          <div class="tool-name">曲线模拟</div>
         </div>
-        <div class="tool-tagline">Bankroll · 升级路径 · Monte Carlo</div>
-        <div class="tool-desc">5 档级别参数可编辑，自动算升降级阈值、多开时薪、升级时长，含蒙特卡洛模拟和增长曲线。</div>
+        <div class="tool-tagline">Monte Carlo · 盈亏曲线</div>
+        <div class="tool-desc">固定/连续两种卖股模式，蒙特卡洛跑 N 子弹后 bankroll 分布与典型路径。</div>
         <span class="arrow">OPEN →</span>
       </a>
 
