@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FT Deal 分账计算器 · 红烧扑克</title>
+<link rel="stylesheet" href="../../assets/shared.css">
+<link rel="icon" type="image/svg+xml" href="../../assets/icon.svg">
+<meta name="theme-color" content="#0a0a0c">
+<style>
+  :root {
+    --felt: #14201e;
+    --felt-dark: #0d1614;
+    --c-icm: #3affb0;       /* mint = cash accent */
+    --c-chop: #4ac8ff;      /* cyan = cash accent 2 */
+    --c-offer: #d4ff3a;     /* lime */
+    --c-custom: #ff6b9d;    /* pink (table heat) — stands out vs cash palette */
+    --c-me: #ffd23a;        /* amber */
+  }
+  body {
+    padding: 56px 18px 48px;
+    background-image:
+      radial-gradient(ellipse at top left, rgba(58, 255, 176, 0.05), transparent 50%),
+      radial-gradient(ellipse at bottom right, rgba(74, 200, 255, 0.04), transparent 50%);
+  }
+  .container {
+    max-width: 1080px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  /* ============ header ============ */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 18px;
+    margin-bottom: 28px;
+  }
+  header h1 {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: var(--fs-lg);
+    letter-spacing: -0.5px;
+  }
+  header h1 span { color: var(--c-icm); }
+  header .subtitle {
+    font-family: var(--font-mono);
+    font-size: var(--fs-tiny);
+    color: var(--text-faint);
+    margin-top: 6px;
+    letter-spacing: 0.04em;
+  }
+  .role-tag {
+    display: inline-block;
+    margin-top: 10px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--c-icm);
+    background: rgba(58, 255, 176, 0.08);
+    border: 1px solid rgba(58, 255, 176, 0.3);
+    padding: 3px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+  }
+
+  /* ============ section ============ */
+  section { margin-bottom: 36px; }
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .section-num {
+    font-family: var(--font-mono);
+    font-size: var(--fs-tiny);
+    color: var(--c-icm);
+    letter-spacing: 0.15em;
+  }
+  .section-header h2 {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: var(--fs-md);
+    letter-spacing: -0.01em;
+  }
+  .section-header .desc {
+    margin-left: auto;
+    font-size: var(--fs-tiny);
+    color: var(--text-faint);
+    font-family: var(--font-mono);
+  }
+
+  /* ============ card ============ */
+  .card {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 20px;
+  }
+
+  /* ============ player count buttons ============ */
+  .player-count {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .player-count button {
+    flex: 1;
+    min-width: 120px;
+    background: var(--bg-input);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    letter-spacing: 0.04em;
+    transition: all .15s;
+  }
+  .player-count button:hover:not(.active) {
+    border-color: var(--border-bright);
+    color: var(--text);
+    opacity: 1;
+  }
+  .player-count button.active {
+    background: rgba(58, 255, 176, 0.1);
+    color: var(--c-icm);
+    border-color: var(--c-icm);
+    font-weight: 700;
+  }
+
+  /* ============ players ============ */
+  #playersContainer { display: flex; flex-direction: column; gap: 8px; }
+  .player-row {
+    display: grid;
+    grid-template-columns: 90px 1fr auto auto;
+    align-items: center;
+    gap: 14px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    transition: border-color .15s, background .15s;
+  }
+  .player-row.me {
+    border-color: var(--c-me);
+    background: rgba(255, 210, 58, 0.05);
+  }
+  .player-label {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--text);
+    letter-spacing: 0.02em;
+  }
+  .player-row.me .player-label { color: var(--c-me); font-weight: 700; }
+  .player-row input[type="number"] {
+    background: var(--bg-input);
+    border-color: var(--border);
+  }
+  .player-row .pct {
+    font-family: var(--font-mono);
+    font-size: var(--fs-tiny);
+    color: var(--text-faint);
+    min-width: 56px;
+    text-align: right;
+  }
+  .me-button {
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    border-radius: 4px;
+  }
+  .me-button:hover { color: var(--text); border-color: var(--border-bright); opacity: 1; }
+  .me-button.active {
+    background: var(--c-me);
+    color: #000;
+    border-color: var(--c-me);
+    font-weight: 700;
+  }
+  .totals {
+    font-family: var(--font-mono);
+    font-size: var(--fs-tiny);
+    color: var(--text-faint);
+    text-align: right;
+    margin-top: 10px;
+    letter-spacing: 0.04em;
+  }
+  .totals.warn { color: var(--warn); }
+
+  /* ============ payouts ============ */
+  .payouts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+  }
+  .payout-field { display: flex; flex-direction: column; gap: 6px; }
+  .payout-field label {
+    font-family: var(--font-mono);
+    font-size: var(--fs-tiny);
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* ============ results table ============ */
+  .table-wrap {
+    overflow-x: auto;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fs-sm);
+    font-family: var(--font-mono);
+  }
+  thead th {
+    background: var(--felt);
+    color: var(--c-icm);
+    font-weight: 500;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 12px 12px;
+    text-align: left;
+    border-bottom: 1px solid rgba(58, 255, 176, 0.25);
+    white-space: nowrap;
+  }
+  thead th.col-icm-h { color: var(--c-icm); }
+  thead th.col-chop-h { color: var(--c-chop); }
+  tbody td {
+    padding: 11px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: rgba(58, 255, 176, 0.03); }
+  tbody tr.me td:first-child { color: var(--c-me); font-weight: 700; }
+  tbody tr.me { background: rgba(255, 210, 58, 0.04); }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td.col-icm { color: var(--c-icm); }
+  td.col-chop { color: var(--c-chop); }
+
+  /* ============ summary (my prices) ============ */
+  .summary-card {
+    background: linear-gradient(135deg, var(--felt) 0%, var(--felt-dark) 100%);
+    border: 1px solid var(--c-me);
+    border-radius: var(--radius-md);
+    padding: 22px 24px;
+  }
+  .summary-card .summary-title {
+    font-family: var(--font-mono);
+    font-size: var(--fs-tiny);
+    color: var(--c-me);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 16px;
+  }
+  .price-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+  }
+  .price-block {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px 18px;
+  }
+  .price-block.icm { border-left: 3px solid var(--c-icm); }
+  .price-block.chop { border-left: 3px solid var(--c-chop); }
+  .price-label {
+    font-family: var(--font-mono);
+    font-size: var(--fs-tiny);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+  .price-block.icm .price-label { color: var(--c-icm); }
+  .price-block.chop .price-label { color: var(--c-chop); }
+  .price-value {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xl);
+    font-weight: 700;
+    line-height: 1.05;
+    color: var(--text);
+  }
+  .price-note {
+    font-size: var(--fs-tiny);
+    color: var(--text-faint);
+    margin-top: 8px;
+    line-height: 1.55;
+    font-family: var(--font-sans);
+  }
+
+  /* ============ custom offer ============ */
+  .offer-input-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 18px;
+    padding: 16px 18px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
+  .offer-input-row label {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--text);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  .offer-input-row input { max-width: 220px; font-size: var(--fs-md); }
+  .verdict {
+    margin-top: 14px;
+    padding: 14px 18px;
+    border-radius: var(--radius-sm);
+    border-left: 3px solid;
+    font-family: var(--font-sans);
+  }
+  .verdict.good   { background: rgba(58, 255, 176, 0.08); border-color: var(--good); }
+  .verdict.bad    { background: rgba(255, 107, 74, 0.08); border-color: var(--warn); }
+  .verdict.info   { background: rgba(74, 200, 255, 0.08); border-color: var(--c-chop); }
+  .verdict-title {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    margin-bottom: 4px;
+  }
+  .verdict.good .verdict-title { color: var(--good); }
+  .verdict.bad .verdict-title  { color: var(--warn); }
+  .verdict.info .verdict-title { color: var(--c-chop); }
+  .verdict-body {
+    font-size: var(--fs-sm);
+    color: var(--text-dim);
+    line-height: 1.65;
+  }
+
+  /* ============ chart ============ */
+  .chart-wrap {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 18px 14px 14px;
+    position: relative;
+  }
+  #chart {
+    display: block;
+    width: 100%;
+    height: 360px;
+  }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-top: 12px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-tiny);
+    color: var(--text-dim);
+    align-items: center;
+  }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .legend-line { display: inline-block; width: 22px; height: 2px; }
+  .legend-line.offer { background: var(--c-offer); }
+  .legend-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+  .legend-dot.icm { background: var(--c-icm); }
+  .legend-dot.chop { background: var(--c-chop); }
+  .legend-dot.custom { background: var(--c-custom); }
+
+  /* ============ note ============ */
+  .note {
+    background: rgba(255, 210, 58, 0.05);
+    border: 1px solid rgba(255, 210, 58, 0.25);
+    border-left: 3px solid var(--solved);
+    padding: 12px 16px;
+    margin-top: 14px;
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-sm);
+    color: var(--text-dim);
+    line-height: 1.65;
+  }
+  .note strong { color: var(--solved); font-weight: 600; }
+
+  /* ============ responsive ============ */
+  @media (max-width: 640px) {
+    body { padding: 48px 12px 32px; }
+    .section-header .desc { margin-left: 0; width: 100%; }
+    .player-row {
+      grid-template-columns: 1fr auto;
+      grid-template-rows: auto auto;
+      gap: 8px 12px;
+    }
+    .player-row > input[type="number"] { grid-column: 1 / -1; }
+    .player-row .pct { grid-column: 2; grid-row: 1; }
+    .player-row .me-button { grid-column: 1 / -1; }
+    thead th, tbody td { padding: 9px 8px; font-size: 11px; }
+    .price-value { font-size: var(--fs-lg); }
+  }
+</style>
+</head>
+<body>
+<a class="portal-back" href="../../index.html">← 工具集</a>
+<div class="container">
+
+  <header>
+    <h1>FT Deal <span>分账计算器</span></h1>
+    <p class="subtitle">ICM · Chip Chop · 报价决策图 · 最后桌谈判公平价</p>
+    <span class="role-tag">锦标赛 · 决赛桌分账</span>
+  </header>
+
+  <!-- 01 / PLAYERS -->
+  <section>
+    <div class="section-header">
+      <span class="section-num">01 / PLAYERS</span>
+      <h2>玩家数与筹码</h2>
+      <span class="desc">选人数 · 填筹码 · 标记自己</span>
+    </div>
+    <div class="card">
+      <div class="player-count" id="playerCountBtns">
+        <button data-n="2">2 人单挑</button>
+        <button data-n="3" class="active">3 人</button>
+        <button data-n="4">4 人</button>
+      </div>
+      <div id="playersContainer" style="margin-top: 14px;"></div>
+      <p class="totals" id="totals">—</p>
+    </div>
+  </section>
+
+  <!-- 02 / PAYOUTS -->
+  <section>
+    <div class="section-header">
+      <span class="section-num">02 / PAYOUTS</span>
+      <h2>奖金（按名次）</h2>
+      <span class="desc">输入 1st / 2nd / 3rd / 4th 各档奖金</span>
+    </div>
+    <div class="card">
+      <div class="payouts-grid" id="payoutsContainer"></div>
+    </div>
+  </section>
+
+  <!-- 03 / RESULTS -->
+  <section>
+    <div class="section-header">
+      <span class="section-num">03 / RESULTS</span>
+      <h2>分账结果对比</h2>
+      <span class="desc">ICM vs 按筹码分账 · 全玩家</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>玩家</th>
+            <th class="num">筹码占比</th>
+            <th class="num col-icm-h">ICM 分账</th>
+            <th class="num col-chop-h">按筹码分账</th>
+            <th class="num">差值</th>
+          </tr>
+        </thead>
+        <tbody id="resultsBody"></tbody>
+      </table>
+    </div>
+    <div class="note">
+      <strong>读法：</strong>ICM（业内标准）按"模拟全部完赛"算各玩家拿到各名次的概率加权奖金，对短码方更友好；按筹码分账（chip chop）按比例切剩余奖池，对长码方有利。两者都是"公平价"，业内 deal 谈判通常从 ICM 开始。
+    </div>
+  </section>
+
+  <!-- 04 / MY PRICE -->
+  <section>
+    <div class="section-header">
+      <span class="section-num">04 / MY PRICE</span>
+      <h2 id="myTitle">我的公平价</h2>
+      <span class="desc">两种算法下你应该拿多少</span>
+    </div>
+    <div class="summary-card">
+      <div class="summary-title" id="myTitleTag">→ 玩家 1（我）的公平价</div>
+      <div class="price-grid">
+        <div class="price-block icm">
+          <div class="price-label">ICM 公平价</div>
+          <div class="price-value" id="myICM">—</div>
+          <p class="price-note">业内标准。如果你筹码少、对手筹码多，这个数对你比较有利。</p>
+        </div>
+        <div class="price-block chop">
+          <div class="price-label">按筹码分账</div>
+          <div class="price-value" id="myChop">—</div>
+          <p class="price-note">最简单算法。筹码越多的人拿得越多，对长码方有利。</p>
+        </div>
+      </div>
+
+      <div class="offer-input-row">
+        <label for="customOffer">对方给你的报价 $</label>
+        <input type="number" id="customOffer" placeholder="例如 75000 — 留空则不显示" min="0" step="500">
+      </div>
+      <div id="verdictBox"></div>
+    </div>
+  </section>
+
+  <!-- 05 / DECISION CHART -->
+  <section>
+    <div class="section-header">
+      <span class="section-num">05 / DECISION</span>
+      <h2>报价决策图</h2>
+      <span class="desc">报价 → 接受后你拿到的钱</span>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="chart"></canvas>
+    </div>
+    <div class="legend">
+      <span><span class="legend-line offer"></span>接受报价（y = x）</span>
+      <span><span class="legend-dot icm"></span>ICM 公平价</span>
+      <span><span class="legend-dot chop"></span>按筹码分账</span>
+      <span id="customLegend" style="display: none;"><span class="legend-dot custom"></span>对方报价</span>
+    </div>
+    <div class="note">
+      <strong>背景色：</strong>以 ICM 公平价为分界，<span style="color: var(--warn)">左侧红区</span>表示报价低于 ICM（亏），<span style="color: var(--good)">右侧绿区</span>表示报价高于 ICM（赚）。
+    </div>
+  </section>
+
+  <!-- 06 / NEGOTIATION -->
+  <section>
+    <div class="section-header">
+      <span class="section-num">06 / NEGOTIATION</span>
+      <h2>谈判要点</h2>
+      <span class="desc">怎么用这两个数</span>
+    </div>
+    <div class="note">
+      <strong>关于技术优势：</strong>这个版本不再问"你的 edge 是多少"。原因是：人对自己 edge 的估计普遍偏高（业界研究显示绝大多数玩家高估自己 3–5 个百分点），即使是职业牌手对单场对手的 edge 估计通常也不超过 5–10%。更稳妥的做法是<strong>从 ICM 公平价出发谈判，再根据你对自己的信心适当上调开价</strong>——确信有显著技术优势，把"接受门槛"定在 ICM 价的 5–10% 之上；否则就以 ICM 公平价为基准。
+    </div>
+    <div class="note">
+      <strong>开价策略：</strong>计算出的"公平价"是双方都该认可的中间点，不是你的开价。第一次报价应该比公平价高 5–10%——你永远可以谈下来，但很难谈上去。大多数对手没做过这种计算，他们累、被钱吓到、容易被施压。一种由数学支撑的不可动摇的自信，往往比数学本身更值钱。
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function() {
+  const $ = id => document.getElementById(id);
+  const fmt = n => '$' + Math.round(n).toLocaleString('en-US');
+  const fmtSigned = n => (n >= 0 ? '+' : '−') + '$' + Math.round(Math.abs(n)).toLocaleString('en-US');
+
+  function cssVar(name, fallback) {
+    return getComputedStyle(document.body).getPropertyValue(name).trim() || fallback;
+  }
+
+  const state = {
+    n: 3,
+    stacks: [1500000, 1000000, 500000, 250000],
+    payouts: [100000, 60000, 30000, 15000],
+    meIndex: 0,
+  };
+
+  // ========== ICM (Malmuth-Harville) ==========
+  function popcount(x) {
+    let c = 0; while (x) { c += x & 1; x >>>= 1; } return c;
+  }
+  function icmCalc(stacks, payouts) {
+    const n = stacks.length;
+    const total = stacks.reduce((a, b) => a + b, 0);
+    if (total === 0) return stacks.map(() => 0);
+    const fullMask = (1 << n) - 1;
+    const reach = new Map();
+    reach.set(fullMask, 1);
+    const finishProb = Array.from({length: n}, () => new Array(n).fill(0));
+    for (let size = n; size >= 1; size--) {
+      for (let mask = 0; mask <= fullMask; mask++) {
+        if (popcount(mask) !== size) continue;
+        const p = reach.get(mask) || 0;
+        if (p === 0) continue;
+        let sumStacks = 0;
+        for (let i = 0; i < n; i++) if (mask & (1 << i)) sumStacks += stacks[i];
+        if (sumStacks === 0) continue;
+        const position = n - size;
+        for (let i = 0; i < n; i++) {
+          if (!(mask & (1 << i))) continue;
+          const contrib = p * (stacks[i] / sumStacks);
+          finishProb[i][position] += contrib;
+          if (size > 1) {
+            const newMask = mask ^ (1 << i);
+            reach.set(newMask, (reach.get(newMask) || 0) + contrib);
+          }
+        }
+      }
+    }
+    return stacks.map((_, i) =>
+      finishProb[i].reduce((sum, prob, pos) => sum + prob * (payouts[pos] || 0), 0)
+    );
+  }
+
+  // ========== Chip chop (with last-place guarantee) ==========
+  function chopCalc(stacks, payouts) {
+    const n = stacks.length;
+    const total = stacks.reduce((a, b) => a + b, 0);
+    if (total === 0) return stacks.map(() => 0);
+    const guarantee = payouts[n - 1] || 0;
+    const totalPrizes = payouts.slice(0, n).reduce((a, b) => a + b, 0);
+    const remaining = totalPrizes - n * guarantee;
+    return stacks.map(s => guarantee + (s / total) * remaining);
+  }
+
+  // ========== UI ==========
+  function renderPlayers() {
+    const container = $('playersContainer');
+    container.innerHTML = '';
+    for (let i = 0; i < state.n; i++) {
+      const row = document.createElement('div');
+      row.className = 'player-row' + (i === state.meIndex ? ' me' : '');
+      row.innerHTML = `
+        <span class="player-label">玩家 ${i + 1}${i === state.meIndex ? '（我）' : ''}</span>
+        <input type="number" min="0" step="10000" value="${state.stacks[i]}" data-idx="${i}" class="stack-input">
+        <button class="me-button${i === state.meIndex ? ' active' : ''}" data-idx="${i}">${i === state.meIndex ? '✓ 我是这位' : '设为我'}</button>
+        <span class="pct">—</span>
+      `;
+      container.appendChild(row);
+    }
+    container.querySelectorAll('.stack-input').forEach(inp => {
+      inp.addEventListener('input', e => {
+        const idx = +e.target.dataset.idx;
+        state.stacks[idx] = parseFloat(e.target.value) || 0;
+        recalc();
+      });
+    });
+    container.querySelectorAll('.me-button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.meIndex = +btn.dataset.idx;
+        renderPlayers();
+        recalc();
+      });
+    });
+  }
+
+  function renderPayouts() {
+    const container = $('payoutsContainer');
+    container.innerHTML = '';
+    const labels = ['1st', '2nd', '3rd', '4th'];
+    for (let i = 0; i < state.n; i++) {
+      const field = document.createElement('div');
+      field.className = 'payout-field';
+      field.innerHTML = `
+        <label>${labels[i]} ($)</label>
+        <input type="number" min="0" step="1000" value="${state.payouts[i]}" data-idx="${i}" class="payout-input">
+      `;
+      container.appendChild(field);
+    }
+    container.querySelectorAll('.payout-input').forEach(inp => {
+      inp.addEventListener('input', e => {
+        const idx = +e.target.dataset.idx;
+        state.payouts[idx] = parseFloat(e.target.value) || 0;
+        recalc();
+      });
+    });
+  }
+
+  function setupPlayerCount() {
+    document.querySelectorAll('#playerCountBtns button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const n = +btn.dataset.n;
+        state.n = n;
+        if (state.meIndex >= n) state.meIndex = 0;
+        document.querySelectorAll('#playerCountBtns button').forEach(b => {
+          b.classList.toggle('active', +b.dataset.n === n);
+        });
+        renderPlayers();
+        renderPayouts();
+        recalc();
+      });
+    });
+  }
+
+  function recalc() {
+    const n = state.n;
+    const stacks = state.stacks.slice(0, n);
+    const payouts = state.payouts.slice(0, n);
+    const total = stacks.reduce((a, b) => a + b, 0);
+    const totalPrize = payouts.reduce((a, b) => a + b, 0);
+
+    const totalsEl = $('totals');
+    totalsEl.textContent = `总筹码 ${total.toLocaleString('en-US')}　·　总奖池 ${fmt(totalPrize)}`;
+    totalsEl.classList.remove('warn');
+
+    // update player row percentages
+    document.querySelectorAll('.player-row').forEach((row, i) => {
+      const pct = total > 0 ? (stacks[i] / total * 100) : 0;
+      const pctEl = row.querySelector('.pct');
+      if (pctEl) pctEl.textContent = pct.toFixed(1) + '%';
+    });
+
+    const tbody = $('resultsBody');
+    if (total === 0 || totalPrize === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-faint);padding:18px;">请填写有效的筹码和奖金</td></tr>';
+      $('myICM').textContent = '—';
+      $('myChop').textContent = '—';
+      drawChart(null, null, null, null);
+      return;
+    }
+
+    // payout ordering warning
+    for (let i = 1; i < n; i++) {
+      if (payouts[i] > payouts[i - 1]) {
+        totalsEl.textContent += '　⚠ 奖金应从冠军到末位递减';
+        totalsEl.classList.add('warn');
+        break;
+      }
+    }
+
+    const icmResults = icmCalc(stacks, payouts);
+    const chopResults = chopCalc(stacks, payouts);
+
+    tbody.innerHTML = '';
+    for (let i = 0; i < n; i++) {
+      const tr = document.createElement('tr');
+      if (i === state.meIndex) tr.className = 'me';
+      const pct = (stacks[i] / total * 100).toFixed(1);
+      const diff = icmResults[i] - chopResults[i];
+      const diffColor = diff >= 0 ? 'var(--good)' : 'var(--warn)';
+      tr.innerHTML = `
+        <td>玩家 ${i + 1}${i === state.meIndex ? '（我）' : ''}</td>
+        <td class="num">${pct}%</td>
+        <td class="num col-icm">${fmt(icmResults[i])}</td>
+        <td class="num col-chop">${fmt(chopResults[i])}</td>
+        <td class="num" style="color:${diffColor}">${fmtSigned(diff)}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    const myICM = icmResults[state.meIndex];
+    const myChop = chopResults[state.meIndex];
+    $('myICM').textContent = fmt(myICM);
+    $('myChop').textContent = fmt(myChop);
+    $('myTitleTag').textContent = `→ 玩家 ${state.meIndex + 1}（我）的公平价`;
+
+    const customRaw = $('customOffer').value.trim();
+    const customOffer = customRaw === '' ? null : parseFloat(customRaw);
+    const validCustom = customOffer !== null && !isNaN(customOffer);
+
+    // verdict
+    const verdictBox = $('verdictBox');
+    if (!validCustom) {
+      verdictBox.innerHTML = '';
+    } else {
+      const vsICM = customOffer - myICM;
+      const vsChop = customOffer - myChop;
+      let cls, title, body;
+      if (vsICM >= 0 && vsChop >= 0) {
+        cls = 'good';
+        title = `报价 ${fmt(customOffer)}：可以接 ✓`;
+        body = `比 ICM 公平价高 ${fmtSigned(vsICM)}，比筹码分账高 ${fmtSigned(vsChop)}。两种算法下你都占便宜，是合理的 deal。`;
+      } else if (vsICM < 0 && vsChop < 0) {
+        cls = 'bad';
+        title = `报价 ${fmt(customOffer)}：拒绝 ✗`;
+        body = `比 ICM 低 ${fmtSigned(vsICM)}，比筹码分账低 ${fmtSigned(vsChop)}。两种算法下都吃亏，应该还价。还价至少到 ${fmt(Math.max(myICM, myChop))}。`;
+      } else if (vsICM >= 0) {
+        cls = 'info';
+        title = `报价 ${fmt(customOffer)}：中间地带`;
+        body = `高于 ICM ${fmtSigned(vsICM)} 但低于筹码分账 ${fmtSigned(vsChop)}。ICM 是业内标准，按 ICM 看你赚了——可以接，也可以推回到筹码分账价 ${fmt(myChop)}。`;
+      } else {
+        cls = 'info';
+        title = `报价 ${fmt(customOffer)}：中间地带`;
+        body = `高于筹码分账 ${fmtSigned(vsChop)} 但低于 ICM ${fmtSigned(vsICM)}。按筹码看你赚了，但按 ICM 公平价你少拿了——可以推到 ${fmt(myICM)}。`;
+      }
+      verdictBox.innerHTML = `<div class="verdict ${cls}"><div class="verdict-title">${title}</div><div class="verdict-body">${body}</div></div>`;
+    }
+
+    $('customLegend').style.display = validCustom ? 'flex' : 'none';
+
+    drawChart(payouts, myICM, myChop, validCustom ? customOffer : null);
+  }
+
+  // ========== Native canvas chart ==========
+  let chartCache = { payouts: null, icm: null, chop: null, custom: null };
+
+  function drawChart(payouts, icmPrice, chopPrice, customOffer) {
+    chartCache = { payouts, icm: icmPrice, chop: chopPrice, custom: customOffer };
+    const canvas = $('chart');
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const cssW = canvas.clientWidth;
+    const cssH = canvas.clientHeight;
+    canvas.width = cssW * dpr;
+    canvas.height = cssH * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    const padL = 76, padR = 24, padT = 22, padB = 44;
+    const W = cssW - padL - padR;
+    const H = cssH - padT - padB;
+
+    // clear
+    ctx.clearRect(0, 0, cssW, cssH);
+
+    if (!payouts || payouts.length === 0) {
+      ctx.fillStyle = cssVar('--text-faint', '#6f6f7c');
+      ctx.font = '12px JetBrains Mono, monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('请先输入有效筹码与奖金', cssW / 2, cssH / 2);
+      return;
+    }
+
+    const minOffer = payouts[payouts.length - 1];
+    const maxOffer = payouts[0];
+    if (maxOffer <= minOffer) return;
+
+    const yPad = (maxOffer - minOffer) * 0.05;
+    const xMin = minOffer, xMax = maxOffer;
+    const yMin = minOffer - yPad, yMax = maxOffer + yPad;
+
+    function xOf(v) { return padL + ((v - xMin) / (xMax - xMin)) * W; }
+    function yOf(v) { return padT + H - ((v - yMin) / (yMax - yMin)) * H; }
+
+    // zone backgrounds (using ICM as the reference)
+    if (icmPrice !== null && icmPrice !== undefined) {
+      const cx = Math.max(padL, Math.min(padL + W, xOf(icmPrice)));
+      ctx.save();
+      ctx.globalAlpha = 0.10;
+      if (cx > padL) {
+        ctx.fillStyle = cssVar('--warn', '#ff6b4a');
+        ctx.fillRect(padL, padT, cx - padL, H);
+      }
+      if (cx < padL + W) {
+        ctx.fillStyle = cssVar('--good', '#3affb0');
+        ctx.fillRect(cx, padT, padL + W - cx, H);
+      }
+      ctx.restore();
+    }
+
+    // gridlines + axis labels (Y)
+    ctx.strokeStyle = 'rgba(60, 70, 80, 0.4)';
+    ctx.lineWidth = 1;
+    ctx.font = '11px JetBrains Mono, monospace';
+    ctx.fillStyle = cssVar('--text-faint', '#6f6f7c');
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+
+    const yStep = niceTickStep((yMax - yMin) / 5);
+    const yStart = Math.floor(yMin / yStep) * yStep;
+    for (let v = yStart; v <= yMax; v += yStep) {
+      if (v < yMin) continue;
+      const y = yOf(v);
+      ctx.beginPath();
+      ctx.moveTo(padL, y);
+      ctx.lineTo(padL + W, y);
+      ctx.stroke();
+      ctx.fillText('$' + fmtCompact(v), padL - 8, y);
+    }
+
+    // gridlines + axis labels (X)
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    const xStep = niceTickStep((xMax - xMin) / 5);
+    const xStart = Math.ceil(xMin / xStep) * xStep;
+    for (let v = xStart; v <= xMax; v += xStep) {
+      const x = xOf(v);
+      ctx.strokeStyle = 'rgba(60, 70, 80, 0.2)';
+      ctx.beginPath();
+      ctx.moveTo(x, padT);
+      ctx.lineTo(x, padT + H);
+      ctx.stroke();
+      ctx.fillStyle = cssVar('--text-faint', '#6f6f7c');
+      ctx.fillText('$' + fmtCompact(v), x, padT + H + 8);
+    }
+
+    // axis titles
+    ctx.fillStyle = cssVar('--text-dim', '#a0a0b0');
+    ctx.font = '11px JetBrains Mono, monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('对方给你的报价 ($)', padL + W / 2, padT + H + 26);
+    ctx.save();
+    ctx.translate(padL - 56, padT + H / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText('你拿到 ($)', 0, 0);
+    ctx.restore();
+
+    // y = x line
+    ctx.strokeStyle = cssVar('--c-offer', '#d4ff3a');
+    ctx.lineWidth = 2.5;
+    ctx.shadowColor = 'rgba(212, 255, 58, 0.35)';
+    ctx.shadowBlur = 8;
+    ctx.beginPath();
+    ctx.moveTo(xOf(xMin), yOf(xMin));
+    ctx.lineTo(xOf(xMax), yOf(xMax));
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // axis frame
+    ctx.strokeStyle = 'rgba(60, 70, 80, 0.8)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(padL, padT);
+    ctx.lineTo(padL, padT + H);
+    ctx.lineTo(padL + W, padT + H);
+    ctx.stroke();
+
+    // markers
+    function drawMarker(price, color, label, labelOffsetY) {
+      if (price === null || price === undefined) return;
+      if (price < xMin || price > xMax) return;
+      const x = xOf(price);
+      const y = yOf(price);
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 4]);
+      ctx.globalAlpha = 0.6;
+      ctx.beginPath();
+      ctx.moveTo(x, padT);
+      ctx.lineTo(x, padT + H);
+      ctx.stroke();
+      ctx.restore();
+
+      ctx.save();
+      ctx.fillStyle = color;
+      ctx.strokeStyle = cssVar('--bg-elev', '#131318');
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(x, y, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = color;
+      ctx.font = '500 11px JetBrains Mono, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(label, x, y + labelOffsetY);
+      ctx.restore();
+    }
+
+    drawMarker(icmPrice, cssVar('--c-icm', '#3affb0'), 'ICM ' + fmt(icmPrice || 0), -14);
+    drawMarker(chopPrice, cssVar('--c-chop', '#4ac8ff'), '筹码 ' + fmt(chopPrice || 0), 22);
+
+    // custom marker (with halo)
+    if (customOffer !== null && customOffer !== undefined &&
+        customOffer >= xMin && customOffer <= xMax) {
+      const x = xOf(customOffer);
+      const y = yOf(customOffer);
+      const color = cssVar('--c-custom', '#ff6b9d');
+      ctx.save();
+      ctx.fillStyle = color;
+      ctx.globalAlpha = 0.25;
+      ctx.beginPath();
+      ctx.arc(x, y, 14, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = color;
+      ctx.strokeStyle = cssVar('--bg-elev', '#131318');
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(x, y, 8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = color;
+      ctx.font = '500 11px JetBrains Mono, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('报价 ' + fmt(customOffer), x, y - 16);
+      ctx.restore();
+    }
+  }
+
+  function niceTickStep(rough) {
+    if (rough <= 0) return 1;
+    const exp = Math.floor(Math.log10(rough));
+    const f = rough / Math.pow(10, exp);
+    let nf;
+    if (f < 1.5) nf = 1;
+    else if (f < 3.5) nf = 2;
+    else if (f < 7.5) nf = 5;
+    else nf = 10;
+    return nf * Math.pow(10, exp);
+  }
+
+  function fmtCompact(n) {
+    const a = Math.abs(n);
+    if (a >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M';
+    if (a >= 1_000) return (n / 1_000).toFixed(1).replace(/\.0$/, '') + 'k';
+    return Math.round(n).toString();
+  }
+
+  // init
+  setupPlayerCount();
+  renderPlayers();
+  renderPayouts();
+  $('customOffer').addEventListener('input', recalc);
+  recalc();
+
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      drawChart(chartCache.payouts, chartCache.icm, chartCache.chop, chartCache.custom);
+    }, 150);
+  });
+})();
+</script>
+</body>
+</html>
