@@ -138,11 +138,9 @@
     counter-reset: card;
   }
 
-  /* featured first: spans full row (becomes the headline) */
+  /* featured first: spans 2 columns (so 5-card grids stay clean) */
   .group[data-featured-first] .tool-grid > .tool-card:first-child {
-    grid-column: 1 / -1;
-    min-height: 132px;
-    padding: 22px 28px 24px;
+    grid-column: span 2;
   }
   .group[data-featured-first] .tool-grid > .tool-card:first-child .tool-name {
     font-size: var(--fs-lg);
@@ -155,11 +153,6 @@
   .group[data-featured-first] .tool-grid > .tool-card:first-child::after {
     font-size: 13px;
     opacity: 0.7;
-  }
-
-  /* single-card stretch */
-  .group[data-stretch-first] .tool-grid > .tool-card:first-child {
-    grid-column: 1 / -1;
   }
 
   /* ============ card ============ */
@@ -351,11 +344,11 @@
     </p>
   </div>
 
-  <!-- ============ Staking ============ -->
+  <!-- ============ 股份 ============ -->
   <section class="group" data-theme="staking" data-featured-first>
     <div class="group-label">
-      <span>Staking · 股权交易</span>
-      <span class="count">/ 7 TOOLS</span>
+      <span>Staking · 股份</span>
+      <span class="count">/ 5 TOOLS</span>
     </div>
     <p class="group-desc">选手卖股、投资人买股、合约反推 EV，多角度配套使用。</p>
     <div class="tool-grid">
@@ -365,16 +358,7 @@
           <div class="tool-name">MTT 卖股计算器</div>
         </div>
         <div class="tool-tagline">该卖多少 · Markup 收多少 · 最优增长</div>
-        <div class="tool-desc">输入 buy-in/场子人数/ROI/bankroll，算出最优卖股比例和 markup 推荐。核心计算入口。</div>
-        <span class="arrow">OPEN →</span>
-      </a>
-
-      <a class="tool-card" href="tools/mtt-staking/#reverse">
-        <div class="tool-head">
-          <div class="tool-name">反推 BR</div>
-        </div>
-        <div class="tool-tagline">给定目标 → 反推所需 bankroll</div>
-        <div class="tool-desc">已知卖股比例、markup、ROI 与目标增长率，反向求解打这个 buy-in 所需的最低 bankroll。</div>
+        <div class="tool-desc">输入 buy-in/场子人数/ROI/bankroll，算出最优卖股比例和 markup 推荐。</div>
         <span class="arrow">OPEN →</span>
       </a>
 
@@ -393,15 +377,6 @@
         </div>
         <div class="tool-tagline">Monte Carlo · 盈亏曲线</div>
         <div class="tool-desc">固定/连续两种卖股模式，蒙特卡洛跑 N 子弹后 bankroll 分布与典型路径。</div>
-        <span class="arrow">OPEN →</span>
-      </a>
-
-      <a class="tool-card" href="tools/mtt-staking/#ladder">
-        <div class="tool-head">
-          <div class="tool-name">升级测试</div>
-        </div>
-        <div class="tool-tagline">阶梯式升级 · 成功率 / 时间</div>
-        <div class="tool-desc">从起始 buy-in 一路冲到目标级别的成功率、预期场次和时间，含降级回退逻辑。</div>
         <span class="arrow">OPEN →</span>
       </a>
 
@@ -426,14 +401,32 @@
     </div>
   </section>
 
-  <!-- ============ 现金桌 ============ -->
-  <section class="group" data-theme="cash" data-stretch-first>
+  <!-- ============ 资金管理 ============ -->
+  <section class="group" data-theme="cash">
     <div class="group-label">
-      <span>Cash Game · 现金桌</span>
-      <span class="count">/ 1 TOOL</span>
+      <span>Bankroll · 资金管理</span>
+      <span class="count">/ 3 TOOLS</span>
     </div>
-    <p class="group-desc">资金分级、升级路径、多开时薪与 Monte Carlo 增长曲线。</p>
+    <p class="group-desc">反推所需 bankroll、阶梯升 buy-in 成功率、资金升降级路径。</p>
     <div class="tool-grid">
+
+      <a class="tool-card" href="tools/mtt-staking/#reverse">
+        <div class="tool-head">
+          <div class="tool-name">反推 BR</div>
+        </div>
+        <div class="tool-tagline">给定目标 → 反推所需 bankroll</div>
+        <div class="tool-desc">已知卖股比例、markup、ROI 与目标增长率，反向求解打这个 buy-in 所需的最低 bankroll。</div>
+        <span class="arrow">OPEN →</span>
+      </a>
+
+      <a class="tool-card" href="tools/mtt-staking/#ladder">
+        <div class="tool-head">
+          <div class="tool-name">升级测试</div>
+        </div>
+        <div class="tool-tagline">阶梯式升级 · 成功率 / 时间</div>
+        <div class="tool-desc">从起始 buy-in 一路冲到目标级别的成功率、预期场次和时间，含降级回退逻辑。</div>
+        <span class="arrow">OPEN →</span>
+      </a>
 
       <a class="tool-card" href="tools/bankroll-plan/">
         <div class="tool-head">
