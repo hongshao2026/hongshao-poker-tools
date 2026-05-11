@@ -313,6 +313,10 @@
     letter-spacing: 0.04em;
   }
   .star-cta {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    z-index: 5;
     display: inline-flex;
     align-items: center;
     gap: 8px;
@@ -325,7 +329,7 @@
     font-family: var(--font-mono);
     font-size: var(--fs-tiny);
     letter-spacing: 0.04em;
-    transition: color .18s, border-color .18s, background .18s, transform .18s;
+    transition: color .18s, border-color .18s, background .18s, transform .18s, box-shadow .18s;
   }
   .star-cta svg {
     width: 14px;
@@ -361,12 +365,29 @@
     .group[data-featured-first] .tool-grid > .tool-card:first-child .tool-name {
       font-size: var(--fs-md);
     }
+    .star-cta {
+      top: 14px;
+      right: 14px;
+      padding: 7px 10px 7px 10px;
+      gap: 6px;
+    }
+    .star-cta .label-full { display: none; }
+    .star-cta .arrow { display: none; }
+    .hero .brand-tag { padding-right: 60px; }
   }
 </style>
 </head>
 <body>
 
 <div class="portal">
+
+  <a class="star-cta" href="https://github.com/hongshao2026/hongshao-poker-tools" target="_blank" rel="noopener" aria-label="Star this repo on GitHub">
+    <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25z"/>
+    </svg>
+    <span class="label-full">Star on GitHub</span>
+    <span class="arrow">→</span>
+  </a>
 
   <div class="hero">
     <div class="brand-tag">Hongshao Poker · 红烧扑克</div>
@@ -523,13 +544,6 @@
 
   <footer>
     <span class="tagline">纯前端 · 零依赖 · 完全开源</span>
-    <a class="star-cta" href="https://github.com/hongshao2026/hongshao-poker-tools" target="_blank" rel="noopener" aria-label="Star this repo on GitHub">
-      <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25z"/>
-      </svg>
-      <span>Star on GitHub</span>
-      <span class="arrow">→</span>
-    </a>
   </footer>
 
 </div>
