@@ -31,7 +31,7 @@
 | 工具 | 入口 | 功能 |
 |---|---|---|
 | 赏金跟注 | `tools/bounty/` | PKO + 神秘赏金所需胜率，输出与纯底池的胜率差 |
-| 权益计算器 | `tools/equity/` | Rust → WASM 范围对范围胜率，含 13×13 矩阵 + PostFlop 校准 |
+| 胜率计算器 | `tools/equity/` | Rust → WASM 范围对范围胜率，含 13×13 矩阵 + PostFlop 校准 |
 | 鱿鱼博弈 | `tools/squid-game/` | 8 人桌动态规划解 EV，输入鱿鱼分布 + 规则范围 |
 
 ---

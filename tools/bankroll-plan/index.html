@@ -480,7 +480,7 @@
     <div class="section-header">
       <span class="section-num">02 / LEVELS</span>
       <h2>各级别参数</h2>
-      <span class="desc">改 Straddle / 盈率 / 桌人数，下方所有结果同步更新</span>
+      <span class="desc">改 Straddle / 盈率 / 桌人数，修改后所有结果实时刷新</span>
     </div>
     <div class="table-wrap">
       <table id="levelsTable">
@@ -533,7 +533,7 @@
     <div class="section-header">
       <span class="section-num">04 / HOURLY</span>
       <h2>多开时薪预测</h2>
-      <span class="desc">数学最优 ≠ 实战最优；右列是建议桌数</span>
+      <span class="desc">数学最优 ≠ 实际最优；右列是建议桌数</span>
     </div>
     <div class="table-wrap">
       <table>
@@ -588,7 +588,7 @@
     </div>
 
     <div class="note" style="margin-top: 12px;">
-      <strong>读法：</strong>每行展示从当前级别升到下一级，分别在 1/2/3/4 开下的时薪和所需周数。<strong>金色高亮</strong>是该级别的建议桌数（实战平衡点）。表面上桌数越多周数越少，但要考虑盈率衰减、tilt 风险和疲劳，所以建议桌数往往不是最快那一栏。
+      <strong>怎么看：</strong>每行展示从当前级别升到下一级，分别在 1/2/3/4 开下的时薪和所需周数。<strong>金色高亮</strong>是该级别的建议桌数（实际平衡点）。表面上桌数越多周数越少，但要考虑盈率衰减、tilt 风险和疲劳，所以建议桌数往往不是最快那一栏。
     </div>
 
     <h3 style="font-family: var(--font-mono); font-weight: 500; color: var(--text-dim); margin-top: 24px; margin-bottom: 8px; font-size: var(--fs-sm); letter-spacing: 0.04em;">
@@ -643,12 +643,12 @@
       <div class="input-field">
         <label>起始资金 ($)</label>
         <input type="number" id="simBankroll" value="5000" min="100" step="100">
-        <span class="hint">从这个数开始打</span>
+        <span class="hint">模拟起点资金</span>
       </div>
       <div class="input-field">
         <label>模拟周数</label>
         <input type="number" id="simWeeks" value="52" min="4" max="260" step="1">
-        <span class="hint">想看多久的曲线</span>
+        <span class="hint">模拟的时间跨度</span>
       </div>
       <div class="input-field">
         <label>每周小时数</label>
@@ -663,7 +663,7 @@
       <div class="input-field">
         <label>方差强度 σ ($/100手)</label>
         <input type="number" id="simStd" value="0" min="0" step="10">
-        <span class="hint">每级自动按死钱估算；填非 0 则覆盖为统一值</span>
+        <span class="hint">每级自动按死钱估算；填一个非 0 值则覆盖所有级别的自动估算</span>
       </div>
     </div>
 
