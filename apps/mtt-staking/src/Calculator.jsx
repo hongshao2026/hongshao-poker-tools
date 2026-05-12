@@ -190,7 +190,7 @@ function CalculatorTab() {
           <NumberInput value={buyin} onChange={setBuyin} style={inputStyle} min={1} />
         </Field>
 
-        <Field label="场子人数 (Field Size)">
+        <Field label="参赛人数 (Field Size)">
           <NumberInput value={field} onChange={setField} style={inputStyle} min={1} />
           <div style={{ display: "flex", gap: 4, marginTop: 6, flexWrap: "wrap" }}>
             {[100, 200, 300, 500, 1000, 1500, 2000, 3000, 5000].map(f => (
@@ -607,7 +607,7 @@ function ReverseTab() {
           <NumberInput value={buyin} onChange={setBuyin} style={inputStyle} min={1} />
         </Field>
 
-        <Field label="场子人数">
+        <Field label="参赛人数">
           <NumberInput value={field} onChange={setField} style={inputStyle} min={1} />
           <div style={{ display: "flex", gap: 4, marginTop: 6, flexWrap: "wrap" }}>
             {[100, 200, 300, 500, 1000, 1500, 2000, 3000, 5000].map(f => (
@@ -837,7 +837,7 @@ function ReverseTab() {
 // ============================================================
 // 真实 GG payout 生成器
 // 基于 9 个真实 GG 锦标赛数据点拟合的奖励结构
-// 输入: N(场子人数), type(比赛类型)
+// 输入: N(参赛人数), type(比赛类型)
 // 返回: payouts 数组(长度 N,payouts[i] 是排名 i+1 的奖金,以 BI 为单位)
 // ============================================================
 function generateGGPayout(N, type = "Standard") {
@@ -1586,7 +1586,7 @@ function MonteCarloTab({ availableModes = ["fixed", "continuous", "ladder"], def
     setTimeout(() => {
       // 单次回报硬上限 = 当前场子的冠军赔率
       const top1Cap = calcTop1BI(field, type);
-      // 真实 GG payout 表(基于场子人数 + 比赛类型)
+      // 真实 GG payout 表(基于参赛人数 + 比赛类型)
       const payouts = getCachedPayout(field, type);
       const pathResults = paths.map(p => {
         const sim = runSimulation({
@@ -1651,7 +1651,7 @@ function MonteCarloTab({ availableModes = ["fixed", "continuous", "ladder"], def
               </Field>
             )}
 
-            <Field label="场子人数">
+            <Field label="参赛人数">
               <NumberInput value={field} onChange={setField} style={inputStyle} min={1} />
               <div style={{ display: "flex", gap: 4, marginTop: 6, flexWrap: "wrap" }}>
                 {[100, 200, 300, 500, 1000, 1500, 2000, 3000, 5000].map(f => (

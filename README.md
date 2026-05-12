@@ -12,7 +12,7 @@
 
 | 工具 | 入口 | 功能 |
 |---|---|---|
-| MTT 卖股计算器 | `tools/mtt-staking/#calc` | 输入 buy-in / 场子人数 / ROI / bankroll，算最优卖股比例 + markup |
+| MTT 卖股计算器 | `tools/mtt-staking/#calc` | 输入 buy-in / 参赛人数 / ROI / bankroll，算最优卖股比例 + markup |
 | 反推 BR | `tools/mtt-staking/#reverse` | 给定 markup 和目标增长率，反推所需 bankroll |
 | 风格自测 | `tools/mtt-staking/#quiz` | 短问卷判定 BRM 风格（保守 / 平衡 / 激进） |
 | 曲线模拟 | `tools/mtt-staking/#sim` | Monte Carlo 跑 N 子弹，看盈亏曲线与典型路径 |
