@@ -368,8 +368,12 @@ function CalculatorTab() {
 // ============================================================
 // Pro MVP:卖股报告生成器
 // ============================================================
+const REPORT_STORAGE_KEY = "hongshao_staking_reports_v1";
+
 function StakingReportPanel({ buyin, field, type, BR, roi, markup, shape, calibrated, theoretical }) {
   const [copied, setCopied] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [history, setHistory] = useState(() => readReportHistory());
   const report = useMemo(() => {
     const salePct = calibrated.optSale * 100;
     const retainPct = 100 - salePct;
@@ -399,6 +403,17 @@ function StakingReportPanel({ buyin, field, type, BR, roi, markup, shape, calibr
       riskTone,
       styleName,
       generatedAt,
+      summary: {
+        buyin,
+        field,
+        type,
+        BR,
+        roi,
+        markup,
+        salePct,
+        retainPct,
+        ceGrowth: calibrated.ceGrowth,
+      },
       markdown: [
         "# MTT 卖股研究报告",
         "",
@@ -464,6 +479,39 @@ function StakingReportPanel({ buyin, field, type, BR, roi, markup, shape, calibr
     URL.revokeObjectURL(url);
   };
 
+  const saveReport = () => {
+    const item = {
+      id: `${Date.now()}-${field}-${buyin}`,
+      title: `${type} $${buyin} / ${field}人 / 卖出 ${report.salePct.toFixed(1)}%`,
+      createdAt: new Date().toISOString(),
+      generatedAt: report.generatedAt,
+      summary: report.summary,
+      markdown: report.markdown,
+    };
+    const next = [item, ...history.filter(h => h.id !== item.id)].slice(0, 20);
+    writeReportHistory(next);
+    setHistory(next);
+    setSaved(true);
+    window.setTimeout(() => setSaved(false), 1600);
+  };
+
+  const exportHistory = () => {
+    const blob = new Blob([JSON.stringify(history, null, 2)], { type: "application/json;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "hongshao-staking-report-history.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  const clearHistory = () => {
+    writeReportHistory([]);
+    setHistory([]);
+  };
+
   return (
     <div style={{ background: C.panel, borderRadius: 12, padding: 20, border: `1px solid ${C.solved}55`, marginTop: 16 }}>
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 14 }}>
@@ -479,6 +527,9 @@ function StakingReportPanel({ buyin, field, type, BR, roi, markup, shape, calibr
           </button>
           <button onClick={downloadReport} style={reportButtonStyle(C.blue)}>
             下载 .md
+          </button>
+          <button onClick={saveReport} style={reportButtonStyle(C.good)}>
+            {saved ? "已保存" : "保存到本机"}
           </button>
         </div>
       </div>
@@ -508,8 +559,75 @@ function StakingReportPanel({ buyin, field, type, BR, roi, markup, shape, calibr
           boxSizing: "border-box",
         }}
       />
+
+      <div style={{ marginTop: 16, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: 14 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 10 }}>
+          <div>
+            <div style={{ fontSize: 12, color: C.text, fontWeight: 700 }}>本地报告历史</div>
+            <div style={{ fontSize: 11, color: C.textFaint, marginTop: 3 }}>最多保留最近 20 份,只存当前浏览器。</div>
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <button onClick={exportHistory} disabled={history.length === 0} style={reportButtonStyle(C.blue)}>
+              导出 JSON
+            </button>
+            <button onClick={clearHistory} disabled={history.length === 0} style={reportButtonStyle(C.bad)}>
+              清空
+            </button>
+          </div>
+        </div>
+        {history.length === 0 ? (
+          <div style={{ color: C.textFaint, fontSize: 12, padding: "8px 0" }}>还没有保存的报告。</div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {history.slice(0, 5).map(item => (
+              <div key={item.id} style={{
+                display: "grid",
+                gridTemplateColumns: "1fr auto",
+                gap: 12,
+                alignItems: "center",
+                background: C.panelLight,
+                border: `1px solid ${C.border}`,
+                borderRadius: 6,
+                padding: "10px 12px",
+              }}>
+                <div>
+                  <div style={{ color: C.text, fontSize: 12, fontWeight: 600 }}>{item.title}</div>
+                  <div style={{ color: C.textFaint, fontSize: 10, marginTop: 2 }}>
+                    {new Date(item.createdAt).toLocaleString("zh-CN", { hour12: false })}
+                  </div>
+                </div>
+                <button
+                  onClick={() => navigator.clipboard.writeText(item.markdown)}
+                  style={reportButtonStyle(C.textDim)}
+                >
+                  复制
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
+}
+
+function readReportHistory() {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(REPORT_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeReportHistory(history) {
+  try {
+    window.localStorage.setItem(REPORT_STORAGE_KEY, JSON.stringify(history));
+  } catch {
+    // localStorage may be unavailable in privacy modes; report generation still works.
+  }
 }
 
 function ReportMetric({ label, value, compact }) {
