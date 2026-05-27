@@ -345,6 +345,12 @@
   .tool-card.is-planned .arrow {
     color: var(--g-staking-2);
   }
+  .tool-card.is-live {
+    border-color: color-mix(in oklab, var(--g-staking-2) 45%, var(--border));
+  }
+  .tool-card.is-live .arrow {
+    color: var(--g-staking-2);
+  }
 
   /* ============ stagger fade-in ============ */
   @keyframes card-in {
@@ -490,20 +496,20 @@
   <section class="group" data-theme="staking">
     <div class="group-label">
       <span>Pro Workflow · 付费能力规划</span>
-      <span class="count">/ 4 PLANNED</span>
+      <span class="count">/ 1 MVP · 3 PLANNED</span>
     </div>
     <p class="group-desc">把单次计算变成可保存、可导出、可批量复用的研究工作流。</p>
     <div class="tool-grid">
 
-      <div class="tool-card is-planned">
+      <a class="tool-card is-live" href="tools/mtt-staking/#calc">
         <div class="tool-head">
           <div class="tool-name">卖股报告生成器</div>
-          <span class="status-badge pro">PRO</span>
+          <span class="status-badge pro">MVP</span>
         </div>
         <div class="tool-tagline">参数假设 · 风险说明 · 长图/PDF</div>
-        <div class="tool-desc">把 MTT 卖股结果整理成可发送的一页报告，包含推荐比例、markup、投资人视角和敏感性说明。</div>
-        <span class="arrow">PLANNED</span>
-      </div>
+        <div class="tool-desc">已接入 MTT 卖股计算器，可把当前结果整理成 Markdown 报告，包含推荐比例、markup、风险判断和使用边界。</div>
+        <span class="arrow">OPEN →</span>
+      </a>
 
       <div class="tool-card is-planned">
         <div class="tool-head">
