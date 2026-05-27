@@ -252,6 +252,61 @@
   }
   .batch-textarea:focus { outline: none; border-color: var(--border-bright); }
 
+  .batch-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .batch-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .mini-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+  }
+  .mini-card .lbl {
+    font-size: 10px;
+    color: var(--text-faint);
+    font-family: var(--font-mono);
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+  .mini-card .val {
+    font-size: var(--fs-md);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-weight: 600;
+  }
+  .history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .history-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    align-items: center;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+  .history-row .sub {
+    color: var(--text-faint);
+    font-size: 10px;
+    margin-top: 2px;
+  }
+
   /* ============ details / formula card ============ */
   details {
     background: var(--bg-elev);
@@ -495,42 +550,56 @@
         使用上方"Day 2 单注"页面的赛事参数（奖池、总参赛、Day 2 玩家数等）。
       </p>
       <p style="font-size:var(--fs-sm);margin-bottom:8px;color:var(--text-dim);">
-        <strong>输入格式</strong>：<code class="inline-code">名字, AdjS, markup, 可用%</code>
+        <strong>输入格式</strong>：<code class="inline-code">名字, 筹码, markup, 可用%</code>
+        <span class="footer-note" style="display:inline;margin-left:8px;">第二列大于起始筹码时按筹码处理；小于 100 时兼容旧 AdjS。</span>
       </p>
-      <textarea id="batch-d2-input" class="batch-textarea">BblbpalMydpo, 11.93, 1.23, 51
-Ifold2ndnuts, 3.65, 1.24, 20
-77Futbik77, 5.15, 1.25, 50
-YuanHangPP168, 3.88, 1.26, 59
-Yuanzhuoyi, 4.95, 1.28, 25
-ZhangYaoZU, 9.01, 1.28, 28
-XiaoGe Poker, 6.09, 1.30, 50
-Xodyak19, 10.62, 1.30, 3
-coldshow, 11.23, 1.30, 14
-VoenKom666, 8.51, 1.31, 26
-LatteLion, 8.65, 1.33, 13
-Scarlets, 12.02, 1.33, 42
-FornongZz, 12.69, 1.35, 31
-Feng2418, 7.52, 1.36, 48
-priekulite9, 7.90, 1.38, 30
-Andrejka1313, 7.51, 1.39, 45
-kirrard2866, 3.59, 1.40, 14</textarea>
-      <button onclick="batchAnalyzeD2()">分析</button>
-      <button class="secondary" onclick="document.getElementById('batch-d2-input').value=''">清空</button>
+      <textarea id="batch-d2-input" class="batch-textarea">BblbpalMydpo, 247000, 1.23, 51
+Ifold2ndnuts, 55000, 1.24, 20
+77Futbik77, 86000, 1.25, 50
+YuanHangPP168, 60000, 1.26, 59
+Yuanzhuoyi, 82000, 1.28, 25
+ZhangYaoZU, 165000, 1.28, 28
+XiaoGe Poker, 108000, 1.30, 50
+Xodyak19, 212000, 1.30, 3
+coldshow, 230000, 1.30, 14
+VoenKom666, 154000, 1.31, 26</textarea>
+      <div class="batch-actions">
+        <button onclick="batchAnalyzeD2()">分析</button>
+        <button class="secondary" onclick="exportBatchD2Csv()">导出 CSV</button>
+        <button class="secondary" onclick="saveBatchD2Run()">保存到本机</button>
+        <button class="secondary" onclick="document.getElementById('batch-d2-input').value=''">清空</button>
+      </div>
     </div>
 
     <div class="section" id="batch-d2-result" style="display:none;">
       <div class="section-title">分析结果（按零和 ROI 排序）</div>
+      <div class="batch-summary">
+        <div class="mini-card"><div class="lbl">样本数</div><div class="val" id="batch-d2-count">-</div></div>
+        <div class="mini-card"><div class="lbl">最低门槛</div><div class="val" id="batch-d2-best">-</div></div>
+        <div class="mini-card"><div class="lbl">中位零和 ROI</div><div class="val" id="batch-d2-median">-</div></div>
+        <div class="mini-card"><div class="lbl">30% ROI 正收益</div><div class="val" id="batch-d2-positive30">-</div></div>
+      </div>
       <div class="table-wrapper">
         <table id="batch-d2-table">
           <thead>
             <tr>
-              <th>#</th><th>名字</th><th>AdjS</th><th>Mkup</th><th>可用</th><th>零和</th>
-              <th>5%</th><th>10%</th><th>15%</th><th>20%</th><th>25%</th><th>30%</th><th>35%</th><th>40%</th>
+              <th>#</th><th>名字</th><th>筹码</th><th>AdjS</th><th>Mkup</th><th>1%价</th><th>$EV</th><th>可用</th><th>零和</th>
+              <th>10%</th><th>20%</th><th>30%</th><th>40%</th>
             </tr>
           </thead>
           <tbody id="batch-d2-body"></tbody>
         </table>
       </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">本地批量记录</div>
+      <p class="footer-note">只保存在当前浏览器，最多保留最近 10 次。适合保留一场 Day2 的不同报价版本。</p>
+      <div class="batch-actions">
+        <button class="secondary" onclick="exportBatchD2History()">导出历史 JSON</button>
+        <button class="secondary" onclick="clearBatchD2History()">清空历史</button>
+      </div>
+      <div class="history-list" id="batch-d2-history"></div>
     </div>
   </div>
 
@@ -781,13 +850,24 @@ function fmtPctSigned1(v) {
   return (v >= 0 ? '+' : '') + (v*100).toFixed(1) + '%';
 }
 
+function activateTab(tabName, updateHash = true) {
+  const tab = document.querySelector(`.tab[data-tab="${tabName}"]`);
+  const panel = document.getElementById('tab-' + tabName);
+  if (!tab || !panel) return;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  tab.classList.add('active');
+  panel.classList.add('active');
+  if (updateHash) history.replaceState(null, '', '#' + tabName);
+}
+
 document.querySelectorAll('.tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    tab.classList.add('active');
-    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
-  });
+  tab.addEventListener('click', () => activateTab(tab.dataset.tab));
+});
+
+window.addEventListener('hashchange', () => {
+  const tabName = location.hash.replace('#', '');
+  if (tabName) activateTab(tabName, false);
 });
 
 function icmDiscount(ratio) {
@@ -946,6 +1026,57 @@ function parseInput(text) {
   }).filter(p => p.length >= 3);
 }
 
+const D2_BATCH_ROIS = [0.10, 0.20, 0.30, 0.40];
+const D2_BATCH_HISTORY_KEY = 'hongshao_day2_batch_runs_v1';
+let lastBatchD2Results = [];
+
+function adjsFromChips(chips, start) {
+  return 1.35 * Math.pow(chips / start, 0.75);
+}
+
+function chipsFromAdjs(adjs, start) {
+  return start * Math.pow(adjs / 1.35, 1 / 0.75);
+}
+
+function parseBatchNumber(value) {
+  if (value == null) return NaN;
+  return parseFloat(String(value).replace(/[%,$¥\s]/g, ''));
+}
+
+function escapeCsvCell(value) {
+  const s = String(value ?? '');
+  return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+
+function downloadText(filename, text, type) {
+  const blob = new Blob([text], { type: type || 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function d2BatchToCsv(results) {
+  const header = ['rank','name','chips','adjs','markup','available_pct','price_1pct','dollar_ev','zero_roi','buyer_roi_10','buyer_roi_20','buyer_roi_30','buyer_roi_40'];
+  const rows = results.map((r, i) => [
+    i + 1,
+    r.name,
+    Math.round(r.chips),
+    r.adjs.toFixed(2),
+    r.mu.toFixed(2),
+    r.avail,
+    r.price.toFixed(2),
+    r.dollarEV.toFixed(2),
+    (r.zerosum * 100).toFixed(1) + '%',
+    ...r.buyerROIs.map(v => (v * 100).toFixed(1) + '%'),
+  ]);
+  return [header, ...rows].map(row => row.map(escapeCsvCell).join(',')).join('\n');
+}
+
 function batchAnalyzeD2() {
   const params = getD2Params();
   const lines = parseInput(document.getElementById('batch-d2-input').value);
@@ -953,26 +1084,33 @@ function batchAnalyzeD2() {
 
   lines.forEach(parts => {
     const name = parts[0];
-    const adjs = parseFloat(parts[1]);
-    const mu = parseFloat(parts[2]);
-    const avail = parts[3] ? parseFloat(parts[3]) : 0;
-    if (isNaN(adjs) || isNaN(mu)) return;
+    const rawStack = parseBatchNumber(parts[1]);
+    const mu = parseBatchNumber(parts[2]);
+    const avail = parts[3] ? parseBatchNumber(parts[3]) : 0;
+    if (isNaN(rawStack) || isNaN(mu)) return;
+
+    const isChips = rawStack > 100;
+    const chips = isChips ? rawStack : chipsFromAdjs(rawStack, params.start);
+    const adjs = isChips ? adjsFromChips(chips, params.start) : rawStack;
 
     const r = calcD2(adjs, mu, params);
-    const buyerROIs = [0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40].map(roi =>
+    const buyerROIs = D2_BATCH_ROIS.map(roi =>
       buyerROI_d2(roi, r.dollarEV, r.price)
     );
-    results.push({ name, adjs, mu, avail, ...r, buyerROIs });
+    results.push({ name, adjs, chips, mu, avail, ...r, buyerROIs });
   });
 
   results.sort((a, b) => a.zerosum - b.zerosum);
+  lastBatchD2Results = results;
 
   const tbody = document.getElementById('batch-d2-body');
   tbody.innerHTML = '';
   results.forEach((r, i) => {
     const tr = document.createElement('tr');
     let html = `<td>${i+1}</td><td class="name">${r.name}</td>`;
+    html += `<td>${Math.round(r.chips).toLocaleString()}</td>`;
     html += `<td>${r.adjs.toFixed(2)}</td><td>${r.mu.toFixed(2)}</td>`;
+    html += `<td>${fmtMoney(r.price)}</td><td>${fmtMoney(r.dollarEV)}</td>`;
     html += `<td>${r.avail}%</td>`;
     html += `<td class="${pctClass(-r.zerosum)}">${(r.zerosum*100).toFixed(0)}%</td>`;
     r.buyerROIs.forEach(b => {
@@ -982,7 +1120,78 @@ function batchAnalyzeD2() {
     tbody.appendChild(tr);
   });
 
+  const zeros = results.map(r => r.zerosum).sort((a, b) => a - b);
+  const median = zeros.length ? zeros[Math.floor(zeros.length / 2)] : 0;
+  const positive30 = results.filter(r => r.buyerROIs[2] > 0).length;
+  document.getElementById('batch-d2-count').textContent = results.length;
+  document.getElementById('batch-d2-best').textContent = results[0] ? results[0].name + ' · ' + (results[0].zerosum * 100).toFixed(0) + '%' : '-';
+  document.getElementById('batch-d2-median').textContent = zeros.length ? (median * 100).toFixed(0) + '%' : '-';
+  document.getElementById('batch-d2-positive30').textContent = results.length ? `${positive30}/${results.length}` : '-';
   document.getElementById('batch-d2-result').style.display = 'block';
+}
+
+function exportBatchD2Csv() {
+  if (!lastBatchD2Results.length) batchAnalyzeD2();
+  if (!lastBatchD2Results.length) return;
+  downloadText('hongshao-day2-batch.csv', d2BatchToCsv(lastBatchD2Results), 'text/csv;charset=utf-8');
+}
+
+function readBatchD2History() {
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(D2_BATCH_HISTORY_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeBatchD2History(items) {
+  window.localStorage.setItem(D2_BATCH_HISTORY_KEY, JSON.stringify(items));
+  renderBatchD2History();
+}
+
+function saveBatchD2Run() {
+  if (!lastBatchD2Results.length) batchAnalyzeD2();
+  if (!lastBatchD2Results.length) return;
+  const params = getD2Params();
+  const item = {
+    id: String(Date.now()),
+    createdAt: new Date().toISOString(),
+    title: `${lastBatchD2Results.length}人 Day2 批量 · ${Math.round(params.pool).toLocaleString()}奖池`,
+    params,
+    rows: lastBatchD2Results,
+  };
+  const next = [item, ...readBatchD2History()].slice(0, 10);
+  writeBatchD2History(next);
+}
+
+function exportBatchD2History() {
+  const history = readBatchD2History();
+  if (!history.length) return;
+  downloadText('hongshao-day2-batch-history.json', JSON.stringify(history, null, 2), 'application/json;charset=utf-8');
+}
+
+function clearBatchD2History() {
+  writeBatchD2History([]);
+}
+
+function renderBatchD2History() {
+  const box = document.getElementById('batch-d2-history');
+  if (!box) return;
+  const history = readBatchD2History();
+  if (!history.length) {
+    box.innerHTML = '<div class="footer-note">还没有保存的 Day2 批量记录。</div>';
+    return;
+  }
+  box.innerHTML = history.map(item => `
+    <div class="history-row">
+      <div>
+        <div>${item.title}</div>
+        <div class="sub">${new Date(item.createdAt).toLocaleString('zh-CN', { hour12: false })}</div>
+      </div>
+      <button class="secondary" onclick="downloadText('hongshao-day2-${item.id}.csv', d2BatchToCsv(readBatchD2History().find(x => x.id === '${item.id}').rows), 'text/csv;charset=utf-8')">导出 CSV</button>
+    </div>
+  `).join('');
 }
 
 function batchAnalyzeD1() {
@@ -1089,6 +1298,10 @@ updatePlayersStep();
 updateD2Single();
 updateD1Single();
 batchAnalyzeD1();
+renderBatchD2History();
+if (location.hash) {
+  activateTab(location.hash.replace('#', ''), false);
+}
 </script>
 </body>
 </html>
