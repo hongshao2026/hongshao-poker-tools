@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>本地研究档案 · 红烧扑克</title>
+<link rel="stylesheet" href="../../assets/shared.css">
+<link rel="icon" type="image/svg+xml" href="../../assets/icon.svg">
+<meta name="theme-color" content="#0a0a0c">
+<style>
+  body {
+    padding: 56px 18px 32px;
+    background-image:
+      radial-gradient(circle at 8% 0%, rgba(58,255,176,0.06) 0%, transparent 42%),
+      radial-gradient(circle at 94% 100%, rgba(255,107,157,0.05) 0%, transparent 42%);
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+  header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 18px;
+    margin-bottom: 22px;
+  }
+  h1 {
+    font-family: var(--font-mono);
+    font-size: var(--fs-lg);
+    letter-spacing: -0.4px;
+  }
+  h1 span { color: var(--good); }
+  .subtitle {
+    color: var(--text-faint);
+    font-size: var(--fs-sm);
+    margin-top: 8px;
+    max-width: 760px;
+  }
+  .summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .summary-card, .section {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+  }
+  .summary-card { padding: 16px; }
+  .summary-card .lbl {
+    color: var(--text-faint);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+  .summary-card .val {
+    font-family: var(--font-mono);
+    font-size: 28px;
+    color: var(--good);
+    font-weight: 700;
+    line-height: 1;
+  }
+  .section {
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+  .section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .section-title {
+    font-family: var(--font-mono);
+    color: var(--text-faint);
+    font-size: var(--fs-tiny);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  button, .button-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--good);
+    color: #000;
+    border-radius: var(--radius-sm);
+    padding: 9px 12px;
+    font-size: 13px;
+    text-decoration: none;
+    font-weight: 700;
+  }
+  button.secondary, .button-link.secondary {
+    background: var(--bg-input);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+  }
+  .item-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    align-items: center;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+  }
+  .item-title {
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .item-sub {
+    color: var(--text-faint);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    margin-top: 3px;
+  }
+  .empty {
+    color: var(--text-faint);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-md);
+    padding: 18px;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  .quick-links {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+  }
+  .quick-link {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    text-decoration: none;
+    color: var(--text);
+  }
+  .quick-link strong { display: block; margin-bottom: 4px; }
+  .quick-link span { color: var(--text-faint); font-size: 12px; line-height: 1.6; }
+</style>
+</head>
+<body>
+<a class="portal-back" href="../../index.html">← 工具集</a>
+<div class="wrap">
+  <header>
+    <h1>本地<span>研究档案</span></h1>
+    <p class="subtitle">统一查看当前浏览器里保存的卖股报告、Day2 批量估值和赛事模板。所有数据默认只在本机，适合做 Pro 工作流的本地工作台。</p>
+  </header>
+
+  <section class="summary">
+    <div class="summary-card"><div class="lbl">卖股报告</div><div class="val" id="count-reports">0</div></div>
+    <div class="summary-card"><div class="lbl">Day2 批量</div><div class="val" id="count-day2">0</div></div>
+    <div class="summary-card"><div class="lbl">赛事模板</div><div class="val" id="count-templates">0</div></div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <div class="section-title">Quick Actions</div>
+      <div class="actions">
+        <button onclick="exportVault()">导出全部档案</button>
+        <button class="secondary" onclick="refreshVault()">刷新</button>
+      </div>
+    </div>
+    <div class="quick-links">
+      <a class="quick-link" href="../mtt-staking/#calc"><strong>生成卖股报告</strong><span>打开 MTT 卖股计算器，生成并保存 Markdown 报告。</span></a>
+      <a class="quick-link" href="../staking-calc/#batch-day2"><strong>Day2 批量估值</strong><span>粘贴多人筹码，输出排序表并保存批量记录。</span></a>
+      <a class="quick-link" href="../tournament-templates/"><strong>赛事模板库</strong><span>浏览通用模板，保存自定义赛事结构。</span></a>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <div class="section-title">Staking Reports</div>
+      <button class="secondary" onclick="clearKey(KEYS.reports)">清空报告</button>
+    </div>
+    <div class="item-list" id="reports-list"></div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <div class="section-title">Day2 Batch Runs</div>
+      <button class="secondary" onclick="clearKey(KEYS.day2)">清空 Day2 记录</button>
+    </div>
+    <div class="item-list" id="day2-list"></div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <div class="section-title">Tournament Templates</div>
+      <button class="secondary" onclick="clearKey(KEYS.templates)">清空本地模板</button>
+    </div>
+    <div class="item-list" id="templates-list"></div>
+  </section>
+</div>
+
+<script>
+const KEYS = {
+  reports: 'hongshao_staking_reports_v1',
+  day2: 'hongshao_day2_batch_runs_v1',
+  templates: 'hongshao_tournament_templates_v1',
+};
+
+let vault = { reports: [], day2: [], templates: [] };
+
+function readJson(key) {
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(key) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function refreshVault() {
+  vault = {
+    reports: readJson(KEYS.reports),
+    day2: readJson(KEYS.day2),
+    templates: readJson(KEYS.templates),
+  };
+  renderVault();
+}
+
+function renderVault() {
+  document.getElementById('count-reports').textContent = vault.reports.length;
+  document.getElementById('count-day2').textContent = vault.day2.length;
+  document.getElementById('count-templates').textContent = vault.templates.length;
+  renderReports();
+  renderDay2();
+  renderTemplates();
+}
+
+function renderReports() {
+  const box = document.getElementById('reports-list');
+  if (!vault.reports.length) {
+    box.innerHTML = '<div class="empty">暂无卖股报告。去 MTT 卖股计算器生成并保存一份。</div>';
+    return;
+  }
+  box.innerHTML = vault.reports.slice(0, 8).map(item => `
+    <div class="item">
+      <div>
+        <div class="item-title">${escapeHtml(item.title || 'MTT 卖股研究报告')}</div>
+        <div class="item-sub">${formatDate(item.createdAt)} · CE ${formatMaybe(item.summary?.ceGrowth, '$')}</div>
+      </div>
+      <button class="secondary" onclick="copyText(${JSON.stringify(item.markdown || '')})">复制</button>
+    </div>
+  `).join('');
+}
+
+function renderDay2() {
+  const box = document.getElementById('day2-list');
+  if (!vault.day2.length) {
+    box.innerHTML = '<div class="empty">暂无 Day2 批量记录。去 Day2 批量估值保存一场分析。</div>';
+    return;
+  }
+  box.innerHTML = vault.day2.slice(0, 8).map(item => `
+    <div class="item">
+      <div>
+        <div class="item-title">${escapeHtml(item.title || 'Day2 批量估值')}</div>
+        <div class="item-sub">${formatDate(item.createdAt)} · ${item.rows?.length || 0} 行</div>
+      </div>
+      <button class="secondary" onclick="downloadText('day2-${escapeAttr(item.id)}.json', JSON.stringify(findById(vault.day2, '${escapeAttr(item.id)}'), null, 2), 'application/json;charset=utf-8')">下载</button>
+    </div>
+  `).join('');
+}
+
+function renderTemplates() {
+  const box = document.getElementById('templates-list');
+  if (!vault.templates.length) {
+    box.innerHTML = '<div class="empty">暂无本地自定义模板。赛事模板库里的通用模板不会占用本地档案。</div>';
+    return;
+  }
+  box.innerHTML = vault.templates.slice(0, 8).map(item => `
+    <div class="item">
+      <div>
+        <div class="item-title">${escapeHtml(item.name || item.id)}</div>
+        <div class="item-sub">${escapeHtml(item.kind || '-')} · ${escapeHtml(item.source_type || '-')} · ${escapeHtml(item.collected_at || '-')}</div>
+      </div>
+      <button class="secondary" onclick="downloadText('${escapeAttr(item.id || 'template')}.json', JSON.stringify(findById(vault.templates, '${escapeAttr(item.id)}'), null, 2), 'application/json;charset=utf-8')">下载</button>
+    </div>
+  `).join('');
+}
+
+function exportVault() {
+  const payload = {
+    exported_at: new Date().toISOString(),
+    reports: vault.reports,
+    day2: vault.day2,
+    templates: vault.templates,
+  };
+  downloadText('hongshao-research-vault.json', JSON.stringify(payload, null, 2), 'application/json;charset=utf-8');
+}
+
+function clearKey(key) {
+  window.localStorage.removeItem(key);
+  refreshVault();
+}
+
+async function copyText(text) {
+  await navigator.clipboard.writeText(text || '');
+}
+
+function findById(list, id) {
+  return list.find(item => String(item.id) === String(id)) || null;
+}
+
+function downloadText(filename, text, type) {
+  const blob = new Blob([text], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function formatDate(value) {
+  if (!value) return '-';
+  return new Date(value).toLocaleString('zh-CN', { hour12: false });
+}
+
+function formatMaybe(value, prefix) {
+  if (value == null || Number.isNaN(Number(value))) return '-';
+  return `${prefix || ''}${Number(value).toFixed(2)}`;
+}
+
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, ch => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  }[ch]));
+}
+
+function escapeAttr(s) {
+  return String(s ?? '').replace(/[^a-zA-Z0-9_-]/g, '_');
+}
+
+refreshVault();
+</script>
+</body>
+</html>
