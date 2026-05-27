@@ -412,7 +412,7 @@
           <div class="tool-name">MTT 卖股计算器</div>
         </div>
         <div class="tool-tagline">该卖多少 · Markup 收多少 · 最优增长</div>
-        <div class="tool-desc">输入 buy-in/场子人数/ROI/bankroll，算出最优卖股比例和 markup 推荐。</div>
+        <div class="tool-desc">输入 buy-in/参赛人数/ROI/bankroll，算出最优卖股比例和 markup 推荐。</div>
         <span class="arrow">OPEN →</span>
       </a>
 
@@ -439,7 +439,7 @@
           <div class="tool-name">Online Day2 合理股份计算</div>
         </div>
         <div class="tool-tagline">Day 1/Day 2 · 单注 + 批量 · AdjS·ICM</div>
-        <div class="tool-desc">输入赛事参数（奖池/参赛/Day2 玩家数）+ 玩家筹码，算出零和 ROI、买家 ROI 预测、AdjS×Markup 关系图。</div>
+        <div class="tool-desc">输入赛事参数（奖池/参赛/Day2 玩家数）+ 筹码量，算出零和 ROI、买家 ROI 预测、AdjS×Markup 关系图。</div>
         <span class="arrow">OPEN →</span>
       </a>
 
@@ -493,7 +493,7 @@
 
       <a class="tool-card" href="tools/deal-calc/">
         <div class="tool-head">
-          <div class="tool-name">FT Deal 分账计算器</div>
+          <div class="tool-name">决赛桌Deal计算器</div>
         </div>
         <div class="tool-tagline">ICM · 筹码分账 · 报价决策图</div>
         <div class="tool-desc">最后桌谈分账时算每个人的"公平价"：ICM（业内标准）+ chip chop 双口径对比，输入对方报价直接判断接/拒。</div>
@@ -532,7 +532,7 @@
 
       <a class="tool-card" href="tools/equity/">
         <div class="tool-head">
-          <div class="tool-name">权益计算器</div>
+          <div class="tool-name">胜率计算器</div>
         </div>
         <div class="tool-tagline">范围对范围胜率 + 13×13 矩阵</div>
         <div class="tool-desc">WASM 加速的 enumeration 求精确胜率，支持范围 vs 范围、范围 vs 手牌、指定翻牌/转牌。带 PostFlop 校准。</div>
@@ -545,6 +545,15 @@
         </div>
         <div class="tool-tagline">DP 精确求解 EV</div>
         <div class="tool-desc">8 人桌鱿鱼游戏的动态规划解，输入鱿鱼数量分布、规则范围，输出"打/收"的精确 EV。</div>
+        <span class="arrow">OPEN →</span>
+      </a>
+
+      <a class="tool-card" href="tools/flop-subsets/">
+        <div class="tool-head">
+          <div class="tool-name">翻牌子集</div>
+        </div>
+        <div class="tool-tagline">GTO Wizard · 25/49/85/184 代表性翻牌</div>
+        <div class="tool-desc">用于近似全 1755 翻牌的代表子集，按纹理（同花/两花/彩虹/对子/三条/连张）过滤、随机抽取、复制原始列表。</div>
         <span class="arrow">OPEN →</span>
       </a>
 

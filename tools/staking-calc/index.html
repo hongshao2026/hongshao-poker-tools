@@ -372,12 +372,12 @@
         <div class="input-group">
           <label>总奖池 ($) <span class="link-tag">↔ 联动</span></label>
           <input type="number" id="d2-pool" value="2106984" step="10000">
-          <span class="hint">改这个会自动算总参赛</span>
+          <span class="hint">改此项 → 总参赛自动算</span>
         </div>
         <div class="input-group">
           <label>总参赛人次 <span class="link-tag">↔ 联动</span></label>
           <input type="number" id="d2-entries" value="41640" step="100">
-          <span class="hint">改这个会自动算总奖池</span>
+          <span class="hint">改此项 → 总奖池自动算</span>
         </div>
         <div class="input-group">
           <label>Rake 率 (%)</label>
@@ -385,7 +385,7 @@
           <span class="hint">GG 标准 8%，影响联动计算</span>
         </div>
         <div class="input-group">
-          <label>Day 2 玩家数 ★</label>
+          <label>Day 2 玩家数</label>
           <input type="number" id="d2-players" value="3963" step="50">
           <span class="hint">实际 Day 2 玩家（不是钱圈），箭头每次 ±50</span>
         </div>
@@ -401,7 +401,7 @@
       <div class="section-title">玩家股份分析</div>
       <div class="input-grid">
         <div class="input-group">
-          <label>玩家筹码</label>
+          <label>筹码量</label>
           <input type="number" id="d2-chips" value="175357" step="1000">
         </div>
         <div class="input-group">
@@ -879,7 +879,7 @@ function updateD2Single() {
     vs.textContent = `需玩家 ROI ≥ ${(r.zerosum*100).toFixed(0)}%`;
   } else {
     v.classList.add('v-bad');
-    vb.textContent = '严重偏贵，pass';
+    vb.textContent = '严重偏贵，建议跳过';
     vs.textContent = `需玩家 ROI ≥ ${(r.zerosum*100).toFixed(0)}%`;
   }
 

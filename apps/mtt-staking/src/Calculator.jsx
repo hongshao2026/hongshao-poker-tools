@@ -161,7 +161,7 @@ function CalculatorTab() {
     buyin, field, roi: effectiveROI, BR, type, markup, shape,
   }), [buyin, field, effectiveROI, BR, type, markup, shape]);
 
-  // 卖股份比例曲线数据
+  // 卖股比例曲线数据
   const curveData = useMemo(() => {
     const points = [];
     const sigmaBI = adjustSigmaForShape(calcSigma(field, type), shape);
@@ -190,7 +190,7 @@ function CalculatorTab() {
           <NumberInput value={buyin} onChange={setBuyin} style={inputStyle} min={1} />
         </Field>
 
-        <Field label="场子人数 (Field Size)">
+        <Field label="参赛人数 (Field Size)">
           <NumberInput value={field} onChange={setField} style={inputStyle} min={1} />
           <div style={{ display: "flex", gap: 4, marginTop: 6, flexWrap: "wrap" }}>
             {[100, 200, 300, 500, 1000, 1500, 2000, 3000, 5000].map(f => (
@@ -282,7 +282,7 @@ function CalculatorTab() {
           <BigStat
             label="单子弹 CE 增长"
             value={`$${calibrated.ceGrowth.toFixed(2)}`}
-            sub={`不卖股份: $${calibrated.ceSelfOnly.toFixed(2)}`}
+            sub={`不卖股: $${calibrated.ceSelfOnly.toFixed(2)}`}
             color={calibrated.ceGrowth > 0 ? C.good : C.bad}
           />
           <BigStat
@@ -314,7 +314,7 @@ function CalculatorTab() {
 
         {/* CE 增长曲线 */}
         <div style={{ background: C.panel, borderRadius: 12, padding: 20, border: `1px solid ${C.border}` }}>
-          <SectionTitle>CE 增长 vs 卖股份比例</SectionTitle>
+          <SectionTitle>CE 增长 vs 卖股比例</SectionTitle>
           <div style={{ height: 280, marginTop: 12 }}>
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={curveData} margin={{ top: 10, right: 20, left: 0, bottom: 20 }}>
@@ -390,7 +390,7 @@ function StrategyComparison({ buyin, sigma_d_sq, roiFrac, markup, BR, targetReta
     <div style={{ background: C.panel, borderRadius: 12, padding: 20, border: `1px solid ${C.border}`, marginBottom: 16 }}>
       <SectionTitle>策略对比 — markup 收入是无风险的吗?</SectionTitle>
       <div style={{ fontSize: 11, color: C.textFaint, marginBottom: 16, lineHeight: 1.6 }}>
-        卖股份带来两块东西:① 自留打牌的部分(有方差)② markup 现金(无风险,投资人付的溢价)。
+        卖股带来两块东西:① 自留打牌的部分(有方差)② markup 现金(无风险,投资人付的溢价)。
         下表用 BR=${Math.round(BR).toLocaleString()} 算每颗子弹的盈利组成,以及资金翻倍所需子弹数。
       </div>
 
@@ -476,7 +476,7 @@ function StrategyComparison({ buyin, sigma_d_sq, roiFrac, markup, BR, targetReta
         markup 现金是<b style={{ color: C.good }}>无风险收入</b> —— 不管你打成什么样,投资人付的溢价就是溢价。
         卖得越多,这部分占比越高,等于把"靠运气赚钱"逐步换成"靠中介费赚钱"。
         如果"全自打"那一栏的几何增长是负数,意味着你的资金<b style={{ color: C.bad }}>不够厚</b>——
-        不卖股份你会越打越穷,而卖股份能让你"借市场的力"复利。
+        不卖股你会越打越穷,而卖股能让你"借市场的力"复利。
       </div>
     </div>
   );
@@ -607,7 +607,7 @@ function ReverseTab() {
           <NumberInput value={buyin} onChange={setBuyin} style={inputStyle} min={1} />
         </Field>
 
-        <Field label="场子人数">
+        <Field label="参赛人数">
           <NumberInput value={field} onChange={setField} style={inputStyle} min={1} />
           <div style={{ display: "flex", gap: 4, marginTop: 6, flexWrap: "wrap" }}>
             {[100, 200, 300, 500, 1000, 1500, 2000, 3000, 5000].map(f => (
@@ -713,7 +713,7 @@ function ReverseTab() {
           )}
         </div>
 
-        {/* 策略对比面板 - 展示卖股份的 markup 价值与几何增长 */}
+        {/* 策略对比面板 - 展示卖股的 markup 价值与几何增长 */}
         <StrategyComparison
           buyin={buyin}
           sigma_d_sq={sigma_d_sq}
@@ -837,7 +837,7 @@ function ReverseTab() {
 // ============================================================
 // 真实 GG payout 生成器
 // 基于 9 个真实 GG 锦标赛数据点拟合的奖励结构
-// 输入: N(场子人数), type(比赛类型)
+// 输入: N(参赛人数), type(比赛类型)
 // 返回: payouts 数组(长度 N,payouts[i] 是排名 i+1 的奖金,以 BI 为单位)
 // ============================================================
 function generateGGPayout(N, type = "Standard") {
@@ -1192,7 +1192,7 @@ function simulatePath({
         bi: bi,                      // 当时打的 BI
         roi: roiFrac,                // 当时的 ROI
         winBI: X_BI,                 // 赢了多少 BI(总赔率,不扣 markup)
-        winDollars: X_BI * bi,       // 赢了多少美元(对自己,不扣卖股份)
+        winDollars: X_BI * bi,       // 赢了多少美元(对自己,不扣卖股)
         selfDollars: selfReturn_BI * bi,  // 自留部分
         BRAfter: BR,                 // 该次后 BR
       });
@@ -1586,7 +1586,7 @@ function MonteCarloTab({ availableModes = ["fixed", "continuous", "ladder"], def
     setTimeout(() => {
       // 单次回报硬上限 = 当前场子的冠军赔率
       const top1Cap = calcTop1BI(field, type);
-      // 真实 GG payout 表(基于场子人数 + 比赛类型)
+      // 真实 GG payout 表(基于参赛人数 + 比赛类型)
       const payouts = getCachedPayout(field, type);
       const pathResults = paths.map(p => {
         const sim = runSimulation({
@@ -1651,7 +1651,7 @@ function MonteCarloTab({ availableModes = ["fixed", "continuous", "ladder"], def
               </Field>
             )}
 
-            <Field label="场子人数">
+            <Field label="参赛人数">
               <NumberInput value={field} onChange={setField} style={inputStyle} min={1} />
               <div style={{ display: "flex", gap: 4, marginTop: 6, flexWrap: "wrap" }}>
                 {[100, 200, 300, 500, 1000, 1500, 2000, 3000, 5000].map(f => (
@@ -2045,9 +2045,9 @@ function MonteCarloTab({ availableModes = ["fixed", "continuous", "ladder"], def
               </div>
               <div style={{ fontSize: 12, lineHeight: 1.7, maxWidth: 480, margin: "0 auto" }}>
                 {tabKey === "ladder" ? (
-                  <>按你定义的档位列表升降级模拟,看看不同卖股份策略下,你能爬到哪个级别、多少概率被打回起点。配置左侧参数,点击"跑模拟"开始。</>
+                  <>按你定义的档位列表升降级模拟,看看不同卖股策略下,你能爬到哪个级别、多少概率被打回起点。配置左侧参数,点击"跑模拟"开始。</>
                 ) : (
-                  <>每条路径会跑 {numSims} 次,每次打 {numBullets} 颗子弹。对比不同卖股份策略的盈亏曲线和最终中位数。配置左侧参数,点击"跑模拟"开始。</>
+                  <>每条路径会跑 {numSims} 次,每次打 {numBullets} 颗子弹。对比不同卖股策略的盈亏曲线和最终中位数。配置左侧参数,点击"跑模拟"开始。</>
                 )}
               </div>
             </div>
@@ -2274,7 +2274,7 @@ function MonteCarloTab({ availableModes = ["fixed", "continuous", "ladder"], def
                     <span style={{ color: C.accent }}>📐 关键洞察</span>:
                     "动态最优"的本质是 <b style={{ color: C.text }}>自留比例随资金等比例增长</b>。
                     BR 翻倍,自留比例也大致翻倍(直到接近 100% 上限)。这就是为什么职业玩家说
-                    "卖股份是穷人的复利,自打是富人的复利"——
+                    "卖股是穷人的复利,自打是富人的复利"——
                     资金上来后,你会自然地从"高溢价小自留"转到"少卖大自留"模式。
                   </div>
                 </div>
@@ -2343,7 +2343,7 @@ function MonteCarloTab({ availableModes = ["fixed", "continuous", "ladder"], def
                     <span style={{ color: C.accent }}>💡 阅读方法</span>:
                     <span style={{ color: C.bad }}> 红色 </span>= 亏损/低于 $10K 路径,
                     <span style={{ color: C.good }}> 绿色 </span>= 大赚路径($250K+)。
-                    全自打通常"两极化",卖股份分布更集中。
+                    全自打通常"两极化",卖股分布更集中。
                   </div>
                 </div>
               )}
@@ -2356,8 +2356,8 @@ function MonteCarloTab({ availableModes = ["fixed", "continuous", "ladder"], def
                     每条路径在生命周期内的<b style={{ color: C.text }}>最大回撤</b>(从历史最高点跌到后续最低点的金额)。
                     <span style={{ display: "block", marginTop: 4 }}>
                       <b style={{ color: C.accent }}>关键洞察</b>:终值 BR 一样的路径,过程可能完全不同——
-                      全自打的"$50K 中位"可能经历过 $30K 回撤,卖股份的"$45K 中位"只经历过 $5K 回撤。
-                      <b style={{ color: C.text }}>这才是「卖股份是稳健派,自打是赌博」的具体含义</b>。
+                      全自打的"$50K 中位"可能经历过 $30K 回撤,卖股的"$45K 中位"只经历过 $5K 回撤。
+                      <b style={{ color: C.text }}>这才是「卖股是稳健派,自打是赌博」的具体含义</b>。
                     </span>
                   </div>
                   
@@ -3588,8 +3588,8 @@ function QuizTab() {
       details: [
         "ROI 长期为负(−5% 到 −30%)",
         "这不是风格问题,是水平问题",
-        "卖股份救不了——只能让你输得更慢",
-        "建议:先解决打牌水平,再考虑卖股份",
+        "卖股救不了——只能让你输得更慢",
+        "建议:先解决打牌水平,再考虑卖股",
       ],
       isWarning: true,
     },
@@ -3644,7 +3644,7 @@ function QuizTab() {
   
   const applyStyle = (style) => {
     // 用 sessionStorage 不能,artifacts 限制
-    // 改成直接显示卖股份的建议参数
+    // 改成直接显示卖股的建议参数
     setSelectedStyle(style.id);
   };
   
@@ -3764,9 +3764,9 @@ function QuizTab() {
                   padding: 16, background: `${C.bad}10`, border: `1px solid ${C.bad}40`,
                   borderRadius: 8, fontSize: 13, color: C.text, lineHeight: 1.8,
                 }}>
-                  <div style={{ color: C.bad, fontWeight: 600, marginBottom: 6 }}>⚠️ 卖股份不是你的优先问题</div>
+                  <div style={{ color: C.bad, fontWeight: 600, marginBottom: 6 }}>⚠️ 卖股不是你的优先问题</div>
                   Felix 文章本身就强调:形状产生 ROI,不是反过来。
-                  如果 ROI 是负的,无论怎么卖股份都没法赚钱。
+                  如果 ROI 是负的,无论怎么卖股都没法赚钱。
                   先专注于打牌水平、复盘、教练等等,真有正 ROI 之后再回来用这个工具。
                 </div>
               ) : (
@@ -3901,7 +3901,7 @@ function FelixTab() {
           <div style={{ color: C.textDim }}>
             <div>• <b style={{ color: C.text }}>Field 越大 → 卖得越多</b>:20000 人场卖到 95-98%,100 人场只卖 79%</div>
             <div>• <b style={{ color: C.text }}>Markup ≈ 1 + 0.5 × ROI</b>:近乎完美的线性关系</div>
-            <div>• <b style={{ color: C.text }}>同 field 不同 BI</b>:小买入 ROI 高(鱼多),但卖股份比例略低(BR/BI 大)</div>
+            <div>• <b style={{ color: C.text }}>同 field 不同 BI</b>:小买入 ROI 高(鱼多),但卖股比例略低(BR/BI 大)</div>
             <div>• <b style={{ color: C.text }}>三种类型方差差异不大</b>:Standard 略高于 PKO 略高于 Mystery</div>
           </div>
         </div>
@@ -4174,10 +4174,10 @@ function DiagnosticPanel({ BR, buyin, field, type, roi, optSale, sigmaBI }) {
     mainMessage = "资金偏紧——卖大部分股份才能让数学成立。这是高方差赛事的标准建议。";
   } else if (optSale >= 0.50) {
     severity = "moderate";
-    mainMessage = "资金合理——可以自留相当比例,卖股份是为了平滑方差,不是为了生存。";
+    mainMessage = "资金合理——可以自留相当比例,卖股是为了平滑方差,不是为了生存。";
   } else {
     severity = "good";
-    mainMessage = "资金充裕——可以选择性卖股份,主要为了赚 markup 和分散风险。";
+    mainMessage = "资金充裕——可以选择性卖股,主要为了赚 markup 和分散风险。";
   }
 
   const colorMap = {
@@ -4256,12 +4256,12 @@ function DiagnosticPanel({ BR, buyin, field, type, roi, optSale, sigmaBI }) {
 
 function HealthCheck({ calibrated, theoretical, buyin, BR, field, roi }) {
   const warnings = [];
-  if (calibrated.ceGrowth < 0) warnings.push({ level: "bad", text: `即使按最优比例卖股份,CE 增长仍为负 ($${calibrated.ceGrowth.toFixed(2)})。这场你不该打——资金太薄,方差吃光所有 EV。` });
-  if (calibrated.ceSelfOnly < 0 && calibrated.ceGrowth > 0) warnings.push({ level: "warn", text: `不卖股份的话 CE 是负的 ($${calibrated.ceSelfOnly.toFixed(2)})。卖股份不是可选项,是必须项——这场只有靠 markup 收入才能赚钱。` });
+  if (calibrated.ceGrowth < 0) warnings.push({ level: "bad", text: `即使按最优比例卖股,CE 增长仍为负 ($${calibrated.ceGrowth.toFixed(2)})。这场你不该打——资金太薄,方差吃光所有 EV。` });
+  if (calibrated.ceSelfOnly < 0 && calibrated.ceGrowth > 0) warnings.push({ level: "warn", text: `不卖股的话 CE 是负的 ($${calibrated.ceSelfOnly.toFixed(2)})。卖股不是可选项,是必须项——这场只有靠 markup 收入才能赚钱。` });
   if (BR / buyin < 50) warnings.push({ level: "warn", text: `BR/BI = ${(BR/buyin).toFixed(0)},不到 50 个买入。Felix 模型对小资金敏感,结果可能偏激进。` });
   if (calibrated.optSale > 0.95) warnings.push({ level: "info", text: `最优卖出比例 > 95%——你几乎是个"职业打手",自留风险极小,主要赚 markup 和小份子股权。这正常,但要注意激励问题(投资人可能担心你不上心)。` });
   if (Math.abs(calibrated.optSale - theoretical.optSale) > 0.05) warnings.push({ level: "info", text: `两个模型差距 > 5 个百分点。在极端参数下两种近似分歧变大,实际操作建议取保守值。` });
-  if (roi < 5) warnings.push({ level: "bad", text: `ROI 太低 (${roi.toFixed(1)}%)。Felix 文章核心论点之一:形状决定 ROI——如果你的 ROI 真这么低,先解决打牌水平问题,不是卖股份能救的。` });
+  if (roi < 5) warnings.push({ level: "bad", text: `ROI 太低 (${roi.toFixed(1)}%)。Felix 文章核心论点之一:形状决定 ROI——如果你的 ROI 真这么低,先解决打牌水平问题,不是卖股能救的。` });
 
   if (warnings.length === 0) {
     return (
