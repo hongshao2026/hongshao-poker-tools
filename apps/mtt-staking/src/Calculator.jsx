@@ -511,6 +511,28 @@ function StakingReportPanel({ buyin, field, type, BR, roi, markup, shape, calibr
     URL.revokeObjectURL(url);
   };
 
+  const htmlReport = useMemo(() => buildStakingHtmlReport(report, { buyin, field, type, BR, roi, markup, calibrated }), [report, buyin, field, type, BR, roi, markup, calibrated]);
+
+  const openPrintReport = () => {
+    const win = window.open("", "_blank", "noopener,noreferrer,width=980,height=1200");
+    if (!win) return;
+    win.document.open();
+    win.document.write(htmlReport);
+    win.document.close();
+  };
+
+  const downloadHtmlReport = () => {
+    const blob = new Blob([htmlReport], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `hongshao-staking-report-${field}-${buyin}.html`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
+
   const saveReport = () => {
     const item = {
       id: `${Date.now()}-${field}-${buyin}`,
@@ -560,6 +582,12 @@ function StakingReportPanel({ buyin, field, type, BR, roi, markup, shape, calibr
           <button onClick={downloadReport} style={reportButtonStyle(C.blue)}>
             下载 .md
           </button>
+          <button onClick={openPrintReport} style={reportButtonStyle(C.solved)}>
+            打印 / PDF
+          </button>
+          <button onClick={downloadHtmlReport} style={reportButtonStyle(C.purple)}>
+            下载 HTML
+          </button>
           <button onClick={saveReport} style={reportButtonStyle(C.good)}>
             {saved ? "已保存" : "保存到本机"}
           </button>
@@ -591,6 +619,29 @@ function StakingReportPanel({ buyin, field, type, BR, roi, markup, shape, calibr
           boxSizing: "border-box",
         }}
       />
+
+      <div style={{ marginTop: 16, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: 14 }}>
+        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 12 }}>
+          <div>
+            <div style={{ fontSize: 12, color: C.text, fontWeight: 700 }}>打印版报告预览</div>
+            <div style={{ fontSize: 11, color: C.textFaint, marginTop: 3 }}>适合浏览器打印为 PDF 或直接发送 HTML 文件。</div>
+          </div>
+          <div style={{ fontSize: 11, color: C.solved, fontFamily: "ui-monospace, 'JetBrains Mono', Menlo, monospace" }}>
+            PDF READY
+          </div>
+        </div>
+        <iframe
+          title="staking-report-preview"
+          srcDoc={htmlReport}
+          style={{
+            width: "100%",
+            height: 520,
+            border: `1px solid ${C.border}`,
+            borderRadius: 8,
+            background: "#ffffff",
+          }}
+        />
+      </div>
 
       <div style={{ marginTop: 16, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: 14 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 10 }}>
@@ -660,6 +711,239 @@ function writeReportHistory(history) {
   } catch {
     // localStorage may be unavailable in privacy modes; report generation still works.
   }
+}
+
+function buildStakingHtmlReport(report, ctx) {
+  const rows = [
+    ["Buy-in", `$${fmtReportNumber(ctx.buyin)}`],
+    ["Field size", `${fmtReportNumber(ctx.field)} 人`],
+    ["比赛类型", ctx.type],
+    ["Bankroll", `$${fmtReportNumber(ctx.BR)}`],
+    ["ROI 假设", `${ctx.roi.toFixed(1)}%`],
+    ["Markup", `${ctx.markup.toFixed(3)} (${report.markupPremium.toFixed(1)}%)`],
+    ["BR/BI", `${report.brMultiple.toFixed(0)} 个买入`],
+  ];
+  const economics = [
+    ["自留打牌期望", `$${report.selfEV.toFixed(2)}`],
+    ["Markup 现金收入", `$${report.markupCash.toFixed(2)}`],
+    ["单子弹自留总期望", `$${ctx.calibrated.expectedSelf.toFixed(2)}`],
+    ["单子弹 CE 增长", `$${ctx.calibrated.ceGrowth.toFixed(2)}`],
+    ["不卖股 CE", `$${ctx.calibrated.ceSelfOnly.toFixed(2)}`],
+    ["卖股后自留标准差", `${(ctx.calibrated.sigmaBI * (1 - ctx.calibrated.optSale)).toFixed(1)} BI`],
+    ["不卖股标准差", `${ctx.calibrated.sigmaBI.toFixed(1)} BI`],
+  ];
+
+  return `<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>MTT 卖股研究报告</title>
+<style>
+  :root {
+    color-scheme: light;
+    --ink: #101014;
+    --muted: #62626d;
+    --line: #dedee6;
+    --soft: #f5f5f7;
+    --accent: #b6e51f;
+    --accent2: #12b981;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #eeeeef;
+    color: var(--ink);
+    font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+    line-height: 1.55;
+  }
+  .page {
+    width: 794px;
+    min-height: 1123px;
+    margin: 24px auto;
+    background: #fff;
+    padding: 48px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.12);
+  }
+  .topline {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    align-items: flex-start;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 18px;
+  }
+  .brand {
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 11px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  h1 {
+    margin: 10px 0 0;
+    font-size: 34px;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .stamp {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 12px;
+    min-width: 190px;
+    text-align: right;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .stamp strong {
+    display: block;
+    color: var(--ink);
+    font-size: 16px;
+    margin-bottom: 2px;
+  }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin: 28px 0;
+  }
+  .metric {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px;
+    background: var(--soft);
+    min-height: 106px;
+  }
+  .metric .label {
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .metric .value {
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.05;
+  }
+  .metric.accent {
+    background: #f3ffd0;
+    border-color: #d4f36c;
+  }
+  .section {
+    margin-top: 26px;
+  }
+  .section h2 {
+    font-size: 16px;
+    margin: 0 0 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  td {
+    padding: 9px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  td:first-child { color: var(--muted); }
+  td:last-child { text-align: right; font-weight: 700; }
+  .verdict {
+    margin-top: 18px;
+    border-left: 5px solid var(--accent2);
+    background: #ecfdf5;
+    padding: 14px 16px;
+    border-radius: 0 8px 8px 0;
+  }
+  .verdict strong {
+    display: block;
+    font-size: 17px;
+    margin-bottom: 4px;
+  }
+  .fineprint {
+    margin-top: 28px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 11px;
+  }
+  .footer {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    color: var(--muted);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 10px;
+  }
+  @media print {
+    body { background: #fff; }
+    .page { margin: 0; width: auto; min-height: auto; box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+  <main class="page">
+    <div class="topline">
+      <div>
+        <div class="brand">Hongshao Poker Tools · Research Report</div>
+        <h1>MTT 卖股研究报告</h1>
+      </div>
+      <div class="stamp">
+        <strong>${escapeReportHtml(report.generatedAt)}</strong>
+        仅供概率研究与复盘
+      </div>
+    </div>
+
+    <section class="hero-grid">
+      <div class="metric accent"><div class="label">推荐卖出</div><div class="value">${report.salePct.toFixed(1)}%</div></div>
+      <div class="metric"><div class="label">建议自留</div><div class="value">${report.retainPct.toFixed(1)}%</div></div>
+      <div class="metric"><div class="label">Markup</div><div class="value">${ctx.markup.toFixed(3)}</div></div>
+      <div class="metric"><div class="label">CE 增长</div><div class="value">$${ctx.calibrated.ceGrowth.toFixed(2)}</div></div>
+    </section>
+
+    <div class="verdict">
+      <strong>${escapeReportHtml(report.riskTone)}</strong>
+      推荐参数基于当前 buy-in、field、ROI、bankroll、markup 与玩家风格假设。实际执行前应重新确认赛事结构和个人资金约束。
+    </div>
+
+    <section class="section">
+      <h2>输入假设</h2>
+      <table>${rows.map(([k, v]) => `<tr><td>${escapeReportHtml(k)}</td><td>${escapeReportHtml(v)}</td></tr>`).join("")}</table>
+    </section>
+
+    <section class="section">
+      <h2>收益与风险拆分</h2>
+      <table>${economics.map(([k, v]) => `<tr><td>${escapeReportHtml(k)}</td><td>${escapeReportHtml(v)}</td></tr>`).join("")}</table>
+    </section>
+
+    <section class="section">
+      <h2>使用边界</h2>
+      <p class="fineprint">
+        本报告仅用于概率研究、资金管理模拟和赛程估值复盘。不提供赌博、下注、资金托管、交易撮合或赛事组织。
+        计算结果依赖用户输入假设，不构成投资建议、交易建议或收益承诺。
+      </p>
+    </section>
+
+    <div class="footer">
+      <span>Generated by Hongshao Poker Tools</span>
+      <span>Local-first · No data upload</span>
+    </div>
+  </main>
+</body>
+</html>`;
+}
+
+function escapeReportHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, ch => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  }[ch]));
 }
 
 function ReportMetric({ label, value, compact }) {
