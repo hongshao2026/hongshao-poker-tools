@@ -80,6 +80,68 @@
     line-height: 1.6;
   }
 
+  /* ============ product modes ============ */
+  .mode-strip {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin: -28px 0 48px;
+  }
+  .mode-card {
+    background: rgba(19, 19, 24, 0.72);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 18px 20px;
+  }
+  .mode-card[data-mode="free"] {
+    border-color: color-mix(in oklab, var(--g-cash-1) 26%, var(--border));
+  }
+  .mode-card[data-mode="pro"] {
+    border-color: color-mix(in oklab, var(--g-staking-2) 26%, var(--border));
+  }
+  .mode-label {
+    font-family: var(--font-mono);
+    font-size: var(--fs-tiny);
+    color: var(--text-faint);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .mode-title {
+    font-size: var(--fs-md);
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .mode-card[data-mode="free"] .mode-title { color: var(--g-cash-1); }
+  .mode-card[data-mode="pro"] .mode-title { color: var(--g-staking-2); }
+  .mode-desc {
+    color: var(--text-dim);
+    font-size: var(--fs-sm);
+    line-height: 1.65;
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 22px;
+    padding: 3px 8px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--text-faint);
+    white-space: nowrap;
+  }
+  .status-badge.free {
+    color: var(--g-cash-1);
+    border-color: color-mix(in oklab, var(--g-cash-1) 34%, var(--border));
+  }
+  .status-badge.pro {
+    color: var(--g-staking-2);
+    border-color: color-mix(in oklab, var(--g-staking-2) 34%, var(--border));
+  }
+
   /* ============ section group ============ */
   .group { margin-bottom: 56px; }
 
@@ -238,6 +300,7 @@
   .tool-head {
     display: flex;
     align-items: baseline;
+    gap: 10px;
     margin-bottom: 8px;
     padding-right: 40px; /* reserve space for numeral */
   }
@@ -270,6 +333,17 @@
     color: var(--text-faint);
     letter-spacing: 0.12em;
     transition: color .2s, transform .2s;
+  }
+
+  .tool-card.is-planned {
+    border-style: dashed;
+    cursor: default;
+  }
+  .tool-card.is-planned:hover {
+    transform: none;
+  }
+  .tool-card.is-planned .arrow {
+    color: var(--g-staking-2);
   }
 
   /* ============ stagger fade-in ============ */
@@ -357,6 +431,7 @@
     .portal { padding: 36px 16px 32px; }
     .hero h1 { font-size: 34px; }
     .hero p { font-size: var(--fs-base); }
+    .mode-strip { grid-template-columns: 1fr; margin-top: -24px; }
     .tool-grid { grid-template-columns: 1fr; }
     .group[data-featured-first] .tool-grid > .tool-card:first-child {
       min-height: 192px;
@@ -391,18 +466,83 @@
 
   <div class="hero">
     <div class="brand-tag">Hongshao Poker · 红烧扑克</div>
-    <h1>红烧扑克<span class="accent">工具集</span></h1>
+    <h1>红烧扑克<span class="accent">研究工具</span></h1>
     <p>
-      一组纯前端、零依赖、可离线的扑克决策计算器。聚焦 MTT 股权交易、桌上 EV 计算与赛事博弈。
-      所有计算在浏览器本地完成，不上传任何数据。
+      一组纯前端、可离线的扑克概率、资金管理与赛程估值工具。免费版开放核心计算；
+      Pro 版规划批量估值、报告导出、赛事模板和本地历史记录。
     </p>
   </div>
+
+  <section class="mode-strip" aria-label="版本边界">
+    <div class="mode-card" data-mode="free">
+      <div class="mode-label">Research Edition</div>
+      <div class="mode-title">免费研究版</div>
+      <div class="mode-desc">单点计算、模型验证、概率复盘和离线使用。核心公式保持透明，适合学习、验证和分享。</div>
+    </div>
+    <div class="mode-card" data-mode="pro">
+      <div class="mode-label">Pro Workflow</div>
+      <div class="mode-title">Pro 工作流规划</div>
+      <div class="mode-desc">面向批量估值、赛事模板、报告导出和本地档案。付费点是省时间和可交付物，不是隐藏公式。</div>
+    </div>
+  </section>
+
+  <!-- ============ Pro 工作流 ============ -->
+  <section class="group" data-theme="staking">
+    <div class="group-label">
+      <span>Pro Workflow · 付费能力规划</span>
+      <span class="count">/ 4 PLANNED</span>
+    </div>
+    <p class="group-desc">把单次计算变成可保存、可导出、可批量复用的研究工作流。</p>
+    <div class="tool-grid">
+
+      <div class="tool-card is-planned">
+        <div class="tool-head">
+          <div class="tool-name">卖股报告生成器</div>
+          <span class="status-badge pro">PRO</span>
+        </div>
+        <div class="tool-tagline">参数假设 · 风险说明 · 长图/PDF</div>
+        <div class="tool-desc">把 MTT 卖股结果整理成可发送的一页报告，包含推荐比例、markup、投资人视角和敏感性说明。</div>
+        <span class="arrow">PLANNED</span>
+      </div>
+
+      <div class="tool-card is-planned">
+        <div class="tool-head">
+          <div class="tool-name">Day2 批量估值</div>
+          <span class="status-badge pro">PRO</span>
+        </div>
+        <div class="tool-tagline">多人筹码 · 合理报价 · Excel 导出</div>
+        <div class="tool-desc">粘贴多个玩家筹码和赛事参数，批量输出零和 ROI、合理 markup、买家回报区间和排序表。</div>
+        <span class="arrow">PLANNED</span>
+      </div>
+
+      <div class="tool-card is-planned">
+        <div class="tool-head">
+          <div class="tool-name">赛事模板库</div>
+          <span class="status-badge pro">PRO</span>
+        </div>
+        <div class="tool-tagline">MTT · PKO · Mystery · FT Deal</div>
+        <div class="tool-desc">沉淀通用 payout 曲线、PKO/Mystery 参数、现场赛程结构和用户自定义模板，避免重复录入。</div>
+        <span class="arrow">PLANNED</span>
+      </div>
+
+      <div class="tool-card is-planned">
+        <div class="tool-head">
+          <div class="tool-name">本地研究档案</div>
+          <span class="status-badge pro">PRO</span>
+        </div>
+        <div class="tool-tagline">历史记录 · ROI 档案 · 常用参数</div>
+        <div class="tool-desc">保存 bankroll、ROI 档案、常用 range、历史报告和赛程方案，数据默认只留在本机。</div>
+        <span class="arrow">PLANNED</span>
+      </div>
+
+    </div>
+  </section>
 
   <!-- ============ 股份 ============ -->
   <section class="group" data-theme="staking" data-featured-first>
     <div class="group-label">
-      <span>Staking · 股份</span>
-      <span class="count">/ 4 TOOLS</span>
+      <span>Free Research · 股份估值</span>
+      <span class="count">/ 4 FREE</span>
     </div>
     <p class="group-desc">选手卖股、投资人买股、合约反推 EV，多角度配套使用。</p>
     <div class="tool-grid">
@@ -449,8 +589,8 @@
   <!-- ============ 资金管理 ============ -->
   <section class="group" data-theme="cash" data-featured-first>
     <div class="group-label">
-      <span>Bankroll · 资金管理</span>
-      <span class="count">/ 5 TOOLS</span>
+      <span>Free Research · 资金管理</span>
+      <span class="count">/ 5 FREE</span>
     </div>
     <p class="group-desc">反推所需 bankroll、阶梯升 buy-in 成功率、盈亏曲线模拟、多级资金升降级路径、FT deal 分账谈判。</p>
     <div class="tool-grid">
@@ -506,8 +646,8 @@
   <!-- ============ 桌上决策 ============ -->
   <section class="group" data-theme="table">
     <div class="group-label">
-      <span>桌上决策 · 概率与博弈</span>
-      <span class="count">/ 4 TOOLS</span>
+      <span>Free Research · 概率与复盘</span>
+      <span class="count">/ 5 FREE</span>
     </div>
     <p class="group-desc">实时计算所需胜率、范围对范围胜率、博弈类边桌的精确 EV。</p>
     <div class="tool-grid">
@@ -561,7 +701,7 @@
   </section>
 
   <footer>
-    <span class="tagline">纯前端 · 零依赖 · 完全开源</span>
+    <span class="tagline">免费研究版 · 本地计算 · Pro 工作流规划中</span>
   </footer>
 
 </div>

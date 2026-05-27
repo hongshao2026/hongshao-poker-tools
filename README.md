@@ -1,6 +1,6 @@
 # 红烧扑克工具集 · Hongshao Poker Tools
 
-一组纯前端、可离线运行的扑克决策计算器，覆盖 MTT 卖股、现场赛程算账、Day 2 买股、现金桌资金升级、桌上 EV 与概率博弈五大场景。所有计算都在浏览器本地完成，不上传任何数据。
+一组纯前端、可离线运行的扑克研究型决策计算器，覆盖 MTT 卖股、现场赛程算账、Day 2 估值、现金桌资金升级、桌上 EV 与概率博弈五大场景。所有计算都在浏览器本地完成，不上传任何数据。
 
 直接打开 [`index.html`](./index.html) 进入门户，或访问在线版：[hongshao2026.github.io/hongshao-poker-tools](https://hongshao2026.github.io/hongshao-poker-tools/)
 
@@ -80,3 +80,10 @@ cp pkg/equity_wasm* ../../../../tools/equity/pkg/
 ## 仓库
 
 [github.com/hongshao2026/hongshao-poker-tools](https://github.com/hongshao2026/hongshao-poker-tools)
+
+## 产品化路线
+
+当前仓库定位为免费研究版：开放核心计算、单点验证、模型解释和离线使用能力。后续 Pro 版不计划隐藏核心公式，而是围绕批量估值、报告导出、赛事模板、本地历史记录和工作流资产收费。
+
+- 产品化计划：[docs/PRODUCTIZATION_PLAN.md](./docs/PRODUCTIZATION_PLAN.md)
+- 赛事结构模板数据：[data/tournament-structures/](./data/tournament-structures/)
