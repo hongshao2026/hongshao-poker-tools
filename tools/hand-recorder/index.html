@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>手牌记录器 · Hongshao Poker Tools</title>
+<link rel="stylesheet" href="../../assets/shared.css">
+<link rel="icon" type="image/svg+xml" href="../../assets/icon.svg">
+<meta name="theme-color" content="#0a0a0c">
+<style>
+  :root {
+    --hr-1: #ff6b9d;
+    --hr-2: #ff9b3d;
+    --hr-3: #4ac8ff;
+    --hr-good: #3affb0;
+    --hr-red: #ff6b6b;
+    --hr-card: #f8f3e8;
+  }
+
+  body {
+    padding: 54px 18px 34px;
+    background:
+      radial-gradient(ellipse 640px 460px at 8% -8%, rgba(255, 107, 157, 0.12), transparent 62%),
+      radial-gradient(ellipse 620px 480px at 96% 22%, rgba(255, 155, 61, 0.09), transparent 62%),
+      radial-gradient(ellipse 780px 520px at 50% 105%, rgba(74, 200, 255, 0.08), transparent 64%),
+      var(--bg);
+    background-attachment: fixed;
+  }
+
+  .wrap {
+    max-width: 1160px;
+    margin: 0 auto;
+  }
+
+  header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 18px;
+    align-items: end;
+    margin-bottom: 20px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  h1 {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xl);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+  }
+
+  h1 span {
+    color: var(--hr-1);
+  }
+
+  .sub {
+    max-width: 720px;
+    margin-top: 8px;
+    color: var(--text-dim);
+    font-size: var(--fs-sm);
+  }
+
+  .top-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .btn {
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: var(--fs-tiny);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+
+  .btn-primary {
+    border-color: transparent;
+    background: linear-gradient(115deg, var(--hr-3), var(--hr-1));
+    color: #050507;
+  }
+
+  .btn-warn {
+    border-color: rgba(255, 107, 107, 0.35);
+    color: #ffcaca;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
+    gap: 16px;
+    align-items: start;
+  }
+
+  .panel {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 34%),
+      var(--bg-elev);
+    overflow: hidden;
+  }
+
+  .panel-head {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 13px 15px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .panel-title {
+    font-family: var(--font-mono);
+    font-size: var(--fs-tiny);
+    color: var(--text-faint);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .panel-body {
+    padding: 15px;
+  }
+
+  .stepper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .step-chip {
+    max-width: 170px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.035);
+    color: var(--text-faint);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 4px 7px;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .step-chip.done {
+    border-color: rgba(58, 255, 176, 0.34);
+    color: var(--hr-good);
+  }
+
+  .step-chip.active {
+    border-color: rgba(74, 200, 255, 0.6);
+    color: var(--hr-3);
+    background: rgba(74, 200, 255, 0.08);
+  }
+
+  .question {
+    display: grid;
+    gap: 14px;
+  }
+
+  .question h2 {
+    font-size: var(--fs-lg);
+    letter-spacing: -0.02em;
+  }
+
+  .question h2 em {
+    color: var(--hr-1);
+    font-style: normal;
+  }
+
+  .hint {
+    color: var(--text-faint);
+    font-family: var(--font-mono);
+    font-size: var(--fs-tiny);
+    line-height: 1.65;
+  }
+
+  .grid {
+    display: grid;
+    gap: 9px;
+  }
+
+  .grid.two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .grid.three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .grid.four {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .grid.seats {
+    grid-template-columns: repeat(auto-fit, minmax(78px, 1fr));
+  }
+
+  .choice {
+    min-height: 56px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.035);
+    color: var(--text);
+    text-align: left;
+  }
+
+  .choice strong {
+    display: block;
+    font-size: var(--fs-base);
+    line-height: 1.15;
+  }
+
+  .choice span {
+    display: block;
+    margin-top: 4px;
+    color: var(--text-faint);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .choice.selected {
+    border-color: var(--hr-3);
+    background: rgba(74, 200, 255, 0.1);
+    box-shadow: inset 0 0 0 1px rgba(74, 200, 255, 0.16);
+  }
+
+  .choice.danger {
+    border-color: rgba(255, 107, 107, 0.24);
+  }
+
+  .field-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .field {
+    display: grid;
+    gap: 6px;
+  }
+
+  label {
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: var(--fs-tiny);
+    letter-spacing: 0.06em;
+  }
+
+  input[type="number"] {
+    appearance: textfield;
+  }
+
+  .table-size {
+    display: grid;
+    grid-template-columns: repeat(9, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .table-size button,
+  .rank-grid button,
+  .suit-grid button {
+    min-width: 0;
+    border: 1px solid var(--border);
+    background: var(--bg-input);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-weight: 800;
+  }
+
+  .table-size button.active,
+  .rank-grid button.active,
+  .suit-grid button.active {
+    border-color: var(--hr-3);
+    background: var(--hr-3);
+    color: #050507;
+  }
+
+  .seat-button {
+    position: relative;
+    min-height: 56px;
+    text-align: center;
+  }
+
+  .seat-button.dealer::before {
+    content: 'D';
+    position: absolute;
+    top: 6px;
+    right: 7px;
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: var(--hr-card);
+    color: #0a0a0c;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 900;
+  }
+
+  .card-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .card-slot {
+    width: 62px;
+    height: 82px;
+    border: 1px dashed var(--border-bright);
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    background: rgba(255, 255, 255, 0.025);
+    color: var(--text-faint);
+    font-family: var(--font-mono);
+    font-size: 10px;
+  }
+
+  .card-slot.filled {
+    border-style: solid;
+    border-color: transparent;
+    background: var(--hr-card);
+    color: #101014;
+    font-size: 19px;
+    font-weight: 900;
+  }
+
+  .card-slot.active {
+    border-color: var(--hr-3);
+    box-shadow: 0 0 0 2px rgba(74, 200, 255, 0.16);
+  }
+
+  .rank-grid {
+    display: grid;
+    grid-template-columns: repeat(13, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .suit-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .suit-red { color: #ff6b6b !important; }
+  .suit-blue { color: #4ac8ff !important; }
+  .suit-green { color: #3affb0 !important; }
+
+  .action-head {
+    display: grid;
+    gap: 9px;
+  }
+
+  .now-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    border: 1px solid rgba(74, 200, 255, 0.22);
+    border-radius: var(--radius-md);
+    background: rgba(74, 200, 255, 0.06);
+    padding: 12px;
+  }
+
+  .now-card strong {
+    color: var(--hr-3);
+    font-size: var(--fs-md);
+  }
+
+  .action-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .amount-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .amount-row input {
+    grid-column: span 2;
+  }
+
+  .feed {
+    display: grid;
+    gap: 10px;
+  }
+
+  .street-feed {
+    display: grid;
+    gap: 5px;
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+  }
+
+  .street-name {
+    color: var(--hr-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-tiny);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .feed-row {
+    display: grid;
+    grid-template-columns: 24px 54px minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: center;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.035);
+    padding: 7px 8px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-tiny);
+  }
+
+  .feed-row .num { color: var(--text-faint); }
+  .feed-row .pos { color: var(--hr-3); font-weight: 800; }
+  .feed-row .amt { color: var(--text-dim); }
+
+  .output {
+    width: 100%;
+    min-height: 390px;
+    resize: vertical;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 22px;
+    z-index: 10;
+    transform: translateX(-50%);
+    border: 1px solid rgba(58, 255, 176, 0.35);
+    border-radius: 999px;
+    background: rgba(10, 10, 12, 0.92);
+    color: var(--hr-good);
+    font-family: var(--font-mono);
+    font-size: var(--fs-tiny);
+    padding: 9px 14px;
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.32);
+  }
+
+  @media (max-width: 900px) {
+    body { padding-left: 12px; padding-right: 12px; }
+    header,
+    .layout {
+      grid-template-columns: 1fr;
+    }
+    .top-actions {
+      justify-content: flex-start;
+    }
+    .field-grid,
+    .grid.two,
+    .grid.three,
+    .grid.four {
+      grid-template-columns: 1fr;
+    }
+    .table-size {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+    .rank-grid {
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
+    .action-grid,
+    .amount-row {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .amount-row input {
+      grid-column: span 1;
+    }
+    .layout {
+      gap: 12px;
+    }
+  }
+</style>
+</head>
+<body>
+<a class="portal-back" href="../../index.html">← 工具集</a>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>手牌<span>记录器</span></h1>
+      <p class="sub">按现场顺序录入手牌，自动整理成可复制、可分享的标准文本。所有数据只保存在当前浏览器页面里。</p>
+    </div>
+    <div class="top-actions">
+      <button class="btn" id="sampleBtn" type="button">载入示例</button>
+      <button class="btn btn-warn" id="resetBtn" type="button">重置</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <section class="panel">
+      <div class="panel-head">
+        <div class="panel-title">Guided Recorder</div>
+      </div>
+      <div class="panel-body">
+        <div class="stepper" id="stepper"></div>
+        <div style="height:14px"></div>
+        <div id="stage"></div>
+      </div>
+    </section>
+
+    <aside class="panel">
+      <div class="panel-head">
+        <div class="panel-title">Shareable Hand</div>
+        <div class="top-actions">
+          <button class="btn btn-primary" id="copyBtn" type="button">复制文本</button>
+          <button class="btn" id="shareBtn" type="button">系统分享</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <textarea class="output" id="output" spellcheck="false"></textarea>
+        <div class="top-actions" style="justify-content:flex-start;margin-top:10px;">
+          <button class="btn" id="downloadBtn" type="button">导出 JSON</button>
+          <button class="btn" id="copyJsonBtn" type="button">复制 JSON</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+const POSITIONS = {
+  2: ['SB', 'BB'],
+  3: ['BTN', 'SB', 'BB'],
+  4: ['CO', 'BTN', 'SB', 'BB'],
+  5: ['HJ', 'CO', 'BTN', 'SB', 'BB'],
+  6: ['UTG', 'HJ', 'CO', 'BTN', 'SB', 'BB'],
+  7: ['UTG', 'LJ', 'HJ', 'CO', 'BTN', 'SB', 'BB'],
+  8: ['UTG', 'UTG+1', 'LJ', 'HJ', 'CO', 'BTN', 'SB', 'BB'],
+  9: ['UTG', 'UTG+1', 'MP', 'LJ', 'HJ', 'CO', 'BTN', 'SB', 'BB'],
+  10: ['UTG', 'UTG+1', 'UTG+2', 'MP', 'LJ', 'HJ', 'CO', 'BTN', 'SB', 'BB'],
+};
+const RANKS = ['A','K','Q','J','T','9','8','7','6','5','4','3','2'];
+const SUITS = [
+  { id: 's', sym: '♠', cls: '' },
+  { id: 'h', sym: '♥', cls: 'suit-red' },
+  { id: 'd', sym: '♦', cls: 'suit-blue' },
+  { id: 'c', sym: '♣', cls: 'suit-green' },
+];
+const STREET_ORDER = ['preflop', 'flop', 'turn', 'river'];
+const STREET_LABEL = { preflop: 'Preflop', flop: 'Flop', turn: 'Turn', river: 'River' };
+const ACTION_LABEL = { fold: 'fold', check: 'check', call: 'call', bet: 'bet', raise: 'raise', allin: 'all-in' };
+const STEPS = ['game', 'table', 'stack', 'hero', 'cards', 'preflop', 'flopCards', 'flop', 'turnCard', 'turn', 'riverCard', 'river', 'review'];
+
+const state = {
+  step: 'game',
+  gameType: 'cash',
+  tableSize: 6,
+  blinds: { sb: 0.5, bb: 1, ante: 0, straddle: 0 },
+  effectiveStack: 100,
+  heroPosition: 'BTN',
+  heroCards: [null, null],
+  board: { flop: [null, null, null], turn: null, river: null },
+  actions: { preflop: [], flop: [], turn: [], river: [] },
+};
+
+let cardPick = { target: 'hero', index: 0, rank: null };
+
+const $ = (id) => document.getElementById(id);
+const seats = () => POSITIONS[state.tableSize];
+const buttonPos = () => state.tableSize === 2 ? 'SB' : 'BTN';
+const cardCode = (card) => card ? `${card.rank}${card.suit}` : '';
+const cardPretty = (card) => card ? `${card.rank}${SUITS.find((s) => s.id === card.suit).sym}` : '';
+const amountText = (amount) => amount === null || amount === undefined || amount === '' ? '' : `${Number(amount).toFixed(Number(amount) % 1 ? 1 : 0)}bb`;
+
+function clone(obj) {
+  return JSON.parse(JSON.stringify(obj));
+}
+
+function setStep(step) {
+  state.step = step;
+  render();
+}
+
+function clearFrom(stepName) {
+  const i = STEPS.indexOf(stepName);
+  if (i <= STEPS.indexOf('hero')) {
+    state.heroCards = [null, null];
+    state.board = { flop: [null, null, null], turn: null, river: null };
+    state.actions = { preflop: [], flop: [], turn: [], river: [] };
+  } else if (i <= STEPS.indexOf('cards')) {
+    state.board = { flop: [null, null, null], turn: null, river: null };
+    state.actions = { preflop: [], flop: [], turn: [], river: [] };
+  } else if (i <= STEPS.indexOf('preflop')) {
+    state.board = { flop: [null, null, null], turn: null, river: null };
+    state.actions.flop = [];
+    state.actions.turn = [];
+    state.actions.river = [];
+  } else if (i <= STEPS.indexOf('flopCards')) {
+    state.actions.flop = [];
+    state.board.turn = null;
+    state.board.river = null;
+    state.actions.turn = [];
+    state.actions.river = [];
+  } else if (i <= STEPS.indexOf('flop')) {
+    state.board.turn = null;
+    state.board.river = null;
+    state.actions.turn = [];
+    state.actions.river = [];
+  } else if (i <= STEPS.indexOf('turnCard')) {
+    state.actions.turn = [];
+    state.board.river = null;
+    state.actions.river = [];
+  } else if (i <= STEPS.indexOf('turn')) {
+    state.board.river = null;
+    state.actions.river = [];
+  }
+}
+
+function usedCards() {
+  return [
+    ...state.heroCards,
+    ...state.board.flop,
+    state.board.turn,
+    state.board.river,
+  ].filter(Boolean).map(cardCode);
+}
+
+function nextStreetStep(street) {
+  if (street === 'preflop') return 'flopCards';
+  if (street === 'flop') return 'turnCard';
+  if (street === 'turn') return 'riverCard';
+  return 'review';
+}
+
+function replay(street) {
+  const players = seats().map((pos) => ({ pos, status: 'active', invested: 0, last: null, acted: false }));
+  const bb = Number(state.blinds.bb) || 1;
+  const sbPlayer = players.find((p) => p.pos === 'SB');
+  const bbPlayer = players.find((p) => p.pos === 'BB');
+  if (street === 'preflop') {
+    if (sbPlayer) sbPlayer.invested = 0.5;
+    if (bbPlayer) bbPlayer.invested = 1;
+    if (state.blinds.straddle > 0) {
+      const straddlePlayer = players.find((p) => p.pos === 'UTG') || players[0];
+      straddlePlayer.invested = Number(state.blinds.straddle);
+    }
+  }
+  for (const prior of STREET_ORDER.slice(0, STREET_ORDER.indexOf(street))) {
+    for (const a of state.actions[prior]) {
+      const p = players.find((x) => x.pos === a.pos);
+      if (!p) continue;
+      if (a.action === 'fold') p.status = 'folded';
+      if (a.action === 'allin') p.status = 'allin';
+    }
+  }
+
+  let currentBet = street === 'preflop' ? Math.max(1, Number(state.blinds.straddle) || 0) : 0;
+  let lastActor = null;
+  for (const a of state.actions[street]) {
+    const p = players.find((x) => x.pos === a.pos);
+    if (!p) continue;
+    lastActor = a.pos;
+    p.last = a.action;
+    if (a.action === 'fold') {
+      p.status = 'folded';
+      p.acted = true;
+    } else if (a.action === 'check') {
+      p.acted = true;
+    } else if (a.action === 'call') {
+      p.invested = currentBet;
+      p.acted = true;
+    } else if (a.action === 'bet' || a.action === 'raise') {
+      currentBet = Number(a.amount) || currentBet;
+      p.invested = currentBet;
+      p.acted = true;
+      players.forEach((x) => {
+        if (x.pos !== p.pos && x.status === 'active') x.acted = false;
+      });
+    } else if (a.action === 'allin') {
+      const amount = Number(a.amount) || state.effectiveStack;
+      if (amount > currentBet) {
+        currentBet = amount;
+        players.forEach((x) => {
+          if (x.pos !== p.pos && x.status === 'active') x.acted = false;
+        });
+      }
+      p.invested = amount;
+      p.status = 'allin';
+      p.acted = true;
+    }
+  }
+
+  const order = street === 'preflop'
+    ? seats().filter((p) => !['SB', 'BB'].includes(p)).concat(['SB', 'BB'].filter((p) => seats().includes(p)))
+    : ['SB', 'BB'].concat(seats().filter((p) => !['SB', 'BB'].includes(p)));
+  const start = lastActor ? (order.indexOf(lastActor) + 1 + order.length) % order.length : 0;
+  let current = null;
+  for (let i = 0; i < order.length; i++) {
+    const pos = order[(start + i) % order.length];
+    const p = players.find((x) => x.pos === pos);
+    if (p && p.status === 'active' && (!p.acted || p.invested < currentBet)) {
+      current = p;
+      break;
+    }
+  }
+
+  const live = players.filter((p) => p.status === 'active');
+  const contenders = players.filter((p) => p.status !== 'folded');
+  const complete = contenders.length <= 1 || live.length === 0 || (live.length > 0 && live.every((p) => p.acted && p.invested >= currentBet));
+  return { players, current, currentBet, complete, contenders };
+}
+
+function streetSummary(street) {
+  const line = state.actions[street].map((a) => `${a.pos} ${ACTION_LABEL[a.action]}${a.amount ? ` ${amountText(a.amount)}` : ''}`).join(' / ');
+  if (!line) return STREET_LABEL[street];
+  return `${STREET_LABEL[street]}: ${line}`;
+}
+
+function stepLabel(step) {
+  if (step === 'game') return state.gameType.toUpperCase();
+  if (step === 'table') return `${state.tableSize}-max`;
+  if (step === 'stack') return `${state.effectiveStack}bb`;
+  if (step === 'hero') return `Hero ${state.heroPosition || '-'}`;
+  if (step === 'cards') return state.heroCards.every(Boolean) ? state.heroCards.map(cardPretty).join(' ') : 'cards';
+  if (step === 'preflop') return streetSummary('preflop');
+  if (step === 'flopCards') return state.board.flop.every(Boolean) ? `Flop ${state.board.flop.map(cardPretty).join(' ')}` : 'flop';
+  if (step === 'flop') return streetSummary('flop');
+  if (step === 'turnCard') return state.board.turn ? `Turn ${cardPretty(state.board.turn)}` : 'turn';
+  if (step === 'turn') return streetSummary('turn');
+  if (step === 'riverCard') return state.board.river ? `River ${cardPretty(state.board.river)}` : 'river';
+  if (step === 'river') return streetSummary('river');
+  return 'review';
+}
+
+function stepComplete(step) {
+  if (step === 'game') return Boolean(state.gameType);
+  if (step === 'table') return Boolean(state.tableSize);
+  if (step === 'stack') return Number(state.effectiveStack) > 0 && Number(state.blinds.bb) > 0;
+  if (step === 'hero') return Boolean(state.heroPosition);
+  if (step === 'cards') return state.heroCards.every(Boolean);
+  if (step === 'preflop') return replay('preflop').complete && state.actions.preflop.length > 0;
+  if (step === 'flopCards') return state.board.flop.every(Boolean);
+  if (step === 'flop') return replay('flop').complete;
+  if (step === 'turnCard') return Boolean(state.board.turn);
+  if (step === 'turn') return replay('turn').complete;
+  if (step === 'riverCard') return Boolean(state.board.river);
+  if (step === 'river') return replay('river').complete;
+  return true;
+}
+
+function renderStepper() {
+  $('stepper').innerHTML = STEPS
+    .filter((step) => STEPS.indexOf(step) <= Math.max(STEPS.indexOf(state.step), 4))
+    .map((step) => `<button type="button" class="step-chip ${stepComplete(step) ? 'done' : ''} ${step === state.step ? 'active' : ''}" data-step="${step}" title="${stepLabel(step)}">${stepLabel(step)}</button>`)
+    .join('');
+  document.querySelectorAll('[data-step]').forEach((btn) => {
+    btn.onclick = () => setStep(btn.dataset.step);
+  });
+}
+
+function option(label, sub, selected, attrs = '') {
+  return `<button type="button" class="choice ${selected ? 'selected' : ''}" ${attrs}><strong>${label}</strong>${sub ? `<span>${sub}</span>` : ''}</button>`;
+}
+
+function renderGame() {
+  $('stage').innerHTML = `
+    <div class="question">
+      <h2>这手牌是什么<em>类型</em>？</h2>
+      <div class="grid two">
+        ${option('Cash', '现金局 / 常规桌', state.gameType === 'cash', 'data-game="cash"')}
+        ${option('MTT', '锦标赛 / 盲注结构', state.gameType === 'mtt', 'data-game="mtt"')}
+      </div>
+      <button class="btn btn-primary" type="button" data-next="table">下一步</button>
+    </div>`;
+  document.querySelectorAll('[data-game]').forEach((btn) => {
+    btn.onclick = () => {
+      state.gameType = btn.dataset.game;
+      render();
+    };
+  });
+  bindNext();
+}
+
+function renderTable() {
+  $('stage').innerHTML = `
+    <div class="question">
+      <h2>选择<em>几人桌</em></h2>
+      <div class="table-size">
+        ${Array.from({ length: 9 }, (_, i) => i + 2).map((n) => `<button type="button" class="${state.tableSize === n ? 'active' : ''}" data-size="${n}">${n}</button>`).join('')}
+      </div>
+      <button class="btn btn-primary" type="button" data-next="stack">下一步</button>
+    </div>`;
+  document.querySelectorAll('[data-size]').forEach((btn) => {
+    btn.onclick = () => {
+      state.tableSize = Number(btn.dataset.size);
+      if (!seats().includes(state.heroPosition)) state.heroPosition = buttonPos();
+      clearFrom('table');
+      render();
+    };
+  });
+  bindNext();
+}
+
+function renderStack() {
+  $('stage').innerHTML = `
+    <div class="question">
+      <h2>输入<em>盲注/筹码</em></h2>
+      <div class="field-grid">
+        <div class="field"><label>小盲，BB制可填0.5</label><input id="sbInput" type="number" step="0.1" value="${state.blinds.sb}"></div>
+        <div class="field"><label>大盲</label><input id="bbInput" type="number" step="0.1" value="${state.blinds.bb}"></div>
+        <div class="field"><label>有效筹码（bb）</label><input id="stackInput" type="number" step="1" value="${state.effectiveStack}"></div>
+        <div class="field"><label>Ante（bb/人，可选）</label><input id="anteInput" type="number" step="0.1" value="${state.blinds.ante}"></div>
+        <div class="field"><label>Straddle（bb，仅现金局）</label><input id="straddleInput" type="number" step="0.1" value="${state.blinds.straddle}" ${state.gameType === 'cash' ? '' : 'disabled'}></div>
+      </div>
+      <button class="btn btn-primary" type="button" data-next="hero">下一步</button>
+    </div>`;
+  ['sb', 'bb', 'stack', 'ante', 'straddle'].forEach((key) => {
+    const id = `${key}Input`;
+    const input = $(id);
+    if (!input) return;
+    input.oninput = () => {
+      if (key === 'stack') state.effectiveStack = Number(input.value) || 0;
+      else state.blinds[key] = Number(input.value) || 0;
+      updateOutput();
+      renderStepper();
+    };
+  });
+  bindNext();
+}
+
+function renderHero() {
+  $('stage').innerHTML = `
+    <div class="question">
+      <h2>Hero 在哪个<em>位置</em>？</h2>
+      <div class="grid seats">
+        ${seats().map((pos) => `<button type="button" class="choice seat-button ${state.heroPosition === pos ? 'selected' : ''} ${pos === buttonPos() ? 'dealer' : ''}" data-pos="${pos}"><strong>${pos}</strong></button>`).join('')}
+      </div>
+      <button class="btn btn-primary" type="button" data-next="cards">下一步</button>
+    </div>`;
+  document.querySelectorAll('[data-pos]').forEach((btn) => {
+    btn.onclick = () => {
+      state.heroPosition = btn.dataset.pos;
+      render();
+    };
+  });
+  bindNext();
+}
+
+function renderCardStep(target, count, title, nextStep) {
+  const cards = target === 'hero' ? state.heroCards : target === 'flop' ? state.board.flop : [state.board[target]];
+  const firstEmpty = cards.findIndex((card) => !card);
+  const activeIndex = firstEmpty >= 0 ? firstEmpty : 0;
+  cardPick.target = target;
+  cardPick.index = activeIndex;
+  $('stage').innerHTML = `
+    <div class="question">
+      <h2>${title}</h2>
+      <div class="card-row">
+        ${Array.from({ length: count }, (_, i) => `<button type="button" class="card-slot ${cards[i] ? 'filled' : ''} ${i === activeIndex ? 'active' : ''}" data-card-slot="${i}">${cards[i] ? cardPretty(cards[i]) : `CARD ${i + 1}`}</button>`).join('')}
+      </div>
+      <div class="rank-grid">${RANKS.map((rank) => `<button type="button" class="${cardPick.rank === rank ? 'active' : ''}" data-rank="${rank}">${rank}</button>`).join('')}</div>
+      <div class="suit-grid">${SUITS.map((suit) => `<button type="button" class="${suit.cls}" data-suit="${suit.id}">${suit.sym}</button>`).join('')}</div>
+      <button class="btn btn-primary" type="button" data-next="${nextStep}" ${cards.every(Boolean) ? '' : 'disabled'}>下一步</button>
+    </div>`;
+  document.querySelectorAll('[data-card-slot]').forEach((btn) => {
+    btn.onclick = () => {
+      cardPick.index = Number(btn.dataset.cardSlot);
+      assignCard(target, cardPick.index, null);
+      render();
+    };
+  });
+  document.querySelectorAll('[data-rank]').forEach((btn) => {
+    btn.onclick = () => {
+      cardPick.rank = btn.dataset.rank;
+      render();
+    };
+  });
+  document.querySelectorAll('[data-suit]').forEach((btn) => {
+    btn.onclick = () => {
+      if (!cardPick.rank) return toast('先选点数');
+      const card = { rank: cardPick.rank, suit: btn.dataset.suit };
+      if (usedCards().includes(cardCode(card))) return toast('这张牌已经用过');
+      assignCard(target, cardPick.index, card);
+      cardPick.rank = null;
+      const nextCards = target === 'hero' ? state.heroCards : target === 'flop' ? state.board.flop : [state.board[target]];
+      if (nextCards.every(Boolean)) setStep(nextStep);
+      else render();
+    };
+  });
+  bindNext();
+}
+
+function assignCard(target, index, card) {
+  if (target === 'hero') state.heroCards[index] = card;
+  else if (target === 'flop') state.board.flop[index] = card;
+  else state.board[target] = card;
+  clearFrom(target === 'hero' ? 'cards' : target === 'flop' ? 'flopCards' : target === 'turn' ? 'turnCard' : 'riverCard');
+}
+
+function renderActions(street) {
+  const rep = replay(street);
+  if (rep.contenders.length <= 1) {
+    $('stage').innerHTML = `
+      <div class="question">
+        <h2>${STREET_LABEL[street]} 已结束</h2>
+        <p class="hint">${rep.contenders[0]?.pos || '无人'} 赢下底池。</p>
+        ${renderFeed()}
+        <button class="btn btn-primary" type="button" data-next="review">检查记录</button>
+      </div>`;
+    bindNext();
+    return;
+  }
+  if (rep.complete && state.actions[street].length > 0) {
+    $('stage').innerHTML = `
+      <div class="question">
+        <h2>${STREET_LABEL[street]} 行动闭合</h2>
+        ${renderFeed()}
+        <button class="btn btn-primary" type="button" data-next="${nextStreetStep(street)}">继续</button>
+      </div>`;
+    bindNext();
+    return;
+  }
+  const p = rep.current || rep.players.find((x) => x.status === 'active');
+  const toCall = Math.max(0, rep.currentBet - (p?.invested || 0));
+  const canCheck = toCall <= 0;
+  $('stage').innerHTML = `
+    <div class="question">
+      <div class="action-head">
+        <h2>${STREET_LABEL[street]}：<em>${p?.pos || '-'}</em> 行动</h2>
+        <div class="now-card">
+          <div>
+            <strong>${p?.pos || '-'}</strong>
+            <div class="hint">To call ${amountText(toCall)} · 当前下注 ${amountText(rep.currentBet)}</div>
+          </div>
+          <button class="btn" type="button" id="undoBtn" ${state.actions[street].length ? '' : 'disabled'}>撤回</button>
+        </div>
+      </div>
+      <div class="action-grid">
+        <button class="choice danger" type="button" data-action="fold"><strong>Fold</strong></button>
+        <button class="choice" type="button" data-action="${canCheck ? 'check' : 'call'}"><strong>${canCheck ? 'Check' : 'Call'}</strong></button>
+        <button class="choice" type="button" data-action="${rep.currentBet === 0 ? 'bet' : 'raise'}"><strong>${rep.currentBet === 0 ? 'Bet' : 'Raise'}</strong></button>
+        <button class="choice" type="button" data-action="allin"><strong>All-in</strong><span>${amountText(state.effectiveStack)}</span></button>
+      </div>
+      <div class="amount-row">
+        <button class="btn" type="button" data-size="2.5">2.5bb</button>
+        <button class="btn" type="button" data-size="3">3bb</button>
+        <input type="number" id="amountInput" step="${street === 'preflop' ? '0.1' : '0.5'}" placeholder="自定义下注额（bb）">
+      </div>
+      ${renderFeed()}
+    </div>`;
+  $('undoBtn').onclick = () => {
+    state.actions[street].pop();
+    render();
+  };
+  document.querySelectorAll('[data-size]').forEach((btn) => {
+    btn.onclick = () => {
+      $('amountInput').value = btn.dataset.size;
+    };
+  });
+  document.querySelectorAll('[data-action]').forEach((btn) => {
+    btn.onclick = () => {
+      const action = btn.dataset.action;
+      const needsAmount = ['bet', 'raise'].includes(action);
+      const amount = action === 'allin' ? state.effectiveStack : needsAmount ? Number($('amountInput').value) : null;
+      if (needsAmount && (!amount || amount <= rep.currentBet)) return toast('请输入有效下注额');
+      state.actions[street].push({ pos: p.pos, action, amount });
+      render();
+      const nextReplay = replay(street);
+      if (nextReplay.complete && state.actions[street].length > 0) {
+        setTimeout(() => setStep(nextReplay.contenders.length <= 1 ? 'review' : nextStreetStep(street)), 180);
+      }
+    };
+  });
+}
+
+function renderFeed() {
+  const blocks = STREET_ORDER
+    .filter((street) => state.actions[street].length || (street === 'flop' && state.board.flop.every(Boolean)) || (street === 'turn' && state.board.turn) || (street === 'river' && state.board.river))
+    .map((street) => `
+      <div class="street-feed">
+        <div class="street-name">${streetSummary(street)}</div>
+        ${state.actions[street].map((a, i) => `
+          <div class="feed-row">
+            <span class="num">${String(i + 1).padStart(2, '0')}</span>
+            <span class="pos">${a.pos}</span>
+            <span>${ACTION_LABEL[a.action]}</span>
+            <span class="amt">${a.amount ? amountText(a.amount) : ''}</span>
+          </div>`).join('') || '<p class="hint">暂无行动</p>'}
+      </div>`);
+  return `<div class="feed">${blocks.join('') || '<p class="hint">行动记录会显示在这里。</p>'}</div>`;
+}
+
+function renderReview() {
+  $('stage').innerHTML = `
+    <div class="question">
+      <h2>检查并<em>复制分享</em></h2>
+      ${renderFeed()}
+      <button class="btn btn-primary" type="button" id="copyFromReview">复制手牌文本</button>
+    </div>`;
+  $('copyFromReview').onclick = copyText;
+}
+
+function bindNext() {
+  document.querySelectorAll('[data-next]').forEach((btn) => {
+    btn.onclick = () => setStep(btn.dataset.next);
+  });
+}
+
+function buildText() {
+  const lines = [];
+  lines.push(`${state.gameType.toUpperCase()} ${state.tableSize}-max · Blinds ${state.blinds.sb}/${state.blinds.bb}${state.blinds.ante ? ` ante ${state.blinds.ante}` : ''}${state.blinds.straddle ? ` straddle ${state.blinds.straddle}` : ''} · Effective ${state.effectiveStack}bb`);
+  lines.push(`Hero ${state.heroPosition}: ${state.heroCards.map(cardCode).filter(Boolean).join(' ') || '-'}`);
+  const board = [...state.board.flop, state.board.turn, state.board.river].filter(Boolean).map(cardCode);
+  if (board.length) lines.push(`Board: ${board.join(' ')}`);
+  for (const street of STREET_ORDER) {
+    if (street === 'flop' && state.board.flop.every(Boolean)) lines.push(`Flop ${state.board.flop.map(cardCode).join(' ')}: ${state.actions.flop.map(formatAction).join(', ') || '-'}`);
+    else if (street === 'turn' && state.board.turn) lines.push(`Turn ${cardCode(state.board.turn)}: ${state.actions.turn.map(formatAction).join(', ') || '-'}`);
+    else if (street === 'river' && state.board.river) lines.push(`River ${cardCode(state.board.river)}: ${state.actions.river.map(formatAction).join(', ') || '-'}`);
+    else if (street === 'preflop') lines.push(`Preflop: ${state.actions.preflop.map(formatAction).join(', ') || '-'}`);
+  }
+  return lines.join('\n');
+}
+
+function formatAction(a) {
+  return `${a.pos} ${ACTION_LABEL[a.action]}${a.amount ? ` ${amountText(a.amount)}` : ''}`;
+}
+
+function updateOutput() {
+  $('output').value = buildText();
+}
+
+function render() {
+  renderStepper();
+  if (state.step === 'game') renderGame();
+  if (state.step === 'table') renderTable();
+  if (state.step === 'stack') renderStack();
+  if (state.step === 'hero') renderHero();
+  if (state.step === 'cards') renderCardStep('hero', 2, '选择 Hero <em>手牌</em>', 'preflop');
+  if (state.step === 'preflop') renderActions('preflop');
+  if (state.step === 'flopCards') renderCardStep('flop', 3, '选择 <em>Flop</em>', 'flop');
+  if (state.step === 'flop') renderActions('flop');
+  if (state.step === 'turnCard') renderCardStep('turn', 1, '选择 <em>Turn</em>', 'turn');
+  if (state.step === 'turn') renderActions('turn');
+  if (state.step === 'riverCard') renderCardStep('river', 1, '选择 <em>River</em>', 'river');
+  if (state.step === 'river') renderActions('river');
+  if (state.step === 'review') renderReview();
+  updateOutput();
+}
+
+async function copyText() {
+  const text = $('output').value || buildText();
+  try {
+    await navigator.clipboard.writeText(text);
+    toast('已复制手牌文本');
+  } catch {
+    $('output').select();
+    document.execCommand('copy');
+    toast('已复制手牌文本');
+  }
+}
+
+async function shareText() {
+  const text = $('output').value || buildText();
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: '手牌记录', text });
+      return;
+    } catch {}
+  }
+  await copyText();
+}
+
+function downloadJson() {
+  const payload = JSON.stringify(state, null, 2);
+  const blob = new Blob([payload], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `hand-record-${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function resetAll() {
+  Object.assign(state, clone({
+    step: 'game',
+    gameType: 'cash',
+    tableSize: 6,
+    blinds: { sb: 0.5, bb: 1, ante: 0, straddle: 0 },
+    effectiveStack: 100,
+    heroPosition: 'BTN',
+    heroCards: [null, null],
+    board: { flop: [null, null, null], turn: null, river: null },
+    actions: { preflop: [], flop: [], turn: [], river: [] },
+  }));
+  render();
+}
+
+function loadSample() {
+  Object.assign(state, clone({
+    step: 'review',
+    gameType: 'cash',
+    tableSize: 6,
+    blinds: { sb: 0.5, bb: 1, ante: 0, straddle: 0 },
+    effectiveStack: 100,
+    heroPosition: 'BTN',
+    heroCards: [{ rank: 'A', suit: 's' }, { rank: 'K', suit: 'd' }],
+    board: {
+      flop: [{ rank: 'K', suit: 's' }, { rank: '9', suit: 'h' }, { rank: '4', suit: 'd' }],
+      turn: { rank: '2', suit: 'c' },
+      river: null,
+    },
+    actions: {
+      preflop: [
+        { pos: 'UTG', action: 'fold', amount: null },
+        { pos: 'HJ', action: 'fold', amount: null },
+        { pos: 'CO', action: 'raise', amount: 2.5 },
+        { pos: 'BTN', action: 'raise', amount: 8 },
+        { pos: 'SB', action: 'fold', amount: null },
+        { pos: 'BB', action: 'fold', amount: null },
+        { pos: 'CO', action: 'call', amount: null },
+      ],
+      flop: [
+        { pos: 'CO', action: 'check', amount: null },
+        { pos: 'BTN', action: 'bet', amount: 5.5 },
+        { pos: 'CO', action: 'call', amount: null },
+      ],
+      turn: [
+        { pos: 'CO', action: 'check', amount: null },
+        { pos: 'BTN', action: 'check', amount: null },
+      ],
+      river: [],
+    },
+  }));
+  render();
+}
+
+function toast(message) {
+  const old = document.querySelector('.toast');
+  if (old) old.remove();
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = message;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1800);
+}
+
+$('copyBtn').onclick = copyText;
+$('shareBtn').onclick = shareText;
+$('downloadBtn').onclick = downloadJson;
+$('copyJsonBtn').onclick = async () => {
+  await navigator.clipboard.writeText(JSON.stringify(state, null, 2));
+  toast('已复制 JSON');
+};
+$('resetBtn').onclick = resetAll;
+$('sampleBtn').onclick = loadSample;
+$('output').oninput = () => {};
+
+render();
+</script>
+</body>
+</html>

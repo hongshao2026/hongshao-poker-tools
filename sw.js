@@ -2,13 +2,13 @@
 // Strategy: network-first for HTML (so updates show fast), cache-first
 // for static assets (offline-friendly + warm repeat visits).
 
-const CACHE = 'hongshao-poker-v1';
+const CACHE = 'hongshao-poker-v2';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE).then((c) =>
-      c.addAll(['./', './index.html', './manifest.json', './assets/shared.css', './assets/icon.svg'])
+      c.addAll(['./', './index.html', './manifest.json', './assets/shared.css', './assets/icon.svg', './tools/hand-recorder/'])
         .catch(() => {})
     )
   );
