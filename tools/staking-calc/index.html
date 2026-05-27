@@ -646,28 +646,8 @@ GL jie 赏金特别赛, 88, 1.10, 70</textarea>
   </div>
 
   <details>
-    <summary>v4 修正说明 / 计算公式</summary>
-    <p><strong style="color:var(--text);">v4 关键变更</strong></p>
-    <ul>
-      <li>v3 用奖池反推总报名 → 错误：包含了 overlay 对应的"虚拟人次"</li>
-      <li>v4 让用户直接输入<strong>实际总参赛人次</strong>和<strong>实际 Day 2 玩家数</strong></li>
-      <li>奖池和筹码池<strong>解耦</strong>：奖池含 overlay，筹码池只反映真实报名</li>
-    </ul>
-    <p><strong style="color:var(--text);">为什么这样做</strong></p>
-    <ul>
-      <li><strong>奖池</strong> = 真实报名 × 0.92 + overlay。包含平台补贴。</li>
-      <li><strong>Day 2 总筹码</strong> = 真实报名 × 起始码（筹码守恒）。不含 overlay。</li>
-      <li>两个数字必须分别输入，不能用一个反推另一个。</li>
-    </ul>
-    <p><strong style="color:var(--text);">核心公式</strong></p>
-    <ul>
-      <li>AdjS = <code>1.35 × (筹码/起始码)^0.75</code></li>
-      <li>1% 价 = <code>AdjS × buy-in × markup × 0.01</code></li>
-      <li>Day 2 总筹码 = <code>总参赛人次 × 起始码</code>（筹码守恒）</li>
-      <li>cEV = <code>(玩家筹码/总筹码) × 总奖池</code></li>
-      <li>$EV = <code>cEV × ICM 折扣</code></li>
-      <li>零和 ROI = <code>价格 / ($EV × 0.01) − 1</code></li>
-    </ul>
+    <summary>版本说明</summary>
+    <p>Day 2 估值按实际总参赛人次和实际晋级人数计算。奖池可以含 overlay，筹码池只按真实报名处理。</p>
   </details>
 
   <!-- AdjS × Markup → 买家 ROI 图表 -->
