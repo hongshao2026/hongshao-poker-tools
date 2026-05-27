@@ -166,6 +166,23 @@
     font-size: 12px;
     line-height: 1.7;
   }
+  .pro-status {
+    display: inline-flex;
+    margin-top: 10px;
+    border: 1px solid rgba(255,210,58,0.38);
+    color: var(--solved);
+    background: rgba(255,210,58,0.08);
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+  }
+  .pro-status.is-active {
+    color: var(--good);
+    border-color: rgba(58,255,176,0.42);
+    background: rgba(58,255,176,0.08);
+  }
   .empty {
     color: var(--text-faint);
     border: 1px dashed var(--border);
@@ -182,6 +199,7 @@
   <header>
     <h1>赛事<span>模板库</span></h1>
     <p class="subtitle">沉淀 MTT、PKO、Mystery 和 FT deal 的结构化参数。模板只保存可审计参数和来源记录，不复制外部 PDF、海报或整页资料。</p>
+    <span class="pro-status" id="pro-status">PRO PREVIEW</span>
   </header>
 
   <section class="toolbar">
@@ -225,7 +243,9 @@
   </section>
 </div>
 
-<script>
+<script type="module">
+import { renderProBadge } from '../../assets/pro-access.js';
+
 const SAMPLE_URL = '../../data/tournament-structures/templates.sample.json';
 const CUSTOM_KEY = 'hongshao_tournament_templates_v1';
 let sourceTemplates = [];
@@ -379,6 +399,8 @@ function escapeJs(s) {
   return String(s ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 }
 
+window.addEventListener('hongshao:pro-access-changed', () => renderProBadge('#pro-status'));
+renderProBadge('#pro-status');
 loadTemplates();
 </script>
 </body>

@@ -250,6 +250,11 @@
     font-size: 12px;
     line-height: 1.6;
   }
+  .role-tag.is-active {
+    color: var(--good);
+    border-color: rgba(58,255,176,0.42);
+    background: rgba(58,255,176,0.08);
+  }
   .batch-textarea:focus { outline: none; border-color: var(--border-bright); }
 
   .batch-actions {
@@ -398,6 +403,7 @@
     <h1>STAKING <span>计算器 v4</span></h1>
     <p class="subtitle">Day 1 / Day 2 单注 + 批量 · AdjS · ICM · 零和 ROI · 含买家 ROI 预测</p>
     <span class="role-tag">投资人 / 买股视角</span>
+    <span class="role-tag" id="pro-status">PRO PREVIEW</span>
     <span class="cross-link">
       仅看 EV 反推合约? → <a href="../staking-solver/">Staking Solver</a> ·
       选手"卖多少股最优"? → <a href="../mtt-staking/">MTT 卖股策略</a>
@@ -829,6 +835,12 @@ GL jie 赏金特别赛, 88, 1.10, 70</textarea>
   renderLegend();
   setTimeout(updateChart, 100);
 })();
+</script>
+
+<script type="module">
+import { renderProBadge } from '../../assets/pro-access.js';
+window.addEventListener('hongshao:pro-access-changed', () => renderProBadge('#pro-status'));
+renderProBadge('#pro-status');
 </script>
 
 <script>

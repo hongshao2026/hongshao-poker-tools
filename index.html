@@ -411,6 +411,29 @@
     letter-spacing: 0.04em;
     transition: color .18s, border-color .18s, background .18s, transform .18s, box-shadow .18s;
   }
+  .pro-cta {
+    position: absolute;
+    top: 24px;
+    right: 210px;
+    z-index: 5;
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    color: #0a0a0c;
+    background: var(--g-staking-2);
+    border: 1px solid var(--g-staking-2);
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-tiny);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    transition: transform .18s, box-shadow .18s;
+  }
+  .pro-cta:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px -10px var(--g-staking-2);
+  }
   .star-cta svg {
     width: 14px;
     height: 14px;
@@ -454,6 +477,11 @@
     }
     .star-cta .label-full { display: none; }
     .star-cta .arrow { display: none; }
+    .pro-cta {
+      top: 14px;
+      right: 64px;
+      padding: 7px 10px;
+    }
     .hero .brand-tag { padding-right: 60px; }
   }
 </style>
@@ -469,6 +497,7 @@
     <span class="label-full">Star on GitHub</span>
     <span class="arrow">→</span>
   </a>
+  <a class="pro-cta" href="tools/pro/">Pro</a>
 
   <div class="hero">
     <div class="brand-tag">Hongshao Poker · 红烧扑克</div>
@@ -495,7 +524,7 @@
   <!-- ============ Pro 工作流 ============ -->
   <section class="group" data-theme="staking">
     <div class="group-label">
-      <span>Pro Workflow · 付费能力规划</span>
+      <span>Pro Workflow · 工作台</span>
       <span class="count">/ 4 MVP</span>
     </div>
     <p class="group-desc">把单次计算变成可保存、可导出、可批量复用的研究工作流。</p>

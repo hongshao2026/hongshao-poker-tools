@@ -4,6 +4,7 @@ import {
   MODEL, refROI, calcSigma, recommendMarkup, adjustSigmaForShape,
   calibratedModel, theoreticalModel, FELIX_TABLE,
 } from "../../../packages/core/staking/mtt-model.js";
+import { readProAccess } from "../../../assets/pro-access.js";
 
 // ============================================================
 // 模型参数说明 (实际定义已迁移到 packages/core/staking/mtt-model.js):
@@ -122,8 +123,39 @@ function Header({ tab }) {
         }}>
           {meta.subtitle}
         </span>
+        <ProStatusBadge />
       </div>
     </div>
+  );
+}
+
+function ProStatusBadge() {
+  const [access, setAccess] = useState(readProAccess());
+
+  useEffect(() => {
+    const refresh = () => setAccess(readProAccess());
+    window.addEventListener("hongshao:pro-access-changed", refresh);
+    window.addEventListener("storage", refresh);
+    return () => {
+      window.removeEventListener("hongshao:pro-access-changed", refresh);
+      window.removeEventListener("storage", refresh);
+    };
+  }, []);
+
+  return (
+    <span style={{
+      display: "inline-flex",
+      alignItems: "center",
+      border: `1px solid ${access ? "rgba(58,255,176,0.42)" : "rgba(255,210,58,0.38)"}`,
+      color: access ? C.good : C.solved,
+      background: access ? "rgba(58,255,176,0.08)" : "rgba(255,210,58,0.08)",
+      borderRadius: 999,
+      padding: "5px 9px",
+      fontSize: 10,
+      letterSpacing: "0.08em",
+    }}>
+      {access ? `PRO ACTIVE · ${access.plan}` : "PRO PREVIEW"}
+    </span>
   );
 }
 

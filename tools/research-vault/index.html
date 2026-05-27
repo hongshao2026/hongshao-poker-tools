@@ -133,6 +133,23 @@
     font-size: 13px;
     line-height: 1.7;
   }
+  .pro-status {
+    display: inline-flex;
+    margin-top: 10px;
+    border: 1px solid rgba(255,210,58,0.38);
+    color: var(--solved);
+    background: rgba(255,210,58,0.08);
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+  }
+  .pro-status.is-active {
+    color: var(--good);
+    border-color: rgba(58,255,176,0.42);
+    background: rgba(58,255,176,0.08);
+  }
   .quick-links {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -156,6 +173,7 @@
   <header>
     <h1>本地<span>研究档案</span></h1>
     <p class="subtitle">统一查看当前浏览器里保存的卖股报告、Day2 批量估值和赛事模板。所有数据默认只在本机，适合做 Pro 工作流的本地工作台。</p>
+    <span class="pro-status" id="pro-status">PRO PREVIEW</span>
   </header>
 
   <section class="summary">
@@ -204,7 +222,9 @@
   </section>
 </div>
 
-<script>
+<script type="module">
+import { renderProBadge } from '../../assets/pro-access.js';
+
 const KEYS = {
   reports: 'hongshao_staking_reports_v1',
   day2: 'hongshao_day2_batch_runs_v1',
@@ -350,6 +370,8 @@ function escapeAttr(s) {
   return String(s ?? '').replace(/[^a-zA-Z0-9_-]/g, '_');
 }
 
+window.addEventListener('hongshao:pro-access-changed', () => renderProBadge('#pro-status'));
+renderProBadge('#pro-status');
 refreshVault();
 </script>
 </body>
