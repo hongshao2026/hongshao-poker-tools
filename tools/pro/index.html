@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>红烧扑克 Pro · 工作流包</title>
+<link rel="stylesheet" href="../../assets/shared.css">
+<link rel="icon" type="image/svg+xml" href="../../assets/icon.svg">
+<meta name="theme-color" content="#0a0a0c">
+<style>
+  body {
+    padding: 56px 18px 32px;
+    background-image:
+      radial-gradient(circle at 8% 0%, rgba(255,210,58,0.08) 0%, transparent 42%),
+      radial-gradient(circle at 92% 12%, rgba(58,255,176,0.06) 0%, transparent 38%),
+      radial-gradient(circle at 92% 100%, rgba(255,107,157,0.05) 0%, transparent 42%);
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; }
+  .hero {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 24px;
+    margin-bottom: 18px;
+  }
+  .eyebrow {
+    color: var(--solved);
+    font-family: var(--font-mono);
+    font-size: var(--fs-tiny);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  h1 {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xxl);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    max-width: 760px;
+  }
+  h1 span { color: var(--solved); }
+  .hero-copy {
+    color: var(--text-dim);
+    max-width: 760px;
+    margin-top: 14px;
+    font-size: var(--fs-md);
+    line-height: 1.7;
+  }
+  .hero-actions, .actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 18px;
+  }
+  .button-link, button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    background: var(--solved);
+    color: #000;
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .button-link.secondary, button.secondary {
+    background: var(--bg-input);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+  }
+  .button-link.buy {
+    background: var(--accent);
+    color: #000;
+  }
+  .status {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid rgba(255,210,58,0.38);
+    color: var(--solved);
+    background: rgba(255,210,58,0.08);
+    border-radius: 999px;
+    padding: 8px 12px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+  }
+  .status.is-active {
+    color: var(--good);
+    border-color: rgba(58,255,176,0.42);
+    background: rgba(58,255,176,0.08);
+  }
+  .panel {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 18px;
+    margin-bottom: 14px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+  }
+  .card {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    color: var(--text);
+    text-decoration: none;
+  }
+  .card:hover { border-color: rgba(255,210,58,0.45); }
+  .card .tag {
+    color: var(--solved);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+  .card h2 {
+    font-size: var(--fs-md);
+    margin-bottom: 8px;
+  }
+  .card p {
+    color: var(--text-dim);
+    font-size: var(--fs-sm);
+    line-height: 1.65;
+  }
+  .section-title {
+    font-family: var(--font-mono);
+    color: var(--text-faint);
+    font-size: var(--fs-tiny);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 12px;
+  }
+  .compare {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fs-sm);
+  }
+  .compare th, .compare td {
+    border-bottom: 1px solid var(--border);
+    padding: 10px 8px;
+    text-align: left;
+  }
+  .compare th {
+    color: var(--text-faint);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .good { color: var(--good); }
+  .dim { color: var(--text-faint); }
+  input {
+    max-width: 320px;
+    text-transform: uppercase;
+  }
+  .note {
+    color: var(--text-faint);
+    font-size: 12px;
+    line-height: 1.75;
+  }
+  .price {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  .price-pill {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+  }
+  .price-pill strong { color: var(--solved); font-size: 20px; }
+  @media (max-width: 720px) {
+    h1 { font-size: 34px; }
+  }
+</style>
+</head>
+<body>
+<a class="portal-back" href="../../index.html">← 工具集</a>
+<div class="wrap">
+  <section class="hero">
+    <div class="eyebrow">Hongshao Poker Pro</div>
+    <h1>红烧扑克<span>Pro 工作台</span></h1>
+    <p class="hero-copy">报告、批量估值、赛事模板和本地档案。给常用研究结果一个干净的出口。</p>
+    <div class="hero-actions">
+      <span class="status" id="pro-status">PRO PREVIEW</span>
+      <a class="button-link buy" href="https://github.com/hongshao2026/hongshao-poker-tools/issues/new?title=Pro%20Early%20Bird%20Access" target="_blank" rel="noopener">获取早鸟码</a>
+      <a class="button-link" href="../research-vault/">打开本地研究档案</a>
+      <a class="button-link secondary" href="../../index.html">返回工具集</a>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="section-title">Activate</div>
+    <div class="actions">
+      <input id="activation-code" placeholder="输入激活码">
+      <button onclick="handleActivate()">激活 Pro</button>
+      <button class="secondary" onclick="handleDeactivate()">退出激活</button>
+    </div>
+    <p class="note" id="activation-message" style="margin-top:10px;"></p>
+  </section>
+
+  <section class="grid">
+    <a class="card" href="../mtt-staking/#calc">
+      <div class="tag">PRO 01</div>
+      <h2>卖股报告生成器</h2>
+      <p>生成 Markdown、HTML 和可打印 PDF 报告。</p>
+    </a>
+    <a class="card" href="../staking-calc/#batch-day2">
+      <div class="tag">PRO 02</div>
+      <h2>Day2 批量估值</h2>
+      <p>粘贴名单和筹码，输出排序表和 CSV。</p>
+    </a>
+    <a class="card" href="../tournament-templates/">
+      <div class="tag">PRO 03</div>
+      <h2>赛事模板库</h2>
+      <p>保存常用赛事结构和自定义参数。</p>
+    </a>
+    <a class="card" href="../research-vault/">
+      <div class="tag">PRO 04</div>
+      <h2>本地研究档案</h2>
+      <p>集中管理报告、批量记录和模板。</p>
+    </a>
+  </section>
+
+  <section class="panel" style="margin-top:14px;">
+    <div class="section-title">Free vs Pro</div>
+    <table class="compare">
+      <thead><tr><th>能力</th><th>基础工具</th><th>Pro 工作台</th></tr></thead>
+      <tbody>
+        <tr><td>单点计算</td><td class="good">可用</td><td class="good">可用</td></tr>
+        <tr><td>报告导出</td><td class="dim">文本为主</td><td class="good">Markdown / HTML / PDF</td></tr>
+        <tr><td>批量估值</td><td class="dim">手动</td><td class="good">粘贴 / 排序 / CSV</td></tr>
+        <tr><td>赛事模板</td><td class="dim">样例</td><td class="good">本地自定义</td></tr>
+        <tr><td>研究档案</td><td class="dim">分散</td><td class="good">统一入口</td></tr>
+      </tbody>
+    </table>
+    <div class="price">
+      <div class="price-pill"><span class="dim">早鸟</span> <strong>¥99</strong></div>
+      <div class="price-pill"><span class="dim">正式</span> <strong>¥168-199</strong></div>
+      <div class="price-pill"><span class="dim">更新</span> <strong>当前大版本 + 12 个月</strong></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="section-title">Note</div>
+    <p class="note">工具只做计算、复盘和导出，不处理资金，也不撮合交易。</p>
+  </section>
+</div>
+
+<script type="module">
+import { activatePro, deactivatePro, renderProBadge } from '../../assets/pro-access.js';
+
+function refresh() {
+  renderProBadge('#pro-status');
+}
+
+window.handleActivate = function() {
+  const result = activatePro(document.getElementById('activation-code').value);
+  const msg = document.getElementById('activation-message');
+  if (result.ok) {
+    msg.textContent = `已激活: ${result.access.plan}`;
+    msg.style.color = 'var(--good)';
+  } else {
+    msg.textContent = result.message;
+    msg.style.color = 'var(--warn)';
+  }
+  refresh();
+};
+
+window.handleDeactivate = function() {
+  deactivatePro();
+  const msg = document.getElementById('activation-message');
+  msg.textContent = '已退出本地激活。';
+  msg.style.color = 'var(--text-faint)';
+  refresh();
+};
+
+window.addEventListener('hongshao:pro-access-changed', refresh);
+refresh();
+</script>
+</body>
+</html>

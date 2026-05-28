@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>红烧扑克工具集 · Hongshao Poker Tools</title>
+<title>红烧扑克 Pro · MTT 卖股和 Day2 报价工作台</title>
 <link rel="stylesheet" href="assets/shared.css">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
@@ -44,9 +44,13 @@
 
   /* ============ hero ============ */
   .hero {
-    margin-bottom: 56px;
-    padding-bottom: 28px;
+    margin-bottom: 28px;
+    padding: 42px 0 30px;
     border-bottom: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.75fr);
+    gap: 32px;
+    align-items: end;
   }
   .brand-tag {
     font-family: var(--font-mono);
@@ -77,6 +81,215 @@
     font-size: var(--fs-md);
     color: var(--text-dim);
     max-width: 680px;
+    line-height: 1.6;
+  }
+  .hero-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 24px;
+  }
+  .primary-action,
+  .secondary-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    border-radius: 6px;
+    padding: 10px 16px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: var(--fs-sm);
+    transition: transform .18s, border-color .18s, background .18s, color .18s;
+  }
+  .primary-action {
+    background: var(--g-staking-2);
+    border: 1px solid var(--g-staking-2);
+    color: #0a0a0c;
+  }
+  .secondary-action {
+    background: rgba(19, 19, 24, 0.74);
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+  .primary-action:hover,
+  .secondary-action:hover {
+    transform: translateY(-1px);
+    border-color: var(--g-staking-1);
+  }
+  .price-panel {
+    background:
+      radial-gradient(ellipse 420px 320px at 0% 0%, rgba(255,210,58,0.12), transparent 62%),
+      var(--bg-elev);
+    border: 1px solid color-mix(in oklab, var(--g-staking-2) 32%, var(--border));
+    border-radius: var(--radius-md);
+    padding: 22px;
+  }
+  .price-kicker {
+    font-family: var(--font-mono);
+    font-size: var(--fs-tiny);
+    color: var(--g-staking-2);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .price-main {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .price-main strong {
+    color: var(--text);
+    font-size: 38px;
+    line-height: 1;
+  }
+  .price-main span {
+    color: var(--text-faint);
+    font-family: var(--font-mono);
+    font-size: var(--fs-tiny);
+  }
+  .price-list {
+    display: grid;
+    gap: 8px;
+    margin: 16px 0 18px;
+    color: var(--text-dim);
+    font-size: var(--fs-sm);
+  }
+  .price-list div {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding-bottom: 8px;
+  }
+  .price-list div:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+  .price-list strong {
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .purchase-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    border-radius: 6px;
+    background: var(--g-staking-1);
+    color: #0a0a0c;
+    text-decoration: none;
+    font-weight: 800;
+  }
+
+  .value-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin: 0 0 44px;
+  }
+  .value-item {
+    background: rgba(19, 19, 24, 0.64);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    min-height: 116px;
+  }
+  .value-item strong {
+    display: block;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .value-item span {
+    color: var(--text-dim);
+    font-size: var(--fs-sm);
+    line-height: 1.55;
+  }
+
+  /* ============ product modes ============ */
+  .mode-strip {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin: 0 0 48px;
+  }
+  .mode-card {
+    background: rgba(19, 19, 24, 0.72);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 18px 20px;
+  }
+  .mode-card[data-mode="free"] {
+    border-color: color-mix(in oklab, var(--g-cash-1) 26%, var(--border));
+  }
+  .mode-card[data-mode="pro"] {
+    border-color: color-mix(in oklab, var(--g-staking-2) 26%, var(--border));
+  }
+  .mode-label {
+    font-family: var(--font-mono);
+    font-size: var(--fs-tiny);
+    color: var(--text-faint);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .mode-title {
+    font-size: var(--fs-md);
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .mode-card[data-mode="free"] .mode-title { color: var(--g-cash-1); }
+  .mode-card[data-mode="pro"] .mode-title { color: var(--g-staking-2); }
+  .mode-desc {
+    color: var(--text-dim);
+    font-size: var(--fs-sm);
+    line-height: 1.65;
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 22px;
+    padding: 3px 8px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--text-faint);
+    white-space: nowrap;
+  }
+  .status-badge.free {
+    color: var(--g-cash-1);
+    border-color: color-mix(in oklab, var(--g-cash-1) 34%, var(--border));
+  }
+  .status-badge.pro {
+    color: var(--g-staking-2);
+    border-color: color-mix(in oklab, var(--g-staking-2) 34%, var(--border));
+  }
+
+  .release-strip {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr 1fr;
+    gap: 14px;
+    margin: 0 0 52px;
+  }
+  .release-step {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 18px;
+    background: rgba(10, 10, 12, 0.42);
+  }
+  .release-step b {
+    display: block;
+    color: var(--g-staking-1);
+    margin-bottom: 8px;
+  }
+  .release-step span {
+    display: block;
+    color: var(--text-dim);
+    font-size: var(--fs-sm);
     line-height: 1.6;
   }
 
@@ -238,6 +451,7 @@
   .tool-head {
     display: flex;
     align-items: baseline;
+    gap: 10px;
     margin-bottom: 8px;
     padding-right: 40px; /* reserve space for numeral */
   }
@@ -270,6 +484,23 @@
     color: var(--text-faint);
     letter-spacing: 0.12em;
     transition: color .2s, transform .2s;
+  }
+
+  .tool-card.is-planned {
+    border-style: dashed;
+    cursor: default;
+  }
+  .tool-card.is-planned:hover {
+    transform: none;
+  }
+  .tool-card.is-planned .arrow {
+    color: var(--g-staking-2);
+  }
+  .tool-card.is-live {
+    border-color: color-mix(in oklab, var(--g-staking-2) 45%, var(--border));
+  }
+  .tool-card.is-live .arrow {
+    color: var(--g-staking-2);
   }
 
   /* ============ stagger fade-in ============ */
@@ -331,6 +562,29 @@
     letter-spacing: 0.04em;
     transition: color .18s, border-color .18s, background .18s, transform .18s, box-shadow .18s;
   }
+  .pro-cta {
+    position: absolute;
+    top: 24px;
+    right: 210px;
+    z-index: 5;
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    color: #0a0a0c;
+    background: var(--g-staking-2);
+    border: 1px solid var(--g-staking-2);
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-tiny);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    transition: transform .18s, box-shadow .18s;
+  }
+  .pro-cta:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px -10px var(--g-staking-2);
+  }
   .star-cta svg {
     width: 14px;
     height: 14px;
@@ -355,8 +609,18 @@
   /* ============ responsive ============ */
   @media (max-width: 720px) {
     .portal { padding: 36px 16px 32px; }
+    .hero {
+      grid-template-columns: 1fr;
+      gap: 20px;
+      padding-top: 54px;
+    }
     .hero h1 { font-size: 34px; }
     .hero p { font-size: var(--fs-base); }
+    .price-panel { padding: 18px; }
+    .price-main strong { font-size: 32px; }
+    .value-row { grid-template-columns: 1fr 1fr; }
+    .release-strip { grid-template-columns: 1fr; }
+    .mode-strip { grid-template-columns: 1fr; margin-top: 0; }
     .tool-grid { grid-template-columns: 1fr; }
     .group[data-featured-first] .tool-grid > .tool-card:first-child {
       min-height: 192px;
@@ -373,7 +637,16 @@
     }
     .star-cta .label-full { display: none; }
     .star-cta .arrow { display: none; }
+    .pro-cta {
+      top: 14px;
+      right: 64px;
+      padding: 7px 10px;
+    }
     .hero .brand-tag { padding-right: 60px; }
+  }
+  @media (max-width: 520px) {
+    .value-row { grid-template-columns: 1fr; }
+    .hero-actions a { width: 100%; }
   }
 </style>
 </head>
@@ -381,28 +654,140 @@
 
 <div class="portal">
 
-  <a class="star-cta" href="https://github.com/hongshao2026/hongshao-poker-tools" target="_blank" rel="noopener" aria-label="Star this repo on GitHub">
-    <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25z"/>
-    </svg>
-    <span class="label-full">Star on GitHub</span>
+  <a class="star-cta" href="#free-research" aria-label="查看免费工具">
+    <span class="label-full">免费工具</span>
     <span class="arrow">→</span>
   </a>
+  <a class="pro-cta" href="tools/pro/">早鸟 Pro</a>
 
   <div class="hero">
-    <div class="brand-tag">Hongshao Poker · 红烧扑克</div>
-    <h1>红烧扑克<span class="accent">工具集</span></h1>
-    <p>
-      一组纯前端、零依赖、可离线的扑克决策计算器。聚焦 MTT 股权交易、桌上 EV 计算与赛事博弈。
-      所有计算在浏览器本地完成，不上传任何数据。
-    </p>
+    <div>
+      <div class="brand-tag">Hongshao Poker Pro</div>
+      <h1>MTT 卖股和 Day2 报价<span class="accent">工作台</span></h1>
+      <p>
+        给经常卖股、买份额、看 Day2 报价的人用。基础工具免费，Pro 负责报告、批量估值、赛事模板和本地档案。
+      </p>
+      <div class="hero-actions">
+        <a class="primary-action" href="tools/pro/">体验 Pro 工作台</a>
+        <a class="secondary-action" href="tools/mtt-staking/#calc">先算一单</a>
+      </div>
+    </div>
+    <aside class="price-panel" aria-label="早鸟价格">
+      <div class="price-kicker">Early Bird</div>
+      <div class="price-main"><strong>¥99</strong><span>前 100 份</span></div>
+      <div class="price-list">
+        <div><span>正式价</span><strong>¥168-199</strong></div>
+        <div><span>授权方式</span><strong>一次买断</strong></div>
+        <div><span>更新周期</span><strong>12 个月</strong></div>
+      </div>
+      <a class="purchase-link" href="https://github.com/hongshao2026/hongshao-poker-tools/issues/new?title=Pro%20Early%20Bird%20Access" target="_blank" rel="noopener">获取早鸟码</a>
+    </aside>
   </div>
 
-  <!-- ============ 股份 ============ -->
-  <section class="group" data-theme="staking" data-featured-first>
+  <section class="value-row" aria-label="Pro 价值">
+    <div class="value-item">
+      <strong>卖股报告</strong>
+      <span>把参数和结论整理成可发送的 Markdown、HTML、PDF。</span>
+    </div>
+    <div class="value-item">
+      <strong>Day2 批量</strong>
+      <span>粘贴名单和筹码，快速排序，导出 CSV。</span>
+    </div>
+    <div class="value-item">
+      <strong>赛事模板</strong>
+      <span>常用结构保存下来，下一次少填很多东西。</span>
+    </div>
+    <div class="value-item">
+      <strong>本地档案</strong>
+      <span>报告、批量记录和模板留在浏览器里，可导出备份。</span>
+    </div>
+  </section>
+
+  <section class="mode-strip" aria-label="版本边界">
+    <div class="mode-card" data-mode="free">
+      <div class="mode-label">Free</div>
+      <div class="mode-title">免费研究版</div>
+      <div class="mode-desc">核心计算直接用，适合单次验证和复盘。</div>
+    </div>
+    <div class="mode-card" data-mode="pro">
+      <div class="mode-label">Paid</div>
+      <div class="mode-title">Pro 工作台</div>
+      <div class="mode-desc">把常用报价流程打包成结果，可保存、可导出。</div>
+    </div>
+  </section>
+
+  <section class="release-strip" aria-label="购买流程">
+    <div class="release-step">
+      <b>1. 先试</b>
+      <span>免费工具能直接跑核心计算。看得顺手，再开 Pro。</span>
+    </div>
+    <div class="release-step">
+      <b>2. 拿码</b>
+      <span>早鸟购买给本地激活码，不绑服务器。</span>
+    </div>
+    <div class="release-step">
+      <b>3. 留档</b>
+      <span>常用报告、模板和批量结果都存在本机。</span>
+    </div>
+  </section>
+
+  <!-- ============ Pro 工作流 ============ -->
+  <section class="group" data-theme="staking">
     <div class="group-label">
-      <span>Staking · 股份</span>
+      <span>Pro Workflow · 工作台</span>
       <span class="count">/ 4 TOOLS</span>
+    </div>
+    <p class="group-desc">常用结果留档，重要报价导出。</p>
+    <div class="tool-grid">
+
+      <a class="tool-card is-live" href="tools/mtt-staking/#calc">
+        <div class="tool-head">
+          <div class="tool-name">卖股报告生成器</div>
+          <span class="status-badge pro">PRO</span>
+        </div>
+        <div class="tool-tagline">Markdown · PDF · HTML</div>
+        <div class="tool-desc">把卖股结果整理成可发送的报告，保留参数、比例、markup 和风险口径。</div>
+        <span class="arrow">OPEN →</span>
+      </a>
+
+      <a class="tool-card is-live" href="tools/staking-calc/#batch-day2">
+        <div class="tool-head">
+          <div class="tool-name">Day2 批量估值</div>
+          <span class="status-badge pro">PRO</span>
+        </div>
+        <div class="tool-tagline">多人筹码 · 排序表 · CSV</div>
+        <div class="tool-desc">粘贴名单、筹码和报价，快速筛出值得看的 Day2 份额。</div>
+        <span class="arrow">OPEN →</span>
+      </a>
+
+      <a class="tool-card is-live" href="tools/tournament-templates/">
+        <div class="tool-head">
+          <div class="tool-name">赛事模板库</div>
+          <span class="status-badge pro">PRO</span>
+        </div>
+        <div class="tool-tagline">MTT · PKO · Mystery · FT Deal</div>
+        <div class="tool-desc">保存常用结构和自定义赛事参数，少重复录入。</div>
+        <span class="arrow">OPEN →</span>
+      </a>
+
+      <a class="tool-card is-live" href="tools/research-vault/">
+        <div class="tool-head">
+          <div class="tool-name">本地研究档案</div>
+          <span class="status-badge pro">PRO</span>
+        </div>
+        <div class="tool-tagline">报告 · 批量记录 · 模板</div>
+        <div class="tool-desc">集中管理本机保存的研究材料，一次性导出备份。</div>
+        <span class="arrow">OPEN →</span>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ============ 股份 ============ -->
+  <section class="group" id="free-research" data-theme="staking" data-featured-first>
+    <div class="group-label">
+      <span>Free Research · 股份估值</span>
+      <span class="count">/ 4 FREE</span>
     </div>
     <p class="group-desc">选手卖股、投资人买股、合约反推 EV，多角度配套使用。</p>
     <div class="tool-grid">
@@ -449,8 +834,8 @@
   <!-- ============ 资金管理 ============ -->
   <section class="group" data-theme="cash" data-featured-first>
     <div class="group-label">
-      <span>Bankroll · 资金管理</span>
-      <span class="count">/ 5 TOOLS</span>
+      <span>Free Research · 资金管理</span>
+      <span class="count">/ 5 FREE</span>
     </div>
     <p class="group-desc">反推所需 bankroll、阶梯升 buy-in 成功率、盈亏曲线模拟、多级资金升降级路径、FT deal 分账谈判。</p>
     <div class="tool-grid">
@@ -506,8 +891,8 @@
   <!-- ============ 桌上决策 ============ -->
   <section class="group" data-theme="table">
     <div class="group-label">
-      <span>桌上决策 · 概率与博弈</span>
-      <span class="count">/ 4 TOOLS</span>
+      <span>Free Research · 概率与复盘</span>
+      <span class="count">/ 5 FREE</span>
     </div>
     <p class="group-desc">实时计算所需胜率、范围对范围胜率、博弈类边桌的精确 EV。</p>
     <div class="tool-grid">
@@ -561,7 +946,7 @@
   </section>
 
   <footer>
-    <span class="tagline">纯前端 · 零依赖 · 完全开源</span>
+    <span class="tagline">本地计算 · 免费工具 · Pro 工作台</span>
   </footer>
 
 </div>
