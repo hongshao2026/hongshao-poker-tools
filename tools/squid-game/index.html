@@ -474,7 +474,7 @@
               <label for="ruleMode">赔付模式</label>
               <select id="ruleMode">
                 <option value="linear">普通鱿鱼：每条同价</option>
-                <option value="double">翻倍鱿鱼：倍率翻倍</option>
+                <option value="double">翻倍鱿鱼：倍率递增</option>
                 <option value="custom">自定义倍率</option>
               </select>
             </div>
@@ -627,7 +627,7 @@
   </main>
 
   <script type="module">
-    import { analyzePerPlayerDeadMoney } from '../../packages/core/squid/index.js?v=squid-console-20260624-first-squid';
+    import { analyzePerPlayerDeadMoney } from '../../packages/core/squid/index.js?v=squid-console-20260625-double-linear';
 
     const $ = (id) => document.getElementById(id);
 
@@ -700,10 +700,10 @@
         rulesText.disabled = true;
         rulesNote.textContent = '普通鱿鱼每条同价：持有 k 条时，总价值 = k × 每鱼价值 BB。';
       } else if (mode === 'double') {
-        multipliers = Array.from({ length: maxCakes }, (_, index) => 2 ** index);
+        multipliers = Array.from({ length: maxCakes }, (_, index) => index + 1);
         rulesText.value = multipliers.join(',');
         rulesText.disabled = true;
-        rulesNote.textContent = '翻倍鱿鱼：第 k 条持有档位的每条鱼倍率为 1,2,4,8...；总价值 = k × 当前档倍率 × 每鱼价值 BB。';
+        rulesNote.textContent = '翻倍鱿鱼：第 k 条持有档位的每条鱼倍率为 1,2,3,4...；总价值 = k × 当前档倍率 × 每鱼价值 BB。';
       } else {
         rulesText.disabled = false;
         multipliers = parseList(rulesText.value);
