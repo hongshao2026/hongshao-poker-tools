@@ -2,7 +2,7 @@
 // Strategy: network-first for HTML (so updates show fast), cache-first
 // for static assets (offline-friendly + warm repeat visits).
 
-const CACHE = 'hongshao-poker-v4';
+const CACHE = 'hongshao-poker-v5';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
