@@ -146,6 +146,26 @@
       line-height: 1.45;
     }
 
+    .checkbox-control {
+      min-height: 38px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 9px 12px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: var(--fs-sm);
+    }
+
+    .checkbox-control input {
+      width: auto;
+      accent-color: var(--accent);
+      margin: 0;
+    }
+
     .state-meta {
       color: var(--text-dim);
       font-family: var(--font-mono);
@@ -484,6 +504,21 @@
               <input type="text" id="maxPerPlayer" value="inf">
             </div>
 
+            <div class="field">
+              <label for="firstSquidBonus">首鱼规则</label>
+              <label class="checkbox-control">
+                <input type="checkbox" id="firstSquidBonus">
+                首鱼翻倍
+              </label>
+            </div>
+
+            <div class="field">
+              <label for="firstSquidOwner">首鱼归属</label>
+              <select id="firstSquidOwner" disabled>
+                <option value="">未产生</option>
+              </select>
+            </div>
+
             <div class="field field-wide">
               <label for="rulesText">倍率表 multiplier(1..n)</label>
               <textarea id="rulesText" spellcheck="false">1,1,1,1,1,1,1,1,1,1,1</textarea>
@@ -592,15 +627,15 @@
   </main>
 
   <script type="module">
-    import { analyzePerPlayerDeadMoney } from '../../packages/core/squid/index.js?v=squid-console-20260624-multiplier';
+    import { analyzePerPlayerDeadMoney } from '../../packages/core/squid/index.js?v=squid-console-20260624-first-squid';
 
     const $ = (id) => document.getElementById(id);
 
     const PRESETS = {
-      '8-11': { numPeople: 8, maxCakes: 11, squidValue: 1, handSquids: 1, maxPerPlayer: 'inf', ruleMode: 'linear' },
-      '6-5': { numPeople: 6, maxCakes: 5, squidValue: 5, handSquids: 1, maxPerPlayer: 'inf', ruleMode: 'linear' },
-      '9-3': { numPeople: 9, maxCakes: 3, squidValue: 1, handSquids: 1, maxPerPlayer: 'inf', ruleMode: 'linear' },
-      '9-8-cap1': { numPeople: 9, maxCakes: 8, squidValue: 8, handSquids: 1, maxPerPlayer: '1', ruleMode: 'linear' },
+      '8-11': { numPeople: 8, maxCakes: 11, squidValue: 1, handSquids: 1, maxPerPlayer: 'inf', ruleMode: 'linear', firstSquidBonus: false },
+      '6-5': { numPeople: 6, maxCakes: 5, squidValue: 5, handSquids: 1, maxPerPlayer: 'inf', ruleMode: 'linear', firstSquidBonus: false },
+      '9-3': { numPeople: 9, maxCakes: 3, squidValue: 1, handSquids: 1, maxPerPlayer: 'inf', ruleMode: 'linear', firstSquidBonus: false },
+      '9-8-cap1': { numPeople: 9, maxCakes: 8, squidValue: 8, handSquids: 1, maxPerPlayer: '1', ruleMode: 'linear', firstSquidBonus: false },
     };
 
     let selectedPlayer = 0;
@@ -693,6 +728,32 @@
       $('assignedMeta').textContent = `已分配 ${assigned} / ${maxCakes}`;
     }
 
+    function renderFirstSquidOwnerOptions() {
+      const select = $('firstSquidOwner');
+      const enabled = $('firstSquidBonus').checked;
+      const numPeople = Number.parseInt($('numPeople').value, 10) || 2;
+      const previous = select.value;
+
+      select.innerHTML = '<option value="">未产生</option>';
+      for (let index = 0; index < numPeople; index++) {
+        const option = document.createElement('option');
+        option.value = String(index);
+        option.textContent = `P${index + 1}`;
+        select.appendChild(option);
+      }
+
+      select.value = Number.parseInt(previous, 10) < numPeople ? previous : '';
+      select.disabled = !enabled;
+    }
+
+    function currentFirstSquidOwner() {
+      if (!$('firstSquidBonus').checked) return null;
+      const raw = $('firstSquidOwner').value;
+      if (raw === '') return null;
+      const owner = Number.parseInt(raw, 10);
+      return Number.isInteger(owner) ? owner : null;
+    }
+
     function renderPlayerGrid(nextValues = null) {
       const numPeople = Number.parseInt($('numPeople').value, 10) || 2;
       const oldValues = nextValues || currentPlayerValues();
@@ -744,6 +805,7 @@
       });
 
       updateAssignedMeta();
+      renderFirstSquidOwnerOptions();
     }
 
     function collectInputs() {
@@ -765,6 +827,13 @@
 
       const assigned = allCakes.reduce((sum, value) => sum + value, 0);
       if (assigned > maxCakes) throw new Error('当前分布超过总鱿鱼数');
+      const firstSquidBonus = $('firstSquidBonus').checked;
+      const firstSquidOwner = currentFirstSquidOwner();
+
+      if (firstSquidBonus && assigned > 0) {
+        if (firstSquidOwner === null) throw new Error('开启首鱼翻倍后，需要选择首鱼归属');
+        if (allCakes[firstSquidOwner] <= 0) throw new Error('首鱼归属玩家当前至少要有 1 条鱼');
+      }
 
       return {
         numPeople,
@@ -772,6 +841,8 @@
         squidValueBb,
         handSquids,
         maxPerPlayer,
+        firstSquidBonus,
+        firstSquidOwner,
         rules,
         allCakes,
         assigned,
@@ -810,7 +881,7 @@
           run();
         });
 
-        row.insertCell(0).textContent = player.player;
+        row.insertCell(0).textContent = player.hasFirstSquid ? `${player.player} 首鱼` : player.player;
         row.cells[0].className = 'left';
         row.insertCell(1).textContent = player.squids;
         row.insertCell(2).textContent = fmt(player.averageAnteBb);
@@ -945,6 +1016,8 @@
           squidValueBb: input.squidValueBb,
           handSquids: input.handSquids,
           maxPerPlayer: input.maxPerPlayer,
+          firstSquidBonus: input.firstSquidBonus,
+          firstSquidOwner: input.firstSquidOwner,
         });
 
         const totalDeadMoney = analysis.players.reduce((sum, player) => sum + player.deadMoneyBb, 0);
@@ -981,6 +1054,9 @@
       $('handSquids').value = preset.handSquids;
       $('maxPerPlayer').value = preset.maxPerPlayer;
       $('ruleMode').value = preset.ruleMode;
+      $('firstSquidBonus').checked = Boolean(preset.firstSquidBonus);
+      $('firstSquidOwner').value = '';
+      renderFirstSquidOwnerOptions();
       selectedPlayer = 0;
       renderPlayerGrid(Array.from({ length: preset.numPeople }, () => 0));
       scheduleRun();
@@ -994,26 +1070,30 @@
     $('rerunBtn').addEventListener('click', run);
     $('resetStateBtn').addEventListener('click', () => {
       const numPeople = Number.parseInt($('numPeople').value, 10) || 2;
+      $('firstSquidOwner').value = '';
       renderPlayerGrid(Array.from({ length: numPeople }, () => 0));
       scheduleRun();
     });
 
-    ['numPeople', 'maxCakes', 'squidValue', 'handSquids', 'maxPerPlayer', 'ruleMode', 'rulesText'].forEach((id) => {
+    ['numPeople', 'maxCakes', 'squidValue', 'handSquids', 'maxPerPlayer', 'ruleMode', 'rulesText', 'firstSquidBonus', 'firstSquidOwner'].forEach((id) => {
       $(id).addEventListener('input', () => {
         if (id !== 'rulesText') markCustomPreset();
         if (id === 'numPeople') renderPlayerGrid(currentPlayerValues());
+        if (id === 'firstSquidBonus') renderFirstSquidOwnerOptions();
         updateAssignedMeta();
         scheduleRun();
       });
       $(id).addEventListener('change', () => {
         if (id !== 'rulesText') markCustomPreset();
         if (id === 'numPeople') renderPlayerGrid(currentPlayerValues());
+        if (id === 'firstSquidBonus') renderFirstSquidOwnerOptions();
         updateAssignedMeta();
         scheduleRun();
       });
     });
 
     renderPlayerGrid(Array.from({ length: 8 }, () => 0));
+    renderFirstSquidOwnerOptions();
     run();
   </script>
 </body>

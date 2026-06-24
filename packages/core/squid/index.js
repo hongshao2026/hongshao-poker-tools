@@ -46,18 +46,35 @@ export function calculateTerminalPayoff(cakes, rules) {
  * A zero-squid player pays every positive-squid player according to `rules`;
  * a positive-squid player receives from every zero-squid player.
  */
-export function calculateTerminalPlayerPayoffs(cakes, rules, squidValueBb = 1) {
+function getPlayerRewardAmount(cakeCount, rules, hasFirstSquidBonus = false) {
+  const reward = getRewardAmount(cakeCount, rules);
+  if (!hasFirstSquidBonus || cakeCount <= 0) return reward;
+  return reward + reward / cakeCount;
+}
+
+export function calculateTerminalPlayerPayoffs(
+  cakes,
+  rules,
+  squidValueBb = 1,
+  firstSquidOwner = null,
+  firstSquidBonus = false,
+) {
   const zerosCount = cakes.filter((c) => c === 0).length;
-  const totalPaymentPerZeroPlayer = cakes.reduce((sum, cakeCount) => {
+  const totalPaymentPerZeroPlayer = cakes.reduce((sum, cakeCount, index) => {
     if (cakeCount <= 0) return sum;
-    return sum + getRewardAmount(cakeCount, rules) * squidValueBb;
+    const hasFirstSquid = firstSquidBonus && index === firstSquidOwner;
+    return sum + getPlayerRewardAmount(cakeCount, rules, hasFirstSquid) * squidValueBb;
   }, 0);
 
-  return cakes.map((cakeCount) => {
-    const receiveBb = cakeCount > 0 ? getRewardAmount(cakeCount, rules) * zerosCount * squidValueBb : 0;
+  return cakes.map((cakeCount, index) => {
+    const hasFirstSquid = firstSquidBonus && index === firstSquidOwner;
+    const receiveBb = cakeCount > 0
+      ? getPlayerRewardAmount(cakeCount, rules, hasFirstSquid) * zerosCount * squidValueBb
+      : 0;
     const payBb = cakeCount === 0 ? totalPaymentPerZeroPlayer : 0;
     return {
       squids: cakeCount,
+      hasFirstSquid,
       payBb,
       receiveBb,
       netBb: receiveBb - payBb,
@@ -79,6 +96,29 @@ function normalizeMaxPerPlayer(maxPerPlayer) {
   return Number.isFinite(parsed) ? parsed : Infinity;
 }
 
+function normalizeFirstSquidOwner(firstSquidOwner, numPeople, firstSquidBonus = false) {
+  if (!firstSquidBonus) return null;
+  if (firstSquidOwner === undefined || firstSquidOwner === null || firstSquidOwner === '') return null;
+  const parsed = Number(firstSquidOwner);
+  if (!Number.isInteger(parsed) || parsed < 0 || parsed >= numPeople) return null;
+  return parsed;
+}
+
+function canonicalizePlayerState(cakes, firstSquidOwner = null) {
+  const items = cakes.map((count, index) => ({
+    count,
+    hasFirstSquid: index === firstSquidOwner,
+  })).sort((a, b) => (
+    b.count - a.count || Number(b.hasFirstSquid) - Number(a.hasFirstSquid)
+  ));
+
+  const canonicalFirstSquidOwner = items.findIndex((item) => item.hasFirstSquid);
+  return {
+    canonicalCakes: items.map((item) => item.count),
+    canonicalFirstSquidOwner: canonicalFirstSquidOwner === -1 ? null : canonicalFirstSquidOwner,
+  };
+}
+
 function isTerminalState(cakes, maxCakes, stopCount, maxPerPlayer = Infinity) {
   const occupiedCount = cakes.filter((c) => c > 0).length;
   const currentSum = cakes.reduce((a, b) => a + b, 0);
@@ -90,6 +130,7 @@ function isTerminalState(cakes, maxCakes, stopCount, maxPerPlayer = Infinity) {
 function emptyPlayerOutcome(squids = 0) {
   return {
     squids,
+    hasFirstSquid: false,
     payBb: 0,
     receiveBb: 0,
     netBb: 0,
@@ -100,6 +141,7 @@ function emptyPlayerOutcome(squids = 0) {
 function copyPlayerOutcome(player, squids = player.squids) {
   return {
     squids,
+    hasFirstSquid: player.hasFirstSquid,
     payBb: player.payBb,
     receiveBb: player.receiveBb,
     netBb: player.netBb,
@@ -116,25 +158,39 @@ function addWeightedPlayerOutcome(target, source, weight) {
   }
 }
 
-function mapCanonicalResultToCakes(cakes, canonicalCakes, canonicalResult) {
+function mapCanonicalResultToCakes(
+  cakes,
+  firstSquidOwner,
+  canonicalCakes,
+  canonicalFirstSquidOwner,
+  canonicalResult,
+) {
   const byCount = new Map();
   for (let i = 0; i < canonicalCakes.length; i++) {
     const count = canonicalCakes[i];
-    if (!byCount.has(count)) byCount.set(count, []);
-    byCount.get(count).push(canonicalResult.players[i]);
+    const hasFirstSquid = i === canonicalFirstSquidOwner;
+    const key = `${count}|${hasFirstSquid ? 1 : 0}`;
+    if (!byCount.has(key)) byCount.set(key, []);
+    byCount.get(key).push(canonicalResult.players[i]);
   }
 
   const averagedByCount = new Map();
-  for (const [count, outcomes] of byCount.entries()) {
+  for (const [key, outcomes] of byCount.entries()) {
+    const [countRaw, firstRaw] = key.split('|');
+    const count = Number.parseInt(countRaw, 10);
     const averaged = emptyPlayerOutcome(count);
+    averaged.hasFirstSquid = firstRaw === '1';
     const weight = 1 / outcomes.length;
     for (const outcome of outcomes) addWeightedPlayerOutcome(averaged, outcome, weight);
-    averagedByCount.set(count, averaged);
+    averagedByCount.set(key, averaged);
   }
 
   return {
     expectedPenaltyPayers: canonicalResult.expectedPenaltyPayers,
-    players: cakes.map((count) => copyPlayerOutcome(averagedByCount.get(count), count)),
+    players: cakes.map((count, index) => {
+      const hasFirstSquid = index === firstSquidOwner;
+      return copyPlayerOutcome(averagedByCount.get(`${count}|${hasFirstSquid ? 1 : 0}`), count);
+    }),
   };
 }
 
@@ -145,24 +201,80 @@ function mapCanonicalResultToCakes(cakes, canonicalCakes, canonicalResult) {
 export function createPerPlayerSolver() {
   const memo = new Map();
 
-  function solve(cakes, maxCakes, stopCount, rules, numPeople, squidValueBb = 1, maxPerPlayer = Infinity) {
-    const canonicalCakes = [...cakes].sort((a, b) => b - a);
+  function solve(
+    cakes,
+    maxCakes,
+    stopCount,
+    rules,
+    numPeople,
+    squidValueBb = 1,
+    maxPerPlayer = Infinity,
+    firstSquidOwner = null,
+    firstSquidBonus = false,
+  ) {
+    const normalizedFirstSquidOwner = normalizeFirstSquidOwner(firstSquidOwner, numPeople, firstSquidBonus);
+    const { canonicalCakes, canonicalFirstSquidOwner } = canonicalizePlayerState(
+      cakes,
+      normalizedFirstSquidOwner,
+    );
     const cap = normalizeMaxPerPlayer(maxPerPlayer);
-    const key = JSON.stringify([canonicalCakes, maxCakes, stopCount, rules, numPeople, squidValueBb, cap]);
+    const key = JSON.stringify([
+      canonicalCakes,
+      canonicalFirstSquidOwner,
+      maxCakes,
+      stopCount,
+      rules,
+      numPeople,
+      squidValueBb,
+      cap,
+      Boolean(firstSquidBonus),
+    ]);
 
     if (!memo.has(key)) {
       memo.set(
         key,
-        solveCanonical(canonicalCakes, maxCakes, stopCount, rules, numPeople, squidValueBb, cap),
+        solveCanonical(
+          canonicalCakes,
+          maxCakes,
+          stopCount,
+          rules,
+          numPeople,
+          squidValueBb,
+          cap,
+          canonicalFirstSquidOwner,
+          Boolean(firstSquidBonus),
+        ),
       );
     }
 
-    return mapCanonicalResultToCakes(cakes, canonicalCakes, memo.get(key));
+    return mapCanonicalResultToCakes(
+      cakes,
+      normalizedFirstSquidOwner,
+      canonicalCakes,
+      canonicalFirstSquidOwner,
+      memo.get(key),
+    );
   }
 
-  function solveCanonical(cakes, maxCakes, stopCount, rules, numPeople, squidValueBb, maxPerPlayer) {
+  function solveCanonical(
+    cakes,
+    maxCakes,
+    stopCount,
+    rules,
+    numPeople,
+    squidValueBb,
+    maxPerPlayer,
+    firstSquidOwner,
+    firstSquidBonus,
+  ) {
     if (isTerminalState(cakes, maxCakes, stopCount, maxPerPlayer)) {
-      const payoffs = calculateTerminalPlayerPayoffs(cakes, rules, squidValueBb);
+      const payoffs = calculateTerminalPlayerPayoffs(
+        cakes,
+        rules,
+        squidValueBb,
+        firstSquidOwner,
+        firstSquidBonus,
+      );
       return {
         expectedPenaltyPayers: cakes.filter((c) => c === 0).length,
         players: payoffs.map((player) => ({
@@ -176,13 +288,30 @@ export function createPerPlayerSolver() {
       .map((count, index) => (count < maxPerPlayer ? index : -1))
       .filter((index) => index !== -1);
     const stepProbability = 1 / eligibleReceivers.length;
-    const accumPlayers = cakes.map((count) => emptyPlayerOutcome(count));
+    const accumPlayers = cakes.map((count, index) => {
+      const player = emptyPlayerOutcome(count);
+      player.hasFirstSquid = firstSquidBonus && index === firstSquidOwner;
+      return player;
+    });
     let expectedPenaltyPayers = 0;
 
     for (const receiverIdx of eligibleReceivers) {
       const nextCakes = [...cakes];
       nextCakes[receiverIdx] += 1;
-      const future = solve(nextCakes, maxCakes, stopCount, rules, numPeople, squidValueBb, maxPerPlayer);
+      const nextFirstSquidOwner = firstSquidBonus && firstSquidOwner === null
+        ? receiverIdx
+        : firstSquidOwner;
+      const future = solve(
+        nextCakes,
+        maxCakes,
+        stopCount,
+        rules,
+        numPeople,
+        squidValueBb,
+        maxPerPlayer,
+        nextFirstSquidOwner,
+        firstSquidBonus,
+      );
       expectedPenaltyPayers += future.expectedPenaltyPayers * stepProbability;
 
       for (let playerIdx = 0; playerIdx < numPeople; playerIdx++) {
@@ -214,10 +343,23 @@ export function analyzePerPlayerDeadMoney({
   squidValueBb = 1,
   maxPerPlayer = Infinity,
   handSquids = 1,
+  firstSquidBonus = false,
+  firstSquidOwner = null,
 }) {
   const cap = normalizeMaxPerPlayer(maxPerPlayer);
+  const normalizedFirstSquidOwner = normalizeFirstSquidOwner(firstSquidOwner, numPeople, firstSquidBonus);
   const solver = createPerPlayerSolver();
-  const base = solver.solve(allCakes, maxCakes, stopCount, rules, numPeople, squidValueBb, cap);
+  const base = solver.solve(
+    allCakes,
+    maxCakes,
+    stopCount,
+    rules,
+    numPeople,
+    squidValueBb,
+    cap,
+    normalizedFirstSquidOwner,
+    firstSquidBonus,
+  );
   const currentSum = allCakes.reduce((a, b) => a + b, 0);
   const hasRemainingSquids = currentSum < maxCakes;
   const scenarioSquids = Math.min(
@@ -225,15 +367,17 @@ export function analyzePerPlayerDeadMoney({
     Math.max(0, maxCakes - currentSum),
   );
 
-  function shapeScenario(label, cakes, result, receiverIndex = null) {
+  function shapeScenario(label, cakes, result, receiverIndex = null, scenarioFirstSquidOwner = null) {
     return {
       label,
       receiverIndex,
+      firstSquidOwner: scenarioFirstSquidOwner,
       allCakes: [...cakes],
       expectedPenaltyPayers: result.expectedPenaltyPayers,
       players: result.players.map((player, index) => ({
         player: `P${index + 1}`,
         squids: cakes[index],
+        hasFirstSquid: firstSquidBonus && index === scenarioFirstSquidOwner,
         deadMoneyBb: player.payBb,
         receiveBb: player.receiveBb,
         penaltyEquityBb: player.netBb,
@@ -242,7 +386,7 @@ export function analyzePerPlayerDeadMoney({
     };
   }
 
-  const baseScenario = shapeScenario('当前分布', allCakes, base);
+  const baseScenario = shapeScenario('当前分布', allCakes, base, null, normalizedFirstSquidOwner);
   const scenarios = [baseScenario];
 
   if (hasRemainingSquids && !isTerminalState(allCakes, maxCakes, stopCount, cap)) {
@@ -250,8 +394,27 @@ export function analyzePerPlayerDeadMoney({
       if (allCakes[receiverIdx] + scenarioSquids > cap) continue;
       const nextCakes = [...allCakes];
       nextCakes[receiverIdx] += scenarioSquids;
-      const result = solver.solve(nextCakes, maxCakes, stopCount, rules, numPeople, squidValueBb, cap);
-      scenarios.push(shapeScenario(`P${receiverIdx + 1} +${scenarioSquids}`, nextCakes, result, receiverIdx));
+      const scenarioFirstSquidOwner = firstSquidBonus && normalizedFirstSquidOwner === null
+        ? receiverIdx
+        : normalizedFirstSquidOwner;
+      const result = solver.solve(
+        nextCakes,
+        maxCakes,
+        stopCount,
+        rules,
+        numPeople,
+        squidValueBb,
+        cap,
+        scenarioFirstSquidOwner,
+        firstSquidBonus,
+      );
+      scenarios.push(shapeScenario(
+        `P${receiverIdx + 1} +${scenarioSquids}`,
+        nextCakes,
+        result,
+        receiverIdx,
+        scenarioFirstSquidOwner,
+      ));
     }
   }
 
@@ -286,6 +449,8 @@ export function analyzePerPlayerDeadMoney({
   return {
     gameEnded: isTerminalState(allCakes, maxCakes, stopCount, cap),
     expectedPenaltyPayers: base.expectedPenaltyPayers,
+    firstSquidBonus: Boolean(firstSquidBonus),
+    firstSquidOwner: normalizedFirstSquidOwner,
     players,
     scenarios,
     matrix: scenarios.map((scenario) => scenario.players.map((player) => player.deadMoneyBb)),
