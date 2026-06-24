@@ -203,7 +203,7 @@ export function createPerPlayerSolver() {
  * Full-table dead-money analysis.
  *
  * Returns the current expected payment/receipt/net for every player and a
- * scenario table showing what changes if the next squid goes to each player.
+ * scenario table showing what changes if the current hand's squid(s) go to each player.
  */
 export function analyzePerPlayerDeadMoney({
   allCakes,
@@ -213,12 +213,17 @@ export function analyzePerPlayerDeadMoney({
   numPeople,
   squidValueBb = 1,
   maxPerPlayer = Infinity,
+  handSquids = 1,
 }) {
   const cap = normalizeMaxPerPlayer(maxPerPlayer);
   const solver = createPerPlayerSolver();
   const base = solver.solve(allCakes, maxCakes, stopCount, rules, numPeople, squidValueBb, cap);
   const currentSum = allCakes.reduce((a, b) => a + b, 0);
   const hasRemainingSquids = currentSum < maxCakes;
+  const scenarioSquids = Math.min(
+    Math.max(1, Math.floor(Number(handSquids) || 1)),
+    Math.max(0, maxCakes - currentSum),
+  );
 
   function shapeScenario(label, cakes, result, receiverIndex = null) {
     return {
@@ -237,15 +242,16 @@ export function analyzePerPlayerDeadMoney({
     };
   }
 
-  const scenarios = [shapeScenario('当前分布', allCakes, base)];
+  const baseScenario = shapeScenario('当前分布', allCakes, base);
+  const scenarios = [baseScenario];
 
   if (hasRemainingSquids && !isTerminalState(allCakes, maxCakes, stopCount, cap)) {
     for (let receiverIdx = 0; receiverIdx < numPeople; receiverIdx++) {
-      if (allCakes[receiverIdx] >= cap) continue;
+      if (allCakes[receiverIdx] + scenarioSquids > cap) continue;
       const nextCakes = [...allCakes];
-      nextCakes[receiverIdx] += 1;
+      nextCakes[receiverIdx] += scenarioSquids;
       const result = solver.solve(nextCakes, maxCakes, stopCount, rules, numPeople, squidValueBb, cap);
-      scenarios.push(shapeScenario(`P${receiverIdx + 1} +1`, nextCakes, result, receiverIdx));
+      scenarios.push(shapeScenario(`P${receiverIdx + 1} +${scenarioSquids}`, nextCakes, result, receiverIdx));
     }
   }
 
@@ -266,11 +272,21 @@ export function analyzePerPlayerDeadMoney({
       );
     })
   ));
+  const players = baseScenario.players.map((player, playerIdx) => {
+    const antes = potAnteMatrix[playerIdx].filter((value) => Number.isFinite(value));
+    const averageAnteBb = antes.length
+      ? antes.reduce((sum, value) => sum + value, 0) / antes.length
+      : 0;
+    return {
+      ...player,
+      averageAnteBb,
+    };
+  });
 
   return {
     gameEnded: isTerminalState(allCakes, maxCakes, stopCount, cap),
     expectedPenaltyPayers: base.expectedPenaltyPayers,
-    players: shapeScenario('当前分布', allCakes, base).players,
+    players,
     scenarios,
     matrix: scenarios.map((scenario) => scenario.players.map((player) => player.deadMoneyBb)),
     potAnteMatrix,

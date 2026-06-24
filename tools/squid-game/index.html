@@ -449,8 +449,8 @@
               <label for="ruleMode">赔付模式</label>
               <select id="ruleMode">
                 <option value="linear">普通鱿鱼：每条同价</option>
-                <option value="double">翻倍鱿鱼：总赔付递增</option>
-                <option value="custom">自定义总赔付</option>
+                <option value="double">翻倍鱿鱼：倍率翻倍</option>
+                <option value="custom">自定义倍率</option>
               </select>
             </div>
 
@@ -470,14 +470,19 @@
             </div>
 
             <div class="field">
+              <label for="handSquids">本手鱼数</label>
+              <input type="number" id="handSquids" min="1" step="1" value="1">
+            </div>
+
+            <div class="field">
               <label for="maxPerPlayer">单人上限</label>
               <input type="text" id="maxPerPlayer" value="inf">
             </div>
 
             <div class="field field-wide">
-              <label for="rulesText">持有数量赔付表</label>
-              <textarea id="rulesText" spellcheck="false">1,2,3,4,5,6,7,8,9,10,11</textarea>
-              <div class="field-note" id="rulesNote">普通鱿鱼每条同价：持有 k 条时，总价值 = k × 每鱼价值 BB。</div>
+              <label for="rulesText">倍率表 multiplier(1..n)</label>
+              <textarea id="rulesText" spellcheck="false">1,1,1,1,1,1,1,1,1,1,1</textarea>
+              <div class="field-note" id="rulesNote">第 k 个数是“持有 k 条鱼时，每条鱼按多少倍计算”；总价值 = k × 倍率 × 每鱼价值 BB。</div>
             </div>
           </div>
         </section>
@@ -515,7 +520,7 @@
             <div class="metric-value" id="metricDead">—</div>
           </div>
           <div class="metric">
-            <div class="metric-label" title="选中的玩家拿到下一条鱼，相比没拿到下一条鱼，净收益会变化多少。">选中玩家拿鱼收益差 [BB]</div>
+            <div class="metric-label" title="选中的玩家拿到本手鱼，相比其他人拿到本手鱼，净收益会变化多少。">选中玩家平均 Ante [BB]</div>
             <div class="metric-value" id="metricDiff">—</div>
           </div>
           <div class="metric">
@@ -535,9 +540,8 @@
                 <tr>
                   <th class="left">玩家</th>
                   <th title="当前持有的鱿鱼数。">鱼数</th>
-                  <th title="终局平均需要付出去的金额。">预计要付 [BB]</th>
-                  <th title="终局平均可以收到的金额。">预计可收 [BB]</th>
-                  <th title="预计可收减预计要付。">预计净收益 [BB]</th>
+                  <th title="该玩家和其他玩家争本手鱼时，行内有效死钱的平均值。">平均 Ante [BB]</th>
+                  <th title="终局预计净收益；正数表示平均收钱，负数表示平均付款。">Penalty Equity [BB]</th>
                 </tr>
               </thead>
               <tbody></tbody>
@@ -550,7 +554,7 @@
             <span>每个 pot 的有效死钱 / ante [BB]</span>
             <span class="status">行玩家 vs 列玩家</span>
           </div>
-          <div class="field-note">读法：P1 行 P2 列 = P1 和 P2 争这个 pot 时，P1 赢到下一条鱼相对 P2 赢到下一条鱼，对 P1 多值多少 BB。</div>
+          <div class="field-note">读法：P1 行 P2 列 = P1 和 P2 争这个 pot 时，本手鱼归 P1 相对归 P2，对 P1 多值多少 BB。</div>
           <div class="table-wrap">
             <table id="potAnteTable">
               <thead></thead>
@@ -561,8 +565,8 @@
 
         <div class="section">
           <div class="section-title">
-            <span>下一条鱼给谁后的预计要付 [BB]</span>
-            <span class="status">每行假设下一条鱼归属</span>
+            <span>本手鱼给谁后的预计要付 [BB]</span>
+            <span class="status">每行假设本手鱼归属</span>
           </div>
           <div class="table-wrap">
             <table id="scenarioTable">
@@ -583,15 +587,15 @@
   </main>
 
   <script type="module">
-    import { analyzePerPlayerDeadMoney } from '../../packages/core/squid/index.js?v=squid-console-20260624';
+    import { analyzePerPlayerDeadMoney } from '../../packages/core/squid/index.js?v=squid-console-20260624-multiplier';
 
     const $ = (id) => document.getElementById(id);
 
     const PRESETS = {
-      '8-11': { numPeople: 8, maxCakes: 11, squidValue: 1, maxPerPlayer: 'inf', ruleMode: 'linear' },
-      '6-5': { numPeople: 6, maxCakes: 5, squidValue: 5, maxPerPlayer: 'inf', ruleMode: 'linear' },
-      '9-3': { numPeople: 9, maxCakes: 3, squidValue: 1, maxPerPlayer: 'inf', ruleMode: 'linear' },
-      '9-8-cap1': { numPeople: 9, maxCakes: 8, squidValue: 8, maxPerPlayer: '1', ruleMode: 'linear' },
+      '8-11': { numPeople: 8, maxCakes: 11, squidValue: 1, handSquids: 1, maxPerPlayer: 'inf', ruleMode: 'linear' },
+      '6-5': { numPeople: 6, maxCakes: 5, squidValue: 5, handSquids: 1, maxPerPlayer: 'inf', ruleMode: 'linear' },
+      '9-3': { numPeople: 9, maxCakes: 3, squidValue: 1, handSquids: 1, maxPerPlayer: 'inf', ruleMode: 'linear' },
+      '9-8-cap1': { numPeople: 9, maxCakes: 8, squidValue: 8, handSquids: 1, maxPerPlayer: '1', ruleMode: 'linear' },
     };
 
     let selectedPlayer = 0;
@@ -636,31 +640,39 @@
         .filter((item) => Number.isFinite(item));
     }
 
+    function expandMultipliers(multipliers, maxCakes) {
+      return Array.from({ length: maxCakes }, (_, index) => {
+        const fallback = multipliers[multipliers.length - 1] ?? 1;
+        const multiplier = multipliers[index] ?? fallback;
+        return (index + 1) * multiplier;
+      });
+    }
+
     function generateRules(maxCakes) {
       const mode = $('ruleMode').value;
       const rulesText = $('rulesText');
       const rulesNote = $('rulesNote');
-      let rules;
+      let multipliers;
 
       if (mode === 'linear') {
-        rules = Array.from({ length: maxCakes }, (_, index) => index + 1);
-        rulesText.value = rules.join(',');
+        multipliers = Array.from({ length: maxCakes }, () => 1);
+        rulesText.value = multipliers.join(',');
         rulesText.disabled = true;
-        rulesNote.textContent = '普通鱿鱼每条同价：持有 k 条时，总价值 = k × 每鱼价值 BB。下面的 1,2,3... 是“持有 k 条时的总倍率”，不是每条鱼的顺序价格。';
+        rulesNote.textContent = '普通鱿鱼每条同价：持有 k 条时，总价值 = k × 每鱼价值 BB。';
       } else if (mode === 'double') {
-        rules = Array.from({ length: maxCakes }, (_, index) => index * 2 + 1);
-        rulesText.value = rules.join(',');
+        multipliers = Array.from({ length: maxCakes }, (_, index) => 2 ** index);
+        rulesText.value = multipliers.join(',');
         rulesText.disabled = true;
-        rulesNote.textContent = '翻倍鱿鱼用总赔付倍率表：第 k 个数字表示持有 k 条鱼时，对每个 0 鱼玩家收取多少个“每鱼价值”。';
+        rulesNote.textContent = '翻倍鱿鱼：第 k 条持有档位的每条鱼倍率为 1,2,4,8...；总价值 = k × 当前档倍率 × 每鱼价值 BB。';
       } else {
         rulesText.disabled = false;
-        rules = parseList(rulesText.value);
-        rulesNote.textContent = '自定义时，第 k 个数字表示“持有 k 条鱼的总赔付倍率”。例如 1,2,4 表示持有 1/2/3 条时分别按 1/2/4 个单位收。';
-        if (!rules.length) throw new Error('自定义赔付表不能为空');
+        multipliers = parseList(rulesText.value);
+        rulesNote.textContent = '自定义时，第 k 个数字表示“持有 k 条鱼时的每鱼倍率”。例如 1,1,2 表示持有 1/2/3 条时总价值分别为 1/2/6 个单位；长度不足时沿用最后一档。';
+        if (!multipliers.length) throw new Error('自定义倍率表不能为空');
       }
 
-      if (rules.some((value) => value < 0)) throw new Error('赔付表不能包含负数');
-      return rules;
+      if (multipliers.some((value) => value < 0)) throw new Error('倍率表不能包含负数');
+      return expandMultipliers(multipliers, maxCakes);
     }
 
     function currentPlayerValues() {
@@ -734,6 +746,7 @@
       if (numPeople > 12) throw new Error('玩家数暂时最多支持 12');
       const maxCakes = parsePositiveInt('maxCakes', '总鱿鱼数');
       const squidValueBb = parseNonNegativeNumber('squidValue', '每鱼价值 BB');
+      const handSquids = parsePositiveInt('handSquids', '本手鱼数');
       const maxPerPlayer = parseMaxPerPlayer();
       const rules = generateRules(maxCakes);
       const allCakes = currentPlayerValues().slice(0, numPeople);
@@ -752,6 +765,7 @@
         numPeople,
         maxCakes,
         squidValueBb,
+        handSquids,
         maxPerPlayer,
         rules,
         allCakes,
@@ -794,9 +808,8 @@
         row.insertCell(0).textContent = player.player;
         row.cells[0].className = 'left';
         row.insertCell(1).textContent = player.squids;
-        row.insertCell(2).textContent = fmt(player.deadMoneyBb);
-        row.insertCell(3).textContent = fmt(player.receiveBb);
-        const netCell = row.insertCell(4);
+        row.insertCell(2).textContent = fmt(player.averageAnteBb);
+        const netCell = row.insertCell(3);
         netCell.textContent = fmt(player.penaltyEquityBb);
         netCell.className = player.penaltyEquityBb > 0 ? 'num-good' : player.penaltyEquityBb < 0 ? 'num-bad' : 'num-dim';
       });
@@ -925,6 +938,7 @@
           rules: input.rules,
           numPeople: input.numPeople,
           squidValueBb: input.squidValueBb,
+          handSquids: input.handSquids,
           maxPerPlayer: input.maxPerPlayer,
         });
 
@@ -959,6 +973,7 @@
       $('numPeople').value = preset.numPeople;
       $('maxCakes').value = preset.maxCakes;
       $('squidValue').value = preset.squidValue;
+      $('handSquids').value = preset.handSquids;
       $('maxPerPlayer').value = preset.maxPerPlayer;
       $('ruleMode').value = preset.ruleMode;
       selectedPlayer = 0;
@@ -978,7 +993,7 @@
       scheduleRun();
     });
 
-    ['numPeople', 'maxCakes', 'squidValue', 'maxPerPlayer', 'ruleMode', 'rulesText'].forEach((id) => {
+    ['numPeople', 'maxCakes', 'squidValue', 'handSquids', 'maxPerPlayer', 'ruleMode', 'rulesText'].forEach((id) => {
       $(id).addEventListener('input', () => {
         if (id !== 'rulesText') markCustomPreset();
         if (id === 'numPeople') renderPlayerGrid(currentPlayerValues());
