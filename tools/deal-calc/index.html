@@ -102,13 +102,11 @@
 
   /* ============ player count buttons ============ */
   .player-count {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(78px, 1fr));
     gap: 8px;
-    flex-wrap: wrap;
   }
   .player-count button {
-    flex: 1;
-    min-width: 120px;
     background: var(--bg-input);
     color: var(--text-dim);
     border: 1px solid var(--border);
@@ -431,6 +429,11 @@
         <button data-n="2">2 人单挑</button>
         <button data-n="3" class="active">3 人</button>
         <button data-n="4">4 人</button>
+        <button data-n="5">5 人</button>
+        <button data-n="6">6 人</button>
+        <button data-n="7">7 人</button>
+        <button data-n="8">8 人</button>
+        <button data-n="9">9 人桌</button>
       </div>
       <div id="playersContainer" style="margin-top: 14px;"></div>
       <p class="totals" id="totals">—</p>
@@ -442,7 +445,7 @@
     <div class="section-header">
       <span class="section-num">02 / PAYOUTS</span>
       <h2>奖金（按名次）</h2>
-      <span class="desc">输入 1st / 2nd / 3rd / 4th 各档奖金</span>
+      <span class="desc">按当前玩家数生成 1st 到 9th 奖金</span>
     </div>
     <div class="card">
       <div class="payouts-grid" id="payoutsContainer"></div>
@@ -553,10 +556,14 @@
     return getComputedStyle(document.body).getPropertyValue(name).trim() || fallback;
   }
 
+  const MAX_PLAYERS = 9;
+  const DEFAULT_STACKS = [1500000, 1000000, 500000, 350000, 250000, 175000, 125000, 90000, 60000];
+  const DEFAULT_PAYOUTS = [100000, 60000, 30000, 20000, 14000, 10000, 7000, 5000, 3500];
+
   const state = {
     n: 3,
-    stacks: [1500000, 1000000, 500000, 250000],
-    payouts: [100000, 60000, 30000, 15000],
+    stacks: [...DEFAULT_STACKS],
+    payouts: [...DEFAULT_PAYOUTS],
     meIndex: 0,
   };
 
@@ -609,8 +616,22 @@
   }
 
   // ========== UI ==========
+  function ordinal(rank) {
+    const mod100 = rank % 100;
+    if (mod100 >= 11 && mod100 <= 13) return `${rank}th`;
+    const suffix = rank % 10 === 1 ? 'st' : rank % 10 === 2 ? 'nd' : rank % 10 === 3 ? 'rd' : 'th';
+    return `${rank}${suffix}`;
+  }
+
+  function ensureValues(values, defaults, n) {
+    for (let i = 0; i < n; i++) {
+      if (!Number.isFinite(Number(values[i]))) values[i] = defaults[i] ?? 0;
+    }
+  }
+
   function renderPlayers() {
     const container = $('playersContainer');
+    ensureValues(state.stacks, DEFAULT_STACKS, state.n);
     container.innerHTML = '';
     for (let i = 0; i < state.n; i++) {
       const row = document.createElement('div');
@@ -641,13 +662,13 @@
 
   function renderPayouts() {
     const container = $('payoutsContainer');
+    ensureValues(state.payouts, DEFAULT_PAYOUTS, state.n);
     container.innerHTML = '';
-    const labels = ['1st', '2nd', '3rd', '4th'];
     for (let i = 0; i < state.n; i++) {
       const field = document.createElement('div');
       field.className = 'payout-field';
       field.innerHTML = `
-        <label>${labels[i]} ($)</label>
+        <label>${ordinal(i + 1)} ($)</label>
         <input type="number" min="0" step="1000" value="${state.payouts[i]}" data-idx="${i}" class="payout-input">
       `;
       container.appendChild(field);
@@ -665,7 +686,10 @@
     document.querySelectorAll('#playerCountBtns button').forEach(btn => {
       btn.addEventListener('click', () => {
         const n = +btn.dataset.n;
+        if (n < 2 || n > MAX_PLAYERS) return;
         state.n = n;
+        ensureValues(state.stacks, DEFAULT_STACKS, n);
+        ensureValues(state.payouts, DEFAULT_PAYOUTS, n);
         if (state.meIndex >= n) state.meIndex = 0;
         document.querySelectorAll('#playerCountBtns button').forEach(b => {
           b.classList.toggle('active', +b.dataset.n === n);
@@ -679,8 +703,8 @@
 
   function recalc() {
     const n = state.n;
-    const stacks = state.stacks.slice(0, n);
-    const payouts = state.payouts.slice(0, n);
+    const stacks = state.stacks.slice(0, n).map((value) => Number(value) || 0);
+    const payouts = state.payouts.slice(0, n).map((value) => Number(value) || 0);
     const total = stacks.reduce((a, b) => a + b, 0);
     const totalPrize = payouts.reduce((a, b) => a + b, 0);
 
