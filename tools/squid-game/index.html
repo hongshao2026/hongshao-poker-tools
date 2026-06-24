@@ -67,6 +67,7 @@
       background: var(--bg-elev);
       border: 1px solid var(--border);
       border-radius: var(--radius-md);
+      min-width: 0;
     }
 
     .sidebar {
@@ -119,6 +120,10 @@
     }
 
     .field-wide {
+      grid-column: 1 / -1;
+    }
+
+    .field-select-wide {
       grid-column: 1 / -1;
     }
 
@@ -434,7 +439,7 @@
           </div>
 
           <div class="form-grid">
-            <div class="field">
+            <div class="field field-select-wide">
               <label for="preset">预设</label>
               <select id="preset">
                 <option value="8-11">8人 / 11鱼</option>
@@ -445,7 +450,7 @@
               </select>
             </div>
 
-            <div class="field">
+            <div class="field field-select-wide">
               <label for="ruleMode">赔付模式</label>
               <select id="ruleMode">
                 <option value="linear">普通鱿鱼：每条同价</option>
