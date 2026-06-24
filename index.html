@@ -79,70 +79,6 @@
     max-width: 680px;
     line-height: 1.6;
   }
-  .value-row {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 12px;
-    margin: 0 0 44px;
-  }
-  .value-item {
-    background: rgba(19, 19, 24, 0.64);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 16px;
-    min-height: 116px;
-  }
-  .value-item strong {
-    display: block;
-    color: var(--text);
-    margin-bottom: 8px;
-  }
-  .value-item span {
-    color: var(--text-dim);
-    font-size: var(--fs-sm);
-    line-height: 1.55;
-  }
-
-  /* ============ project modes ============ */
-  .mode-strip {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px;
-    margin: 0 0 48px;
-  }
-  .mode-card {
-    background: rgba(19, 19, 24, 0.72);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 18px 20px;
-  }
-  .mode-card[data-mode="free"] {
-    border-color: color-mix(in oklab, var(--g-cash-1) 26%, var(--border));
-  }
-  .mode-card[data-mode="local"] {
-    border-color: color-mix(in oklab, var(--g-staking-2) 26%, var(--border));
-  }
-  .mode-label {
-    font-family: var(--font-mono);
-    font-size: var(--fs-tiny);
-    color: var(--text-faint);
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    margin-bottom: 8px;
-  }
-  .mode-title {
-    font-size: var(--fs-md);
-    font-weight: 700;
-    margin-bottom: 8px;
-  }
-  .mode-card[data-mode="free"] .mode-title { color: var(--g-cash-1); }
-  .mode-card[data-mode="local"] .mode-title { color: var(--g-staking-2); }
-  .mode-desc {
-    color: var(--text-dim);
-    font-size: var(--fs-sm);
-    line-height: 1.65;
-  }
-
   .status-badge {
     display: inline-flex;
     align-items: center;
@@ -159,29 +95,6 @@
   .status-badge.free {
     color: var(--g-cash-1);
     border-color: color-mix(in oklab, var(--g-cash-1) 34%, var(--border));
-  }
-  .release-strip {
-    display: grid;
-    grid-template-columns: 1.1fr 1fr 1fr;
-    gap: 14px;
-    margin: 0 0 52px;
-  }
-  .release-step {
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 18px;
-    background: rgba(10, 10, 12, 0.42);
-  }
-  .release-step b {
-    display: block;
-    color: var(--g-staking-1);
-    margin-bottom: 8px;
-  }
-  .release-step span {
-    display: block;
-    color: var(--text-dim);
-    font-size: var(--fs-sm);
-    line-height: 1.6;
   }
 
   /* ============ section group ============ */
@@ -479,8 +392,6 @@
     .portal { padding: 36px 16px 32px; }
     .hero h1 { font-size: 34px; }
     .hero p { font-size: var(--fs-base); }
-    .value-row { grid-template-columns: 1fr 1fr; }
-    .mode-strip { grid-template-columns: 1fr; margin-top: 0; }
     .tool-grid { grid-template-columns: 1fr; }
     .group[data-featured-first] .tool-grid > .tool-card:first-child {
       min-height: 192px;
@@ -499,17 +410,17 @@
     .star-cta .arrow { display: none; }
     .hero .brand-tag { padding-right: 60px; }
   }
-  @media (max-width: 520px) {
-    .value-row { grid-template-columns: 1fr; }
-  }
 </style>
 </head>
 <body>
 
 <div class="portal">
 
-  <a class="star-cta" href="#free-research" aria-label="查看免费工具">
-    <span class="label-full">免费工具</span>
+  <a class="star-cta" href="https://github.com/hongshao2026/hongshao-poker-tools" target="_blank" rel="noopener" aria-label="Star this repo on GitHub">
+    <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25z"/>
+    </svg>
+    <span class="label-full">Star on GitHub</span>
     <span class="arrow">→</span>
   </a>
 
@@ -521,53 +432,6 @@
       代码开源，工具直接使用。
     </p>
   </div>
-
-  <section class="value-row" aria-label="工作流能力">
-    <div class="value-item">
-      <strong>卖股报告</strong>
-      <span>把参数和结论整理成可发送的 Markdown、HTML、PDF。</span>
-    </div>
-    <div class="value-item">
-      <strong>Day2 批量</strong>
-      <span>粘贴名单和筹码，快速排序，导出 CSV。</span>
-    </div>
-    <div class="value-item">
-      <strong>赛事模板</strong>
-      <span>常用结构保存下来，下一次少填很多东西。</span>
-    </div>
-    <div class="value-item">
-      <strong>本地档案</strong>
-      <span>报告、批量记录和模板留在浏览器里，可导出备份。</span>
-    </div>
-  </section>
-
-  <section class="mode-strip" aria-label="版本边界">
-    <div class="mode-card" data-mode="free">
-      <div class="mode-label">Open Source</div>
-      <div class="mode-title">开源工具</div>
-      <div class="mode-desc">核心计算、报告导出、批量估值和本地留档都直接使用。</div>
-    </div>
-    <div class="mode-card" data-mode="local">
-      <div class="mode-label">Local First</div>
-      <div class="mode-title">本地优先</div>
-      <div class="mode-desc">数据留在当前浏览器，不上传，不依赖后端服务。</div>
-    </div>
-  </section>
-
-  <section class="release-strip" aria-label="使用方式">
-    <div class="release-step">
-      <b>1. 打开工具</b>
-      <span>从下方入口进入对应场景，直接填写参数。</span>
-    </div>
-    <div class="release-step">
-      <b>2. 本地计算</b>
-      <span>报告、模板和历史记录保存在当前浏览器。</span>
-    </div>
-    <div class="release-step">
-      <b>3. 导出备份</b>
-      <span>需要迁移时可以导出 Markdown、HTML、CSV 或 JSON。</span>
-    </div>
-  </section>
 
   <!-- ============ 工作流 ============ -->
   <section class="group" data-theme="staking">
