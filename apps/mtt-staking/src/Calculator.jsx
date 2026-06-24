@@ -4,7 +4,6 @@ import {
   MODEL, refROI, calcSigma, recommendMarkup, adjustSigmaForShape,
   calibratedModel, theoreticalModel, FELIX_TABLE,
 } from "../../../packages/core/staking/mtt-model.js";
-import { readProAccess } from "../../../assets/pro-access.js";
 
 // 模型参数已迁移到 packages/core/staking/mtt-model.js。
 
@@ -114,31 +113,19 @@ function Header({ tab }) {
 }
 
 function ProStatusBadge() {
-  const [access, setAccess] = useState(readProAccess());
-
-  useEffect(() => {
-    const refresh = () => setAccess(readProAccess());
-    window.addEventListener("hongshao:pro-access-changed", refresh);
-    window.addEventListener("storage", refresh);
-    return () => {
-      window.removeEventListener("hongshao:pro-access-changed", refresh);
-      window.removeEventListener("storage", refresh);
-    };
-  }, []);
-
   return (
     <span style={{
       display: "inline-flex",
       alignItems: "center",
-      border: `1px solid ${access ? "rgba(58,255,176,0.42)" : "rgba(255,210,58,0.38)"}`,
-      color: access ? C.good : C.solved,
-      background: access ? "rgba(58,255,176,0.08)" : "rgba(255,210,58,0.08)",
+      border: "1px solid rgba(58,255,176,0.42)",
+      color: C.good,
+      background: "rgba(58,255,176,0.08)",
       borderRadius: 999,
       padding: "5px 9px",
       fontSize: 10,
       letterSpacing: "0.08em",
     }}>
-      {access ? `PRO ACTIVE · ${access.plan}` : "PRO PREVIEW"}
+      OPEN SOURCE
     </span>
   );
 }
@@ -552,7 +539,7 @@ function StakingReportPanel({ buyin, field, type, BR, roi, markup, shape, calibr
     <div style={{ background: C.panel, borderRadius: 12, padding: 20, border: `1px solid ${C.solved}55`, marginTop: 16 }}>
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 14 }}>
         <div>
-          <SectionTitle>Pro 报告生成器</SectionTitle>
+          <SectionTitle>报告生成器</SectionTitle>
           <div style={{ fontSize: 12, color: C.textFaint, lineHeight: 1.6 }}>
             生成 Markdown、HTML 和可打印 PDF。
           </div>

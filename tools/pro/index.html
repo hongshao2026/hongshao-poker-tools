@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>红烧扑克 Pro · 工作流包</title>
+<title>红烧扑克工作流 · 批量与留档</title>
 <link rel="stylesheet" href="../../assets/shared.css">
 <link rel="icon" type="image/svg+xml" href="../../assets/icon.svg">
 <meta name="theme-color" content="#0a0a0c">
@@ -67,10 +67,6 @@
     background: var(--bg-input);
     color: var(--text-dim);
     border: 1px solid var(--border);
-  }
-  .button-link.buy {
-    background: var(--accent);
-    color: #000;
   }
   .status {
     display: inline-flex;
@@ -161,19 +157,6 @@
     font-size: 12px;
     line-height: 1.75;
   }
-  .price {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 12px;
-  }
-  .price-pill {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 10px 12px;
-  }
-  .price-pill strong { color: var(--solved); font-size: 20px; }
   @media (max-width: 720px) {
     h1 { font-size: 34px; }
   }
@@ -183,67 +166,50 @@
 <a class="portal-back" href="../../index.html">← 工具集</a>
 <div class="wrap">
   <section class="hero">
-    <div class="eyebrow">Hongshao Poker Pro</div>
-    <h1>红烧扑克<span>Pro 工作台</span></h1>
-    <p class="hero-copy">报告、批量估值、赛事模板和本地档案。给常用研究结果一个干净的出口。</p>
+    <div class="eyebrow">Hongshao Poker Workflow</div>
+    <h1>红烧扑克<span>工作流</span></h1>
+    <p class="hero-copy">报告、批量估值、赛事模板和本地档案。所有入口直接可用，数据保存在当前浏览器。</p>
     <div class="hero-actions">
-      <span class="status" id="pro-status">PRO PREVIEW</span>
-      <a class="button-link buy" href="https://github.com/hongshao2026/hongshao-poker-tools/issues/new?title=Pro%20Early%20Bird%20Access" target="_blank" rel="noopener">获取早鸟码</a>
+      <span class="status">OPEN SOURCE</span>
       <a class="button-link" href="../research-vault/">打开本地研究档案</a>
       <a class="button-link secondary" href="../../index.html">返回工具集</a>
     </div>
   </section>
 
-  <section class="panel">
-    <div class="section-title">Activate</div>
-    <div class="actions">
-      <input id="activation-code" placeholder="输入激活码">
-      <button onclick="handleActivate()">激活 Pro</button>
-      <button class="secondary" onclick="handleDeactivate()">退出激活</button>
-    </div>
-    <p class="note" id="activation-message" style="margin-top:10px;"></p>
-  </section>
-
   <section class="grid">
     <a class="card" href="../mtt-staking/#calc">
-      <div class="tag">PRO 01</div>
+      <div class="tag">OPEN 01</div>
       <h2>卖股报告生成器</h2>
       <p>生成 Markdown、HTML 和可打印 PDF 报告。</p>
     </a>
     <a class="card" href="../staking-calc/#batch-day2">
-      <div class="tag">PRO 02</div>
+      <div class="tag">OPEN 02</div>
       <h2>Day2 批量估值</h2>
       <p>粘贴名单和筹码，输出排序表和 CSV。</p>
     </a>
     <a class="card" href="../tournament-templates/">
-      <div class="tag">PRO 03</div>
+      <div class="tag">OPEN 03</div>
       <h2>赛事模板库</h2>
       <p>保存常用赛事结构和自定义参数。</p>
     </a>
     <a class="card" href="../research-vault/">
-      <div class="tag">PRO 04</div>
+      <div class="tag">OPEN 04</div>
       <h2>本地研究档案</h2>
       <p>集中管理报告、批量记录和模板。</p>
     </a>
   </section>
 
   <section class="panel" style="margin-top:14px;">
-    <div class="section-title">Free vs Pro</div>
+    <div class="section-title">Workflow</div>
     <table class="compare">
-      <thead><tr><th>能力</th><th>基础工具</th><th>Pro 工作台</th></tr></thead>
+      <thead><tr><th>能力</th><th>入口</th><th>输出</th></tr></thead>
       <tbody>
-        <tr><td>单点计算</td><td class="good">可用</td><td class="good">可用</td></tr>
-        <tr><td>报告导出</td><td class="dim">文本为主</td><td class="good">Markdown / HTML / PDF</td></tr>
-        <tr><td>批量估值</td><td class="dim">手动</td><td class="good">粘贴 / 排序 / CSV</td></tr>
-        <tr><td>赛事模板</td><td class="dim">样例</td><td class="good">本地自定义</td></tr>
-        <tr><td>研究档案</td><td class="dim">分散</td><td class="good">统一入口</td></tr>
+        <tr><td>报告导出</td><td class="good">卖股计算器</td><td class="good">Markdown / HTML / PDF</td></tr>
+        <tr><td>批量估值</td><td class="good">Day2 工具</td><td class="good">排序表 / CSV</td></tr>
+        <tr><td>赛事模板</td><td class="good">模板库</td><td class="good">本地自定义 / JSON</td></tr>
+        <tr><td>研究档案</td><td class="good">档案页</td><td class="good">统一备份</td></tr>
       </tbody>
     </table>
-    <div class="price">
-      <div class="price-pill"><span class="dim">早鸟</span> <strong>¥99</strong></div>
-      <div class="price-pill"><span class="dim">正式</span> <strong>¥168-199</strong></div>
-      <div class="price-pill"><span class="dim">更新</span> <strong>当前大版本 + 12 个月</strong></div>
-    </div>
   </section>
 
   <section class="panel">
@@ -252,36 +218,5 @@
   </section>
 </div>
 
-<script type="module">
-import { activatePro, deactivatePro, renderProBadge } from '../../assets/pro-access.js';
-
-function refresh() {
-  renderProBadge('#pro-status');
-}
-
-window.handleActivate = function() {
-  const result = activatePro(document.getElementById('activation-code').value);
-  const msg = document.getElementById('activation-message');
-  if (result.ok) {
-    msg.textContent = `已激活: ${result.access.plan}`;
-    msg.style.color = 'var(--good)';
-  } else {
-    msg.textContent = result.message;
-    msg.style.color = 'var(--warn)';
-  }
-  refresh();
-};
-
-window.handleDeactivate = function() {
-  deactivatePro();
-  const msg = document.getElementById('activation-message');
-  msg.textContent = '已退出本地激活。';
-  msg.style.color = 'var(--text-faint)';
-  refresh();
-};
-
-window.addEventListener('hongshao:pro-access-changed', refresh);
-refresh();
-</script>
 </body>
 </html>

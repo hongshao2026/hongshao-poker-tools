@@ -1,9 +1,6 @@
 export const PRO_ACCESS_KEY = "hongshao_pro_access_v1";
 
 export const PRO_CODES = [
-  "HONGSHAO-PRO-168",
-  "HONGSHAO-EARLY-099",
-  "HS-PRO-FOUNDERS",
 ];
 
 export function normalizeCode(code) {
@@ -27,13 +24,13 @@ export function isProActive() {
 export function activatePro(code) {
   const normalized = normalizeCode(code);
   if (!PRO_CODES.includes(normalized)) {
-    return { ok: false, message: "激活码无效" };
+    return { ok: false, message: "当前版本无需激活" };
   }
   const payload = {
     active: true,
     code: normalized,
     activatedAt: new Date().toISOString(),
-    plan: normalized.includes("EARLY") ? "Early Bird" : normalized.includes("FOUNDERS") ? "Founders" : "Pro",
+    plan: "Open Source",
   };
   window.localStorage.setItem(PRO_ACCESS_KEY, JSON.stringify(payload));
   window.dispatchEvent(new CustomEvent("hongshao:pro-access-changed", { detail: payload }));
@@ -48,7 +45,6 @@ export function deactivatePro() {
 export function renderProBadge(target) {
   const el = typeof target === "string" ? document.querySelector(target) : target;
   if (!el) return;
-  const access = readProAccess();
-  el.textContent = access ? `PRO ACTIVE · ${access.plan}` : "PRO PREVIEW";
-  el.classList.toggle("is-active", !!access);
+  el.textContent = "OPEN SOURCE";
+  el.classList.remove("is-active");
 }
