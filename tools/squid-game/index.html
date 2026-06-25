@@ -286,46 +286,6 @@
       color: var(--warn);
     }
 
-    .metric-subvalue {
-      margin-top: 4px;
-      color: var(--text-faint);
-      font-family: var(--font-mono);
-      font-size: var(--fs-tiny);
-      line-height: 1.35;
-    }
-
-    .conversion-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
-      margin-bottom: 18px;
-    }
-
-    .conversion-card {
-      min-width: 0;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      background: #17171b;
-      padding: 10px 12px;
-    }
-
-    .conversion-card span,
-    .conversion-card small {
-      display: block;
-      color: var(--text-faint);
-      font-size: var(--fs-tiny);
-      line-height: 1.35;
-    }
-
-    .conversion-card strong {
-      display: block;
-      margin: 5px 0 3px;
-      color: var(--text);
-      font-family: var(--font-mono);
-      font-size: var(--fs-sm);
-      white-space: nowrap;
-    }
-
     .section {
       margin-top: 18px;
     }
@@ -354,13 +314,12 @@
       min-width: 720px;
     }
 
-    #summaryTable {
-      min-width: 940px;
+    #potAnteTable {
+      min-width: 900px;
     }
 
-    #potAnteTable,
     #scenarioTable {
-      min-width: 980px;
+      min-width: 760px;
     }
 
     th,
@@ -415,25 +374,6 @@
       color: var(--text-faint);
     }
 
-    .delta {
-      display: block;
-      margin-top: 2px;
-      font-size: 11px;
-      color: var(--text-faint);
-    }
-
-    .cell-main {
-      display: block;
-    }
-
-    .cell-sub {
-      display: block;
-      margin-top: 2px;
-      color: var(--text-faint);
-      font-size: 11px;
-      line-height: 1.35;
-    }
-
     .error {
       display: none;
       margin-bottom: 14px;
@@ -476,9 +416,6 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
-      .conversion-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
     }
 
     @media (max-width: 620px) {
@@ -494,8 +431,7 @@
 
       .form-grid,
       .player-grid,
-      .metrics,
-      .conversion-grid {
+      .metrics {
         grid-template-columns: 1fr;
       }
 
@@ -589,36 +525,6 @@
 
         <section class="block">
           <div class="block-head">
-            <div class="block-title">牌局换算</div>
-          </div>
-
-          <div class="form-grid">
-            <div class="field">
-              <label for="tableSmallBlind">小盲</label>
-              <input type="number" id="tableSmallBlind" min="0" step="0.5" value="1">
-            </div>
-
-            <div class="field">
-              <label for="tableBigBlind">大盲</label>
-              <input type="number" id="tableBigBlind" min="0.01" step="0.5" value="2">
-            </div>
-
-            <div class="field">
-              <label for="tableStraddle">必 straddle</label>
-              <input type="number" id="tableStraddle" min="0" step="0.5" value="4">
-            </div>
-
-            <div class="field">
-              <label for="tableAnte">每人 ante</label>
-              <input type="number" id="tableAnte" min="0" step="0.5" value="2">
-            </div>
-          </div>
-
-          <div class="field-note" id="tableContextNote">鱿鱼仍按 BB 结算；这里仅把 BB 换算成筹码、straddle，并计算每手强制底池。</div>
-        </section>
-
-        <section class="block">
-          <div class="block-head">
             <div>
               <div class="block-title">玩家状态</div>
               <div class="state-meta" id="assignedMeta">已分配 0 / 11</div>
@@ -648,12 +554,10 @@
           <div class="metric">
             <div class="metric-label" title="所有玩家预计要付出去的金额合计，单位 BB。">全桌预计要付 [BB]</div>
             <div class="metric-value" id="metricDead">—</div>
-            <div class="metric-subvalue" id="metricDeadConverted">—</div>
           </div>
           <div class="metric">
             <div class="metric-label" title="选中的玩家拿到本手鱼，相比其他人拿到本手鱼，净收益会变化多少。">选中玩家拿鱼收益差 [BB]</div>
             <div class="metric-value" id="metricDiff">—</div>
-            <div class="metric-subvalue" id="metricDiffConverted">—</div>
           </div>
           <div class="metric">
             <div class="metric-label">剩余鱿鱼</div>
@@ -661,44 +565,19 @@
           </div>
         </div>
 
-        <div class="conversion-grid" aria-label="牌局换算">
-          <div class="conversion-card">
-            <span>BB 基准</span>
-            <strong id="bbUnitText">—</strong>
-            <small>鱿鱼赔付单位</small>
-          </div>
-          <div class="conversion-card">
-            <span>Straddle 基准</span>
-            <strong id="straddleUnitText">—</strong>
-            <small id="straddleUnitSub">—</small>
-          </div>
-          <div class="conversion-card">
-            <span>每人 Ante</span>
-            <strong id="anteUnitText">—</strong>
-            <small id="anteUnitSub">—</small>
-          </div>
-          <div class="conversion-card">
-            <span>开局强制底池</span>
-            <strong id="forcedPotText">—</strong>
-            <small id="forcedPotSub">—</small>
-          </div>
-        </div>
-
         <div class="section">
           <div class="section-title">
             <span>每个玩家预计结果</span>
-            <span class="status" id="selectedLabel">选中 P1</span>
+            <span class="status" id="selectedLabel">选中 P1 所在组</span>
           </div>
           <div class="table-wrap">
             <table id="summaryTable">
               <thead>
                 <tr>
-                  <th class="left">玩家</th>
+                  <th class="left">玩家组</th>
                   <th title="当前持有的鱿鱼数。">鱼数</th>
                   <th title="该玩家和其他玩家争本手鱼时，行内有效死钱的平均值。">平均有效死钱 [BB]</th>
-                  <th title="按当前大盲和 straddle 换算成实际筹码。">死钱换算</th>
                   <th title="终局预计净收益；正数表示平均收钱，负数表示平均付款。">预计净收益 [BB]</th>
-                  <th title="按当前大盲和 straddle 换算成实际筹码。">净收益换算</th>
                 </tr>
               </thead>
               <tbody></tbody>
@@ -711,7 +590,7 @@
             <span>每个 pot 的有效死钱 [BB]</span>
             <span class="status">行玩家 vs 列玩家</span>
           </div>
-          <div class="field-note">读法：P1 行 P2 列 = P1 和 P2 争这个 pot 时，本手鱼归 P1 相对归 P2，对 P1 多值多少 BB；下方小字按牌局换算成筹码和 straddle。</div>
+          <div class="field-note">读法：P1 行 P2 列 = P1 和 P2 争这个 pot 时，本手鱼归 P1 相对归 P2，对 P1 多值多少 BB。</div>
           <div class="table-wrap">
             <table id="potAnteTable">
               <thead></thead>
@@ -723,7 +602,7 @@
         <div class="section">
           <div class="section-title">
             <span>本手鱼给谁后的预计要付 [BB]</span>
-            <span class="status">每行假设本手鱼归属</span>
+            <span class="status">同构情景已合并</span>
           </div>
           <div class="table-wrap">
             <table id="scenarioTable">
@@ -744,7 +623,7 @@
   </main>
 
   <script type="module">
-    import { analyzePerPlayerDeadMoney } from '../../packages/core/squid/index.js?v=squid-console-20260625-editable-rules';
+    import { analyzePerPlayerDeadMoney } from '../../packages/core/squid/index.js?v=squid-console-20260625-bb-only';
 
     const $ = (id) => document.getElementById(id);
 
@@ -764,26 +643,8 @@
       return value.toFixed(digits);
     }
 
-    function fmtDelta(value) {
-      if (!Number.isFinite(value) || Math.abs(value) < 0.00005) return '';
-      return `${value > 0 ? '+' : ''}${value.toFixed(4)}`;
-    }
-
-    function fmtShort(value, digits = 2) {
-      if (!Number.isFinite(value)) return '—';
-      if (Math.abs(value) < 0.0000001) return '0';
-      const fixed = value.toFixed(digits);
-      return fixed.replace(/\.?0+$/, '');
-    }
-
     function parsePositiveInt(id, label) {
       const value = Number.parseInt($(id).value, 10);
-      if (!Number.isFinite(value) || value <= 0) throw new Error(`${label}需要大于 0`);
-      return value;
-    }
-
-    function parsePositiveNumber(id, label) {
-      const value = Number.parseFloat($(id).value);
       if (!Number.isFinite(value) || value <= 0) throw new Error(`${label}需要大于 0`);
       return value;
     }
@@ -792,78 +653,6 @@
       const value = Number.parseFloat($(id).value);
       if (!Number.isFinite(value) || value < 0) throw new Error(`${label}不能小于 0`);
       return value;
-    }
-
-    function collectTableContext(numPeople) {
-      const smallBlind = parseNonNegativeNumber('tableSmallBlind', '小盲');
-      const bigBlind = parsePositiveNumber('tableBigBlind', '大盲');
-      const straddle = parseNonNegativeNumber('tableStraddle', '必 straddle');
-      const ante = parseNonNegativeNumber('tableAnte', '每人 ante');
-      const forcedPotChips = smallBlind + bigBlind + straddle + ante * numPeople;
-
-      return {
-        smallBlind,
-        bigBlind,
-        straddle,
-        ante,
-        anteBb: ante / bigBlind,
-        straddleBb: straddle > 0 ? straddle / bigBlind : null,
-        forcedPotChips,
-        forcedPotBb: forcedPotChips / bigBlind,
-        forcedPotStraddles: straddle > 0 ? forcedPotChips / straddle : null,
-      };
-    }
-
-    function bbToChips(valueBb, tableContext) {
-      return valueBb * tableContext.bigBlind;
-    }
-
-    function bbToStraddles(valueBb, tableContext) {
-      if (!tableContext.straddle) return null;
-      return bbToChips(valueBb, tableContext) / tableContext.straddle;
-    }
-
-    function formatConversion(valueBb, tableContext) {
-      if (!Number.isFinite(valueBb)) return '—';
-      const chips = bbToChips(valueBb, tableContext);
-      const straddles = bbToStraddles(valueBb, tableContext);
-      const straddleText = straddles === null ? '无 straddle' : `${fmtShort(straddles)} str`;
-      return `${fmtShort(chips)} 筹码 / ${straddleText}`;
-    }
-
-    function valueCellHtml(valueBb, tableContext) {
-      return `
-        <span class="cell-main">${fmt(valueBb)}</span>
-        <span class="cell-sub">${formatConversion(valueBb, tableContext)}</span>
-      `;
-    }
-
-    function conversionCellHtml(valueBb, tableContext) {
-      const chips = bbToChips(valueBb, tableContext);
-      const straddles = bbToStraddles(valueBb, tableContext);
-      return `
-        <span class="cell-main">${fmtShort(chips)} 筹码</span>
-        <span class="cell-sub">${straddles === null ? '无 straddle' : `${fmtShort(straddles)} str`}</span>
-      `;
-    }
-
-    function renderTableContext(tableContext) {
-      $('bbUnitText').textContent = `1 BB = ${fmtShort(tableContext.bigBlind)} 筹码`;
-      $('straddleUnitText').textContent = tableContext.straddle > 0
-        ? `1 str = ${fmtShort(tableContext.straddleBb)} BB`
-        : '未启用';
-      $('straddleUnitSub').textContent = tableContext.straddle > 0
-        ? `${fmtShort(tableContext.straddle)} 筹码为一个 straddle`
-        : '不显示 straddle 换算';
-      $('anteUnitText').textContent = `${fmtShort(tableContext.ante)} 筹码`;
-      $('anteUnitSub').textContent = `${fmtShort(tableContext.anteBb)} BB / 人 / 手`;
-      $('forcedPotText').textContent = `${fmtShort(tableContext.forcedPotChips)} 筹码`;
-      $('forcedPotSub').textContent = tableContext.forcedPotStraddles === null
-        ? `${fmtShort(tableContext.forcedPotBb)} BB`
-        : `${fmtShort(tableContext.forcedPotBb)} BB / ${fmtShort(tableContext.forcedPotStraddles)} str`;
-      $('tableContextNote').textContent = `当前口径：${fmtShort(tableContext.smallBlind)}/${fmtShort(tableContext.bigBlind)}`
-        + `${tableContext.straddle > 0 ? `/${fmtShort(tableContext.straddle)}` : ''}`
-        + `（ante ${fmtShort(tableContext.ante)}）。鱿鱼仍按 BB 算，筹码 = BB × 大盲。`;
     }
 
     function parseMaxPerPlayer() {
@@ -1008,7 +797,6 @@
     function collectInputs() {
       const numPeople = parsePositiveInt('numPeople', '玩家数');
       if (numPeople > 12) throw new Error('玩家数暂时最多支持 12');
-      const tableContext = collectTableContext(numPeople);
       const configuredMax = parsePositiveInt('maxCakes', '总鱿鱼数');
       const firstSquidBonus = $('firstSquidBonus').checked;
       const maxCakes = configuredMax + (firstSquidBonus ? 1 : 0);
@@ -1038,7 +826,6 @@
         rules,
         allCakes,
         assigned,
-        tableContext,
       };
     }
 
@@ -1061,38 +848,97 @@
       el.className = `metric-value ${className}`.trim();
     }
 
-    function renderSummary(analysis, tableContext) {
+    function groupPlayersByOutcome(players) {
+      const groups = new Map();
+      players.forEach((player, index) => {
+        const key = [
+          player.squids,
+          player.hasFirstSquid ? 1 : 0,
+          fmt(player.averageAnteBb),
+          fmt(player.penaltyEquityBb),
+        ].join('|');
+        if (!groups.has(key)) {
+          groups.set(key, {
+            player,
+            indices: [],
+          });
+        }
+        groups.get(key).indices.push(index);
+      });
+      return [...groups.values()];
+    }
+
+    function renderSummary(analysis) {
       const tbody = document.querySelector('#summaryTable tbody');
       tbody.innerHTML = '';
 
-      analysis.players.forEach((player, index) => {
+      groupPlayersByOutcome(analysis.players).forEach((group) => {
+        const { player, indices } = group;
         const row = tbody.insertRow();
-        row.className = index === selectedPlayer ? 'selected-row' : '';
+        row.className = indices.includes(selectedPlayer) ? 'selected-row' : '';
         row.addEventListener('click', () => {
-          selectedPlayer = index;
+          selectedPlayer = indices[0];
           renderPlayerGrid(currentPlayerValues());
           run();
         });
 
-        row.insertCell(0).textContent = player.hasFirstSquid ? `${player.player} 首鱼` : player.player;
+        const label = indices.map((index) => `P${index + 1}`).join('/');
+        row.insertCell(0).textContent = player.hasFirstSquid ? `${label} 首鱼` : label;
         row.cells[0].className = 'left';
         row.insertCell(1).textContent = player.squids;
         row.insertCell(2).textContent = fmt(player.averageAnteBb);
-        row.insertCell(3).innerHTML = conversionCellHtml(player.averageAnteBb, tableContext);
-        const netCell = row.insertCell(4);
+        const netCell = row.insertCell(3);
         netCell.textContent = fmt(player.penaltyEquityBb);
         netCell.className = player.penaltyEquityBb > 0 ? 'num-good' : player.penaltyEquityBb < 0 ? 'num-bad' : 'num-dim';
-        const netConvertedCell = row.insertCell(5);
-        netConvertedCell.innerHTML = conversionCellHtml(player.penaltyEquityBb, tableContext);
-        netConvertedCell.className = netCell.className;
       });
     }
 
-    function renderScenarioTable(analysis, tableContext) {
+    function formatCompactDistribution(values) {
+      const counts = new Map();
+      for (const value of values) counts.set(value, (counts.get(value) || 0) + 1);
+      return [...counts.entries()]
+        .sort((a, b) => b[0] - a[0])
+        .map(([value, count]) => (count > 1 ? `${value}鱼×${count}` : `${value}鱼`))
+        .join(' / ');
+    }
+
+    function formatScenarioGroups(players) {
+      const groups = new Map();
+      for (const player of players) {
+        if (!groups.has(player.squids)) groups.set(player.squids, []);
+        groups.get(player.squids).push(player.deadMoneyBb);
+      }
+      return [...groups.entries()]
+        .sort((a, b) => b[0] - a[0])
+        .map(([squids, values]) => {
+          const average = values.reduce((sum, value) => sum + value, 0) / values.length;
+          return `${squids}鱼: ${fmt(average)}`;
+        })
+        .join(' / ');
+    }
+
+    function groupScenarioRows(scenarios) {
+      const groups = new Map();
+      for (const scenario of scenarios) {
+        const key = [...scenario.allCakes].sort((a, b) => b - a).join(',');
+        if (!groups.has(key)) {
+          groups.set(key, {
+            receivers: [],
+            representative: scenario,
+          });
+        }
+        const group = groups.get(key);
+        if (scenario.receiverIndex !== null) {
+          group.receivers.push(`P${scenario.receiverIndex + 1}`);
+        }
+      }
+      return [...groups.values()];
+    }
+
+    function renderScenarioTable(analysis) {
       const table = $('scenarioTable');
       const thead = table.querySelector('thead');
       const tbody = table.querySelector('tbody');
-      const base = analysis.scenarios[0];
 
       thead.innerHTML = '';
       tbody.innerHTML = '';
@@ -1100,36 +946,32 @@
       const headerRow = thead.insertRow();
       headerRow.innerHTML = `
         <th class="left">情景</th>
-        <th class="left">分布</th>
+        <th class="left">结果分布</th>
         <th>E[付款]</th>
-        ${analysis.players.map((player) => `<th>${player.player}</th>`).join('')}
+        <th>全桌要付 [BB]</th>
+        <th class="left">按鱼数分组 [BB]</th>
       `;
 
-      analysis.scenarios.forEach((scenario) => {
+      groupScenarioRows(analysis.scenarios).forEach(({ receivers, representative }) => {
+        const scenario = representative;
         const row = tbody.insertRow();
         const label = row.insertCell(0);
-        label.textContent = scenario.label;
+        label.textContent = receivers.length ? `${receivers.join('/')} +${scenario.allCakes.reduce((sum, count, index) => sum + Math.max(0, count - analysis.scenarios[0].allCakes[index]), 0)}` : '当前分布';
         label.className = 'left';
 
         const dist = row.insertCell(1);
-        dist.textContent = scenario.allCakes.join(' / ');
+        dist.textContent = formatCompactDistribution(scenario.allCakes);
         dist.className = 'left num-dim';
 
         row.insertCell(2).textContent = fmt(scenario.expectedPenaltyPayers, 3);
-
-        scenario.players.forEach((player, index) => {
-          const cell = row.insertCell(-1);
-          const delta = player.deadMoneyBb - base.players[index].deadMoneyBb;
-          const deltaText = fmtDelta(delta);
-          cell.innerHTML = `
-            ${valueCellHtml(player.deadMoneyBb, tableContext)}
-            ${deltaText ? `<span class="delta ${delta > 0 ? 'num-bad' : 'num-good'}">${deltaText}</span>` : ''}
-          `;
-        });
+        row.insertCell(3).textContent = fmt(scenario.players.reduce((sum, player) => sum + player.deadMoneyBb, 0));
+        const groups = row.insertCell(4);
+        groups.textContent = formatScenarioGroups(scenario.players);
+        groups.className = 'left';
       });
     }
 
-    function renderPotAnteTable(analysis, tableContext) {
+    function renderPotAnteTable(analysis) {
       const table = $('potAnteTable');
       const thead = table.querySelector('thead');
       const tbody = table.querySelector('tbody');
@@ -1157,7 +999,7 @@
             return;
           }
 
-          cell.innerHTML = valueCellHtml(value, tableContext);
+          cell.textContent = fmt(value);
           cell.className = value > 0 ? 'num-good' : value < 0 ? 'num-bad' : 'num-dim';
         });
       });
@@ -1179,7 +1021,7 @@
       }
     }
 
-    function renderDecisionMetric(analysis, tableContext) {
+    function renderDecisionMetric(analysis) {
       const hit = analysis.scenarios.find((scenario) => scenario.receiverIndex === selectedPlayer);
       const misses = analysis.scenarios.filter((scenario) => (
         scenario.receiverIndex !== null && scenario.receiverIndex !== selectedPlayer
@@ -1187,7 +1029,6 @@
 
       if (!hit || !misses.length) {
         setMetric('metricDiff', '—');
-        $('metricDiffConverted').textContent = '—';
         return;
       }
 
@@ -1197,7 +1038,6 @@
       ), 0) / misses.length;
       const diff = hitNet - missNet;
       setMetric('metricDiff', fmt(diff), diff > 0 ? 'good' : diff < 0 ? 'bad' : '');
-      $('metricDiffConverted').textContent = formatConversion(diff, tableContext);
     }
 
     function run() {
@@ -1222,16 +1062,14 @@
 
         setMetric('metricPayers', fmt(analysis.expectedPenaltyPayers, 3));
         setMetric('metricDead', fmt(totalDeadMoney));
-        $('metricDeadConverted').textContent = formatConversion(totalDeadMoney, input.tableContext);
         setMetric('metricRemaining', String(remaining));
-        renderTableContext(input.tableContext);
-        renderDecisionMetric(analysis, input.tableContext);
-        renderSummary(analysis, input.tableContext);
-        renderPotAnteTable(analysis, input.tableContext);
-        renderScenarioTable(analysis, input.tableContext);
+        renderDecisionMetric(analysis);
+        renderSummary(analysis);
+        renderPotAnteTable(analysis);
+        renderScenarioTable(analysis);
         renderDistribution(analysis);
 
-        $('selectedLabel').textContent = `选中 P${selectedPlayer + 1}`;
+        $('selectedLabel').textContent = `选中 P${selectedPlayer + 1} 所在组`;
         $('statusLine').textContent = analysis.gameEnded ? '终局状态' : '已计算';
       } catch (error) {
         showError(error.message);
@@ -1272,7 +1110,6 @@
       scheduleRun();
     });
 
-    const tableContextInputIds = new Set(['tableSmallBlind', 'tableBigBlind', 'tableStraddle', 'tableAnte']);
     [
       'numPeople',
       'maxCakes',
@@ -1282,20 +1119,16 @@
       'ruleMode',
       'rulesText',
       'firstSquidBonus',
-      'tableSmallBlind',
-      'tableBigBlind',
-      'tableStraddle',
-      'tableAnte',
     ].forEach((id) => {
       $(id).addEventListener('input', () => {
-        if (id !== 'rulesText' && !tableContextInputIds.has(id)) markCustomPreset();
+        if (id !== 'rulesText') markCustomPreset();
         if (id === 'numPeople') renderPlayerGrid(currentPlayerValues());
         if (id === 'ruleMode') resetRulesTextFromMode();
         updateAssignedMeta();
         scheduleRun();
       });
       $(id).addEventListener('change', () => {
-        if (id !== 'rulesText' && !tableContextInputIds.has(id)) markCustomPreset();
+        if (id !== 'rulesText') markCustomPreset();
         if (id === 'numPeople') renderPlayerGrid(currentPlayerValues());
         if (id === 'ruleMode') resetRulesTextFromMode();
         updateAssignedMeta();
