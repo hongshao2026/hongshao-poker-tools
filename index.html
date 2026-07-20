@@ -12,6 +12,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="红烧扑克">
+<script src="https://cdn.busuanzi.cc/busuanzi/3.6.9/busuanzi.min.js" defer></script>
 <style>
   /* ============ per-group palette ============ */
   :root {
@@ -347,11 +348,29 @@
   footer .tagline {
     letter-spacing: 0.04em;
   }
-  .star-cta {
+  .visitor-stats {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 0.04em;
+  }
+  .visitor-stats .stat-value {
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+  }
+  .visitor-stats .divider {
+    color: var(--border);
+  }
+  .top-actions {
     position: absolute;
     top: 24px;
     right: 24px;
     z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .star-cta {
     display: inline-flex;
     align-items: center;
     gap: 8px;
@@ -386,10 +405,66 @@
     transition: transform .18s;
   }
   .star-cta:hover .arrow { transform: translateX(2px); }
+  .wechat-cta {
+    min-height: 34px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 11px;
+    color: var(--text-dim);
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-tiny);
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: color .18s, border-color .18s, background .18s, transform .18s, box-shadow .18s;
+  }
+  .wechat-cta .wechat-mark {
+    display: inline-grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    color: #07130c;
+    background: var(--g-cash-1);
+    font-family: sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .wechat-cta strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+  .wechat-cta .copy-hint {
+    color: var(--text-faint);
+    font-size: 9px;
+  }
+  .wechat-cta:hover,
+  .wechat-cta.is-copied {
+    color: #07130c;
+    background: var(--g-cash-1);
+    border-color: var(--g-cash-1);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px -10px var(--g-cash-1);
+  }
+  .wechat-cta:hover strong,
+  .wechat-cta:hover .copy-hint,
+  .wechat-cta.is-copied strong,
+  .wechat-cta.is-copied .copy-hint {
+    color: inherit;
+  }
+  .wechat-cta:hover .wechat-mark,
+  .wechat-cta.is-copied .wechat-mark {
+    color: var(--g-cash-1);
+    background: #07130c;
+  }
 
   /* ============ responsive ============ */
   @media (max-width: 720px) {
-    .portal { padding: 36px 16px 32px; }
+    .portal { padding: 64px 16px 32px; }
     .hero h1 { font-size: 34px; }
     .hero p { font-size: var(--fs-base); }
     .tool-grid { grid-template-columns: 1fr; }
@@ -400,15 +475,17 @@
     .group[data-featured-first] .tool-grid > .tool-card:first-child .tool-name {
       font-size: var(--fs-md);
     }
-    .star-cta {
+    .top-actions {
       top: 14px;
       right: 14px;
+    }
+    .star-cta {
       padding: 7px 10px 7px 10px;
       gap: 6px;
     }
+    .wechat-cta { padding: 7px 9px; }
     .star-cta .label-full { display: none; }
     .star-cta .arrow { display: none; }
-    .hero .brand-tag { padding-right: 60px; }
   }
 </style>
 </head>
@@ -416,13 +493,20 @@
 
 <div class="portal">
 
-  <a class="star-cta" href="https://github.com/hongshao2026/hongshao-poker-tools" target="_blank" rel="noopener" aria-label="Star this repo on GitHub">
-    <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25z"/>
-    </svg>
-    <span class="label-full">Star on GitHub</span>
-    <span class="arrow">→</span>
-  </a>
+  <div class="top-actions">
+    <button class="wechat-cta" type="button" data-wechat="zhx20914" aria-label="微信 zhx20914，点击复制微信号">
+      <span class="wechat-mark" aria-hidden="true">微</span>
+      <span>微信 <strong>zhx20914</strong></span>
+      <span class="copy-hint" aria-hidden="true">复制</span>
+    </button>
+    <a class="star-cta" href="https://github.com/hongshao2026/hongshao-poker-tools" target="_blank" rel="noopener" aria-label="Star this repo on GitHub">
+      <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25z"/>
+      </svg>
+      <span class="label-full">Star on GitHub</span>
+      <span class="arrow">→</span>
+    </a>
+  </div>
 
   <div class="hero">
     <div class="brand-tag">Hongshao Poker · 红烧扑克</div>
@@ -597,11 +681,35 @@
 
   <footer>
     <span class="tagline">本地计算 · 开源工具 · 可离线使用</span>
+    <span class="visitor-stats" aria-label="主页浏览量统计">
+      <span>浏览 <span class="stat-value" id="busuanzi_page_pv">—</span></span>
+      <span class="divider" aria-hidden="true">/</span>
+      <span>访客 <span class="stat-value" id="busuanzi_page_uv">—</span></span>
+    </span>
   </footer>
 
 </div>
 
 <script>
+  const wechatButton = document.querySelector('.wechat-cta');
+  if (wechatButton) {
+    wechatButton.addEventListener('click', async () => {
+      const wechatId = wechatButton.dataset.wechat;
+      const hint = wechatButton.querySelector('.copy-hint');
+      try {
+        await navigator.clipboard.writeText(wechatId);
+        wechatButton.classList.add('is-copied');
+        hint.textContent = '已复制';
+        window.setTimeout(() => {
+          wechatButton.classList.remove('is-copied');
+          hint.textContent = '复制';
+        }, 1800);
+      } catch (_) {
+        window.prompt('复制微信号', wechatId);
+      }
+    });
+  }
+
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('sw.js').catch(() => {});
