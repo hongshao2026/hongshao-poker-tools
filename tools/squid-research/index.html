@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="在浏览器本地生成并筛选鱿鱼游戏所有不同玩家分布、出现概率与有效死钱。">
+  <meta name="theme-color" content="#090b10">
+  <title>鱿鱼研究表</title>
+  <link rel="stylesheet" href="./research.css">
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-copy">
+      <div class="eyebrow">SQUID RESEARCH DATABASE</div>
+      <h1>鱿鱼研究表</h1>
+      <p>输入规则，在本机生成所有不同分布。直接查询“我几鱼、对手几鱼”，查看对应死钱和该分布从开局出现的概率。</p>
+    </div>
+    <div class="privacy-pill"><span></span>全部计算仅在当前设备进行</div>
+  </header>
+
+  <main class="workspace">
+    <aside class="controls" aria-label="研究参数">
+      <section class="panel config-panel">
+        <div class="panel-heading">
+          <div>
+            <span class="section-index">01</span>
+            <h2>研究参数</h2>
+          </div>
+          <button class="text-button" id="resetButton" type="button">恢复默认</button>
+        </div>
+
+        <div class="field-grid">
+          <label class="field">
+            <span>玩家数</span>
+            <input id="numPeople" type="number" min="6" max="9" step="1" value="9" inputmode="numeric">
+          </label>
+          <label class="field">
+            <span>总鱼数</span>
+            <input id="totalSquids" type="number" min="3" max="14" step="1" value="12" inputmode="numeric">
+          </label>
+          <label class="field">
+            <span>每鱼价值 BB</span>
+            <input id="squidValueBb" type="number" min="0" step="0.25" value="4.00" inputmode="decimal">
+          </label>
+          <label class="field">
+            <span>基础死钱 BB</span>
+            <input id="baseDeadMoneyBb" type="number" min="0" step="0.25" value="10.50" inputmode="decimal">
+          </label>
+          <label class="field field-wide">
+            <span>已有鱼玩家达到几人时终止</span>
+            <input id="stopCount" type="number" min="2" max="9" step="1" value="7" inputmode="numeric">
+          </label>
+        </div>
+
+        <div class="rule-block">
+          <div class="rule-heading">
+            <div>
+              <span class="field-label">每鱼倍率</span>
+              <small>最终持有数量对应的倍率</small>
+            </div>
+            <div class="preset-group" aria-label="倍率预设">
+              <button class="preset active" type="button" data-preset="linear">普通 ×1</button>
+              <button class="preset" type="button" data-preset="double">持续翻倍</button>
+            </div>
+          </div>
+          <div class="multiplier-grid" id="multiplierGrid"></div>
+        </div>
+
+        <div class="locked-setting">
+          <span>首鱼翻倍</span>
+          <strong>关闭</strong>
+          <small>研究表按无首鱼奖励计算</small>
+        </div>
+
+        <button class="primary-button" id="calculateButton" type="button">
+          <span class="button-label">生成整张研究表</span>
+          <span class="button-progress" aria-hidden="true"></span>
+        </button>
+        <div class="progress-copy" id="progressCopy" aria-live="polite">默认参数已就绪</div>
+      </section>
+
+      <details class="method-card">
+        <summary>“分布出现概率”怎么算？</summary>
+        <p>从开局开始，每条鱼等概率发给任一玩家。在已经发出对应鱼数时，恰好形成这一完整鱼数分布的概率。</p>
+        <p>P3 之后只因身份互换而重复的状态会合并，概率包含这些排列的总和。游戏已提前终止的状态不会进入表中。</p>
+      </details>
+    </aside>
+
+    <section class="results" aria-live="polite">
+      <div class="result-header">
+        <div>
+          <span class="section-index">02</span>
+          <h2>研究结果</h2>
+        </div>
+        <div class="result-status" id="resultStatus">等待计算</div>
+      </div>
+
+      <div class="metrics" id="metrics">
+        <article class="metric primary-metric">
+          <span>不同分布</span>
+          <strong id="metricRows">—</strong>
+          <small>已合并其他玩家身份互换</small>
+        </article>
+        <article class="metric">
+          <span>鱼数对局组</span>
+          <strong id="metricGroups">—</strong>
+          <small>剩余鱼数 × 我 × 对手</small>
+        </article>
+        <article class="metric">
+          <span>最大组内极差</span>
+          <strong id="metricRange">—</strong>
+          <small id="metricRangeContext">最大值 − 最小值</small>
+        </article>
+        <article class="metric">
+          <span>本次计算</span>
+          <strong id="metricTime">—</strong>
+          <small>浏览器本地完成</small>
+        </article>
+      </div>
+
+      <section class="query-panel panel">
+        <div class="query-heading">
+          <div>
+            <span class="section-index">03</span>
+            <h2>快速查询</h2>
+          </div>
+          <span class="match-count" id="matchCount">尚未生成数据</span>
+        </div>
+        <div class="query-grid">
+          <label class="field natural-query">
+            <span>直接输入</span>
+            <input id="quickQuery" type="search" placeholder="例如：0vs1 或 我0鱼对手1鱼" autocomplete="off">
+          </label>
+          <label class="field">
+            <span>我的鱼数</span>
+            <select id="heroFilter"><option value="">全部</option></select>
+          </label>
+          <label class="field">
+            <span>对手鱼数</span>
+            <select id="opponentFilter"><option value="">全部</option></select>
+          </label>
+          <label class="field">
+            <span>剩余鱼数</span>
+            <select id="remainingFilter"><option value="">全部</option></select>
+          </label>
+          <button class="secondary-button" id="clearFilters" type="button">清除筛选</button>
+        </div>
+        <div class="query-summary" id="querySummary">生成数据后即可筛选。</div>
+      </section>
+
+      <section class="table-panel panel">
+        <div class="table-toolbar">
+          <div>
+            <strong>全部不同分布</strong>
+            <span id="tableScope">—</span>
+          </div>
+          <label class="page-size">
+            每页
+            <select id="pageSize">
+              <option value="50">50</option>
+              <option value="100" selected>100</option>
+              <option value="250">250</option>
+              <option value="all">全部</option>
+            </select>
+          </label>
+        </div>
+        <div class="table-scroll" id="tableScroll">
+          <table id="resultsTable">
+            <thead id="tableHead"></thead>
+            <tbody id="tableBody">
+              <tr class="empty-row"><td>输入参数并生成研究表</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <button id="prevPage" type="button">上一页</button>
+          <span id="pageStatus">第 — 页</span>
+          <button id="nextPage" type="button">下一页</button>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <template id="errorTemplate">
+    <div class="error-banner" role="alert"></div>
+  </template>
+
+  <script src="./research.js" defer></script>
+</body>
+</html>
